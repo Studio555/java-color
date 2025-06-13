@@ -3,9 +3,9 @@ package com.esotericsoftware.colors;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Colors {
-	static private final float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
-	static private final float k = 903.2963f; // 24389/27
-	static private final float e = 0.008856452f; // 216/24389
+	static final float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
+	static final float k = 903.2963f; // 24389/27
+	static final float e = 0.008856452f; // 216/24389
 	static private final float[][] HPE_forward = {{0.38971f, 0.68898f, -0.07868f}, {-0.22981f, 1.18340f, 0.04641f},
 		{0.00000f, 0.00000f, 1.00000f}};
 	static private final float[][] HPE_backward = {{1.91019683f, -1.11212389f, 0.20190796f},
@@ -26,8 +26,6 @@ public class Colors {
 		{0.0030f, 0.0136f, 0.9834f}};
 	static private final float[][] CAT02_backward = {{1.0961238f, -0.2788690f, 0.1827452f}, {0.4543690f, 0.4735332f, 0.0720978f},
 		{-0.0096276f, -0.0056980f, 1.0153256f}};
-	static private final float[][] HSLuv_XYZ_RGB = {{3.2404542f, -1.5371385f, -0.4985314f}, {-0.9692660f, 1.8760108f, 0.0415560f},
-		{0.0556434f, -0.2040259f, 1.0572252f}};
 
 	private Colors () {
 	}
@@ -44,8 +42,7 @@ public class Colors {
 		return CCT(xy(uv));
 	}
 
-	/** Calculate CCT from xy chromaticity using McCamy's approximation.
-	 * @return CCT in Kelvin [1667-25000], or NaN if outside valid range. */
+	/** @return CCT in Kelvin [1667-25000], or NaN if outside valid range. */
 	static public float CCT (xy xy) {
 		float x = xy.x(), y = xy.y();
 		if (x < 0.25f || x > 0.565f || y < 0.20f || y > 0.45f) return Float.NaN;
@@ -215,62 +212,9 @@ public class Colors {
 		float L = lch.L(), C = lch.C(), H = lch.H();
 		if (L > 99.9999999f) return new HSLuv(H, 0, 100);
 		if (L < 0.00000001f) return new HSLuv(H, 0, 0);
-		float maxChroma = maxChromaForLH(L, H);
+		float maxChroma = Util.HSLuv.maxChromaForLH(L, H);
 		float S = maxChroma < 1e-10f ? 0 : Math.min(100, (C / maxChroma) * 100);
 		return new HSLuv(H, S, L);
-	}
-
-	static private float maxChromaForLH (float L, float H) {
-		float hRad = H * degRad;
-		float minChroma = Float.MAX_VALUE;
-		for (float[] bound : getBounds(L)) {
-			float m1 = bound[0], b1 = bound[1];
-			if (Float.isNaN(m1) || Float.isNaN(b1)) continue;
-			float x, y;
-			if (Math.abs(Math.sin(hRad)) < 1e-10f) { // Hue is 0 or 180 degrees (vertical line).
-				x = 0;
-				y = b1;
-			} else { // Calculate intersection based on hue angle.
-				float m2 = -1 / (float)Math.tan(hRad);
-				x = intersectLineLine(m1, b1, m2, 0);
-				if (Float.isNaN(x)) continue; // Lines are parallel.
-				y = m2 * x;
-			}
-			float chroma = (float)Math.sqrt(x * x + y * y);
-			if (chroma >= 0 && chroma < minChroma) minChroma = chroma;
-		}
-		return minChroma == Float.MAX_VALUE ? 0 : minChroma;
-	}
-
-	static private float[][] getBounds (float L) {
-		float[][] bounds = new float[6][2];
-		float sub1 = (float)Math.pow(L + 16, 3) / 1560896;
-		float sub2 = sub1 > e ? sub1 : L / k;
-		for (int c = 0, index = 0; c < 3; c++) {
-			float m1 = HSLuv_XYZ_RGB[c][0];
-			float m2 = HSLuv_XYZ_RGB[c][1];
-			float m3 = HSLuv_XYZ_RGB[c][2];
-			for (int t = 0; t < 2; t++) {
-				float top1 = (284517 * m1 - 94839 * m3) * sub2;
-				float top2 = (838422 * m3 + 769860 * m2 + 731718 * m1) * L * sub2 - 769860 * t * L;
-				float bottom = (632260 * m3 - 126452 * m2) * sub2 + 126452 * t;
-				if (Math.abs(bottom) < 1e-10f) {
-					bounds[index][0] = Float.NaN;
-					bounds[index][1] = Float.NaN;
-				} else {
-					bounds[index][0] = top1 / bottom;
-					bounds[index][1] = top2 / bottom;
-				}
-				index++;
-			}
-		}
-		return bounds;
-	}
-
-	static private float intersectLineLine (float m1, float b1, float m2, float b2) {
-		float denom = m1 - m2;
-		if (Math.abs(denom) < 1e-10f) return Float.NaN; // Parallel lines
-		return (b2 - b1) / denom;
 	}
 
 	static public HunterLab HunterLab (RGB rgb) {
@@ -432,6 +376,20 @@ public class Colors {
 		return new LinearRGB(r, g, b);
 	}
 
+	static public LinearRGB LinearRGB (Oklab Oklab) {
+		float L = Oklab.L(), a = Oklab.a(), b = Oklab.b();
+		float l = L + 0.3963377774f * a + 0.2158037573f * b;
+		float m = L - 0.1055613458f * a - 0.0638541728f * b;
+		float s = L - 0.0894841775f * a - 1.2914855480f * b;
+		l *= l * l;
+		m *= m * m;
+		s *= s * s;
+		return new LinearRGB( //
+			(+4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s), //
+			(-1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s), //
+			(-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s));
+	}
+
 	/** Uses the LMS CIECAM02 transformation matrix. */
 	static public LMS LMS (RGB rgb) {
 		return LMS(rgb, CAT.CAT02);
@@ -449,21 +407,13 @@ public class Colors {
 	static public LMS LMS (XYZ XYZ, CAT matrix) {
 		float[] array = {XYZ.X(), XYZ.Y(), XYZ.Z()};
 		float[] lms = switch (matrix) {
-		case HPE -> matrixMultiply(array, HPE_forward);
-		case Bradford -> matrixMultiply(array, Badford_forward);
-		case VonKries -> matrixMultiply(array, vonKries_forward);
-		case CAT97 -> matrixMultiply(array, CAT97_forward);
-		default -> matrixMultiply(array, CAT02_forward);
+		case HPE -> Util.matrixMultiply(array, HPE_forward);
+		case Bradford -> Util.matrixMultiply(array, Badford_forward);
+		case VonKries -> Util.matrixMultiply(array, vonKries_forward);
+		case CAT97 -> Util.matrixMultiply(array, CAT97_forward);
+		default -> Util.matrixMultiply(array, CAT02_forward);
 		};
 		return new LMS(lms[0], lms[1], lms[2]);
-	}
-
-	static public float[] matrixMultiply (float[] a, float[][] b) {
-		float[] result = new float[b[0].length];
-		for (int i = 0; i < b[0].length; i++)
-			for (int ii = 0; ii < b.length; ii++)
-				result[i] += a[ii] * b[ii][i];
-		return result;
 	}
 
 	/** O1O2 version 2. */
@@ -493,15 +443,15 @@ public class Colors {
 		return new Oklab(L, a, bLab);
 	}
 
-	static public Oklab lerp (Oklab oklab1, Oklab oklab2, float t) {
-		float L = (1 - t) * oklab1.L() + t * oklab2.L();
-		float a = (1 - t) * oklab1.a() + t * oklab2.a();
-		float b = (1 - t) * oklab1.b() + t * oklab2.b();
+	static public Oklab lerp (Oklab Oklab1, Oklab Oklab2, float t) {
+		float L = (1 - t) * Oklab1.L() + t * Oklab2.L();
+		float a = (1 - t) * Oklab1.a() + t * Oklab2.a();
+		float b = (1 - t) * Oklab1.b() + t * Oklab2.b();
 		return new Oklab(L, a, b);
 	}
 
-	static public Oklch Oklch (Oklab oklab) {
-		float L = oklab.L(), a = oklab.a(), b = oklab.b();
+	static public Oklch Oklch (Oklab Oklab) {
+		float L = Oklab.L(), a = Oklab.a(), b = Oklab.b();
 		float C = (float)Math.sqrt(a * a + b * b);
 		float h = (float)Math.atan2(b, a) * radDeg;
 		if (h < 0) h += 360;
@@ -510,6 +460,63 @@ public class Colors {
 
 	static public Oklch Oklch (RGB rgb) {
 		return Oklch(Oklab(rgb));
+	}
+
+	static public Okhsl Okhsl (RGB rgb) {
+		Oklab lab = Oklab(rgb);
+		float L = lab.L();
+		if (L >= 0.9999999f) return new Okhsl(0, 0, 1); // White.
+		if (L <= 0.0000001f) return new Okhsl(0, 0, 0); // Black.
+		float C = (float)Math.sqrt(lab.a() * lab.a() + lab.b() * lab.b());
+		if (C < 1e-10f) return new Okhsl(0, 0, Util.Okhsv.toe(L)); // Gray.
+		float h = 0.5f + 0.5f * (float)Math.atan2(-lab.b(), -lab.a()) / PI;
+		float a_ = lab.a() / C, b_ = lab.b() / C;
+		float[] Cs = Util.Okhsv.Cs(L, a_, b_);
+		float C_0 = Cs[0], C_mid = Cs[1], C_max = Cs[2];
+		float mid = 0.8f, s;
+		if (C < C_mid) {
+			float k_1 = mid * C_0;
+			float k_2 = (1.f - k_1 / C_mid);
+			float t = C / (k_1 + k_2 * C);
+			s = t * mid;
+		} else {
+			float mid_inv = 1.25f;
+			float k_0 = C_mid;
+			float k_1 = (1.f - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0;
+			float k_2 = (1.f - (k_1) / (C_max - C_mid));
+			float t = (C - k_0) / (k_1 + k_2 * (C - k_0));
+			s = mid + (1.f - mid) * t;
+		}
+		float l = Util.Okhsv.toe(L);
+		return new Okhsl(h * 360, s, l);
+	}
+
+	static public Okhsv Okhsv (RGB rgb) {
+		Oklab lab = Oklab(rgb);
+		float L = lab.L();
+		if (L >= 0.9999999f) return new Okhsv(0, 0, 1); // White.
+		if (L <= 0.0000001f) return new Okhsv(0, 0, 0); // Black.
+		float C = (float)Math.sqrt(lab.a() * lab.a() + lab.b() * lab.b());
+		if (C < 1e-10f) return new Okhsv(0, 0, L); // Gray.
+		float h = (float)Math.atan2(lab.b(), lab.a()) * radDeg;
+		if (h < 0) h += 360;
+		float a_ = lab.a() / C, b_ = lab.b() / C;
+		float[] ST_max = Util.Okhsv.cuspST(a_, b_);
+		float S_max = ST_max[0], T_max = ST_max[1], S_0 = 0.5f;
+		float k = 1 - S_0 / S_max;
+		float t = T_max / (C + L * T_max);
+		float L_v = t * L, C_v = t * C;
+		float L_vt = Util.Okhsv.toeInv(L_v);
+		float C_vt = C_v * L_vt / L_v;
+		var l_r = LinearRGB(new Oklab(L_vt, a_ * C_vt, b_ * C_vt));
+		float scale_L = (float)Math.cbrt(1.f / Math.max(Math.max(l_r.r(), l_r.g()), Math.max(l_r.b(), 0.f)));
+		L = L / scale_L;
+		C = C / scale_L;
+		C = C * Util.Okhsv.toe(L) / L;
+		L = Util.Okhsv.toe(L);
+		float v = L / L_v;
+		float s = (S_0 + T_max) * C_v / ((T_max * S_0) + T_max * k * C_v);
+		return new Okhsv(h, clamp(s), clamp(v));
 	}
 
 	static public RGB RGB (CMYK cmyk) {
@@ -671,8 +678,7 @@ public class Colors {
 		float H = hsluv.H(), S = hsluv.S(), L = hsluv.L();
 		if (L > 99.99999f) return new RGB(1, 1, 1);
 		if (L < 0.00001f) return new RGB(0, 0, 0);
-		float maxChroma = maxChromaForLH(L, H);
-		float C = maxChroma * S / 100;
+		float C = Util.HSLuv.maxChromaForLH(L, H) * S / 100;
 		return RGB(Luv(new LCHuv(L, C, H)));
 	}
 
@@ -698,15 +704,65 @@ public class Colors {
 		l *= l * l;
 		m *= m * m;
 		s *= s * s;
-		float r = +4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s;
-		float g = -1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s;
-		float bLinear = -0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s;
-		return new RGB(sRGB(clamp(r)), sRGB(clamp(g)), sRGB(clamp(bLinear)));
+		return new RGB( //
+			sRGB(clamp(+4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s)), //
+			sRGB(clamp(-1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s)), //
+			sRGB(clamp(-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s)));
 	}
 
 	static public RGB RGB (Oklch Oklch) {
-		Oklab oklab = Oklab(Oklch);
-		return RGB(oklab);
+		return RGB(Oklab(Oklch));
+	}
+
+	static public RGB RGB (Okhsl hsl) {
+		float l = hsl.l();
+		if (l >= 0.9999999f) return new RGB(1, 1, 1); // White.
+		if (l <= 0.0000001f) return new RGB(0, 0, 0); // Black.
+		float s = hsl.s();
+		if (s == 0.0f) return RGB(new Oklab(Util.Okhsv.toeInv(l), 0, 0)); // Gray.
+		float h = hsl.h() * degRad;
+		float L = Util.Okhsv.toeInv(l);
+		float a_ = (float)Math.cos(h), b_ = (float)Math.sin(h);
+		float[] Cs = Util.Okhsv.Cs(L, a_, b_);
+		float C_0 = Cs[0], C_mid = Cs[1], C_max = Cs[2], C;
+		if (s < 0.8f) {
+			float t = 1.25f * s;
+			float k_1 = 0.8f * C_0;
+			float k_2 = (1 - k_1 / C_mid);
+			C = t * k_1 / (1 - k_2 * t);
+		} else {
+			float t = 5 * (s - 0.8f);
+			float k_0 = C_mid;
+			float k_1 = 0.2f * C_mid * C_mid * 1.25f * 1.25f / C_0;
+			float k_2 = 1 - (k_1) / (C_max - C_mid);
+			C = k_0 + t * k_1 / (1 - k_2 * t);
+		}
+		return RGB(new Oklab(L, C * a_, C * b_));
+	}
+
+	static public RGB RGB (Okhsv hsv) {
+		float v = hsv.v();
+		if (v == 0) return new RGB(0, 0, 0); // Black.
+		float s = hsv.s();
+		if (s == 0) return RGB(new Oklab(v, 0, 0)); // Gray.
+		float h = hsv.h() * degRad;
+		float a_ = (float)Math.cos(h), b_ = (float)Math.sin(h);
+		float[] ST_max = Util.Okhsv.cuspST(a_, b_);
+		float S_max = ST_max[0], T_max = ST_max[1], S_0 = 0.5f;
+		float k = 1 - S_0 / S_max;
+		float L_v = 1 - s * S_0 / (S_0 + T_max - T_max * k * s);
+		float C_v = s * T_max * S_0 / (S_0 + T_max - T_max * k * s);
+		float L = v * L_v, C = v * C_v;
+		float L_vt = Util.Okhsv.toeInv(L_v);
+		float C_vt = C_v * L_vt / L_v;
+		float L_new = Util.Okhsv.toeInv(L);
+		C = C * L_new / L;
+		L = L_new;
+		var l_r = LinearRGB(new Oklab(L_vt, a_ * C_vt, b_ * C_vt));
+		float scale = (float)Math.cbrt(1 / Math.max(Math.max(l_r.r(), l_r.g()), Math.max(l_r.b(), 0)));
+		L = L * scale;
+		C = C * scale;
+		return RGB(new Oklab(L, C * a_, C * b_));
 	}
 
 	static public RGB RGB (uv uv) {
@@ -1160,11 +1216,11 @@ public class Colors {
 	static public XYZ XYZ (LMS lms, CAT matrix) {
 		float[] array = {lms.L(), lms.M(), lms.S()};
 		float[] xyz = switch (matrix) {
-		case HPE -> matrixMultiply(array, HPE_backward);
-		case Bradford -> matrixMultiply(array, Bradford_backward);
-		case VonKries -> matrixMultiply(array, vonKries_backward);
-		case CAT97 -> matrixMultiply(array, cat97_backward);
-		default -> matrixMultiply(array, CAT02_backward);
+		case HPE -> Util.matrixMultiply(array, HPE_backward);
+		case Bradford -> Util.matrixMultiply(array, Bradford_backward);
+		case VonKries -> Util.matrixMultiply(array, vonKries_backward);
+		case CAT97 -> Util.matrixMultiply(array, cat97_backward);
+		default -> Util.matrixMultiply(array, CAT02_backward);
 		};
 		return new XYZ(xyz[0], xyz[1], xyz[2]);
 	}

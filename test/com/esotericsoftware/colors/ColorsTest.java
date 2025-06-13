@@ -25,6 +25,8 @@ import com.esotericsoftware.colors.Colors.Lab;
 import com.esotericsoftware.colors.Colors.LinearRGB;
 import com.esotericsoftware.colors.Colors.Luv;
 import com.esotericsoftware.colors.Colors.O1O2;
+import com.esotericsoftware.colors.Colors.Okhsl;
+import com.esotericsoftware.colors.Colors.Okhsv;
 import com.esotericsoftware.colors.Colors.Oklab;
 import com.esotericsoftware.colors.Colors.Oklch;
 import com.esotericsoftware.colors.Colors.RGB;
@@ -50,20 +52,20 @@ public class ColorsTest {
 	@Test
 	public void testRgbToOklabAndBack () {
 		// Test primary colors
-		testOklabRoundTrip(new RGB(1, 0, 0), "Red");
-		testOklabRoundTrip(new RGB(0, 1, 0), "Green");
-		testOklabRoundTrip(new RGB(0, 0, 1), "Blue");
-		testOklabRoundTrip(new RGB(1, 1, 0), "Yellow");
-		testOklabRoundTrip(new RGB(0, 1, 1), "Cyan");
-		testOklabRoundTrip(new RGB(1, 0, 1), "Magenta");
-		testOklabRoundTrip(new RGB(1, 1, 1), "White");
-		testOklabRoundTrip(new RGB(0, 0, 0), "Black");
-		testOklabRoundTrip(new RGB(0.5f, 0.5f, 0.5f), "Gray");
+		roundTripOklab(new RGB(1, 0, 0), "Red");
+		roundTripOklab(new RGB(0, 1, 0), "Green");
+		roundTripOklab(new RGB(0, 0, 1), "Blue");
+		roundTripOklab(new RGB(1, 1, 0), "Yellow");
+		roundTripOklab(new RGB(0, 1, 1), "Cyan");
+		roundTripOklab(new RGB(1, 0, 1), "Magenta");
+		roundTripOklab(new RGB(1, 1, 1), "White");
+		roundTripOklab(new RGB(0, 0, 0), "Black");
+		roundTripOklab(new RGB(0.5f, 0.5f, 0.5f), "Gray");
 
 		// Test some random colors
-		testOklabRoundTrip(new RGB(0.8f, 0.2f, 0.4f), "Pink");
-		testOklabRoundTrip(new RGB(0.1f, 0.6f, 0.3f), "Teal");
-		testOklabRoundTrip(new RGB(0.9f, 0.7f, 0.1f), "Gold");
+		roundTripOklab(new RGB(0.8f, 0.2f, 0.4f), "Pink");
+		roundTripOklab(new RGB(0.1f, 0.6f, 0.3f), "Teal");
+		roundTripOklab(new RGB(0.9f, 0.7f, 0.1f), "Gold");
 	}
 
 	@Test
@@ -112,20 +114,20 @@ public class ColorsTest {
 	@Test
 	public void testEdgeCases () {
 		// Test near-zero values
-		testOklabRoundTrip(new RGB(0.001f, 0.001f, 0.001f), "Near black");
-		testOklabRoundTrip(new RGB(0.999f, 0.999f, 0.999f), "Near white");
+		roundTripOklab(new RGB(0.001f, 0.001f, 0.001f), "Near black");
+		roundTripOklab(new RGB(0.999f, 0.999f, 0.999f), "Near white");
 
 		// Test single channel
-		testOklabRoundTrip(new RGB(0.5f, 0, 0), "Half red");
-		testOklabRoundTrip(new RGB(0, 0.5f, 0), "Half green");
-		testOklabRoundTrip(new RGB(0, 0, 0.5f), "Half blue");
+		roundTripOklab(new RGB(0.5f, 0, 0), "Half red");
+		roundTripOklab(new RGB(0, 0.5f, 0), "Half green");
+		roundTripOklab(new RGB(0, 0, 0.5f), "Half blue");
 
 		// Test very saturated colors
-		testOklabRoundTrip(new RGB(1, 0, 0.001f), "Almost pure red");
-		testOklabRoundTrip(new RGB(0.001f, 1, 0), "Almost pure green");
+		roundTripOklab(new RGB(1, 0, 0.001f), "Almost pure red");
+		roundTripOklab(new RGB(0.001f, 1, 0), "Almost pure green");
 	}
 
-	static void testOklabRoundTrip (RGB original, String name) {
+	static void roundTripOklab (RGB original, String name) {
 		Oklab lab = Oklab(original);
 		RGB result = RGB(lab);
 		assertArrayClose(original, result, name);
@@ -457,12 +459,12 @@ public class ColorsTest {
 		float[] vector = {1, 2, 3};
 		float[][] matrix = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
-		float[] result = matrixMultiply(vector, matrix);
+		float[] result = Util.matrixMultiply(vector, matrix);
 		assertArrayClose(vector, result, "Identity matrix multiply");
 
 		// Test with a known transformation
 		float[][] scaleMatrix = {{2, 0, 0}, {0, 2, 0}, {0, 0, 2}};
-		float[] scaled = matrixMultiply(vector, scaleMatrix);
+		float[] scaled = Util.matrixMultiply(vector, scaleMatrix);
 		assertArrayClose(new float[] {2, 4, 6}, scaled, "Scale matrix multiply");
 	}
 
@@ -593,13 +595,13 @@ public class ColorsTest {
 		// Test matrixMultiply
 		float[] vector = {1, 2, 3};
 		float[][] matrix = {{1, 0, 0}, {0, 2, 0}, {0, 0, 3}};
-		float[] result = matrixMultiply(vector, matrix);
+		float[] result = Util.matrixMultiply(vector, matrix);
 		float[] expected = {1, 4, 9};
 		assertArrayClose(expected, result, "Matrix multiply", EPSILON_F);
 
 		// Test with non-diagonal matrix
 		float[][] matrix2 = {{0.5f, 0.3f, 0.2f}, {0.1f, 0.6f, 0.3f}, {0.2f, 0.2f, 0.6f}};
-		result = matrixMultiply(vector, matrix2);
+		result = Util.matrixMultiply(vector, matrix2);
 		expected = new float[] {1 * 0.5f + 2 * 0.1f + 3 * 0.2f, // 0.5 + 0.2 + 0.6 = 1.3
 			1 * 0.3f + 2 * 0.6f + 3 * 0.2f, // 0.3 + 1.2 + 0.6 = 2.1
 			1 * 0.2f + 2 * 0.3f + 3 * 0.6f // 0.2 + 0.6 + 1.8 = 2.6
@@ -947,6 +949,118 @@ public class ColorsTest {
 		assertClose(expectedL, negativeT.L(), "Negative t L");
 		assertClose(expectedA, negativeT.a(), "Negative t a");
 		assertClose(expectedB, negativeT.b(), "Negative t b");
+	}
+
+	@Test
+	public void testOkhslConversions () {
+		// Test primary colors
+		roundTripOkhsl(new RGB(1, 0, 0), "Red");
+		roundTripOkhsl(new RGB(0, 1, 0), "Green");
+		roundTripOkhsl(new RGB(0, 0, 1), "Blue");
+		roundTripOkhsl(new RGB(1, 1, 0), "Yellow");
+		roundTripOkhsl(new RGB(0, 1, 1), "Cyan");
+		roundTripOkhsl(new RGB(1, 0, 1), "Magenta");
+		roundTripOkhsl(new RGB(1, 1, 1), "White");
+		roundTripOkhsl(new RGB(0, 0, 0), "Black");
+		roundTripOkhsl(new RGB(0.5f, 0.5f, 0.5f), "Gray");
+
+		// Test that white has l=1
+		Okhsl white = Okhsl(new RGB(1, 1, 1));
+		assertClose(1.0f, white.l(), "White Okhsl lightness");
+		assertClose(0.0f, white.s(), "White Okhsl saturation", 0.01f);
+
+		// Test that black has l=0
+		Okhsl black = Okhsl(new RGB(0, 0, 0));
+		assertClose(0.0f, black.l(), "Black Okhsl lightness");
+
+		// Test that grays have s=0
+		Okhsl gray = Okhsl(new RGB(0.5f, 0.5f, 0.5f));
+		assertClose(0.0f, gray.s(), "Gray Okhsl saturation", 0.01f);
+
+		// Test hue angles for primary colors
+		Okhsl red = Okhsl(new RGB(1, 0, 0));
+		Okhsl green = Okhsl(new RGB(0, 1, 0));
+		Okhsl blue = Okhsl(new RGB(0, 0, 1));
+
+		// Verify hue differences
+		float hueGreenRed = Math.abs(green.h() - red.h());
+		float hueBlueGreen = Math.abs(blue.h() - green.h());
+		assertTrue(hueGreenRed > 90 && hueGreenRed < 180, "Green-Red hue difference");
+		assertTrue(hueBlueGreen > 90 && hueBlueGreen < 180, "Blue-Green hue difference");
+
+		// Test saturation range
+		Okhsl[] testColors = {red, green, blue};
+		for (Okhsl color : testColors) {
+			assertTrue(color.s() >= 0 && color.s() <= 1, "Saturation in range [0,1]");
+		}
+
+		// Test edge cases with very dark colors
+		roundTripOkhsl(new RGB(0.01f, 0.01f, 0.01f), "Very dark gray");
+		roundTripOkhsl(new RGB(0.1f, 0, 0), "Very dark red");
+	}
+
+	static void roundTripOkhsl (RGB original, String name) {
+		Okhsl hsl = Okhsl(original);
+		RGB result = RGB(hsl);
+		assertArrayClose(original, result, name + " Okhsl round trip", 0.01f);
+	}
+
+	@Test
+	public void testOkhsvConversions () {
+		// Test primary colors
+		roundTripOkhsv(new RGB(1, 0, 0), "Red");
+		roundTripOkhsv(new RGB(0, 1, 0), "Green");
+		roundTripOkhsv(new RGB(0, 0, 1), "Blue");
+		roundTripOkhsv(new RGB(1, 1, 0), "Yellow");
+		roundTripOkhsv(new RGB(0, 1, 1), "Cyan");
+		roundTripOkhsv(new RGB(1, 0, 1), "Magenta");
+		roundTripOkhsv(new RGB(1, 1, 1), "White");
+		roundTripOkhsv(new RGB(0, 0, 0), "Black");
+		roundTripOkhsv(new RGB(0.5f, 0.5f, 0.5f), "Gray");
+
+		// Test that white has v=1
+		Okhsv white = Okhsv(new RGB(1, 1, 1));
+		assertClose(1.0f, white.v(), "White Okhsv value", 0.1f);
+		assertClose(0.0f, white.s(), "White Okhsv saturation", 0.01f);
+
+		// Test that black has v=0
+		Okhsv black = Okhsv(new RGB(0, 0, 0));
+		assertClose(0.0f, black.v(), "Black Okhsv value", 0.01f);
+
+		// Test that grays have s=0
+		Okhsv gray = Okhsv(new RGB(0.5f, 0.5f, 0.5f));
+		assertClose(0.0f, gray.s(), "Gray Okhsv saturation", 0.01f);
+
+		// Test hue angles for primary colors
+		Okhsv red = Okhsv(new RGB(1, 0, 0));
+		Okhsv green = Okhsv(new RGB(0, 1, 0));
+		Okhsv blue = Okhsv(new RGB(0, 0, 1));
+
+		// Verify hue differences
+		float hueGreenRed = Math.abs(green.h() - red.h());
+		float hueBlueGreen = Math.abs(blue.h() - green.h());
+		assertTrue(hueGreenRed > 90 && hueGreenRed < 180, "Green-Red hue difference");
+		assertTrue(hueBlueGreen > 90 && hueBlueGreen < 180, "Blue-Green hue difference");
+
+		// Test value and saturation range
+		Okhsv[] testColors = {red, green, blue, white, black, gray};
+		String[] names = {"red", "green", "blue", "white", "black", "gray"};
+		for (int i = 0; i < testColors.length; i++) {
+			Okhsv color = testColors[i];
+			// System.out.println(names[i] + " Okhsv: h=" + color.h() + " s=" + color.s() + " v=" + color.v());
+			assertTrue(color.s() >= 0 && color.s() <= 1, names[i] + " saturation in range [0,1]");
+			assertTrue(color.v() >= 0 && color.v() <= 1, names[i] + " value in range [0,1]");
+		}
+
+		// Test edge cases
+		roundTripOkhsv(new RGB(0.01f, 0.01f, 0.01f), "Very dark gray");
+		roundTripOkhsv(new RGB(0.99f, 0.99f, 0.99f), "Very light gray");
+	}
+
+	static void roundTripOkhsv (RGB original, String name) {
+		Okhsv hsv = Okhsv(original);
+		RGB result = RGB(hsv);
+		assertArrayClose(original, result, name + " Okhsv round trip", 0.02f);
 	}
 
 	@Test
