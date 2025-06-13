@@ -930,12 +930,12 @@ public class Colors {
 		return new RGBW(r, g, b, W);
 	}
 
-	/** Convert RGB to RGBW using two calibrated white LED colors. Brightness of {@code rgb} paramter is preserved.
+	/** Convert RGB to RGBWW using two calibrated white LED colors. Brightness of {@code rgb} paramter is preserved.
 	 * @param rgb Target color, including brightness.
 	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
 	 * @param w2 Second white LED color.
 	 * @return RGBW in the range [0,1] */
-	static public RGBTW RGBTW (RGB rgb, RGB w1, RGB w2) {
+	static public RGBWW RGBWW (RGB rgb, RGB w1, RGB w2) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		// Calculate how much of each channel the white LED can provide.
 		float ratioR1 = r / w1.r(), ratioG1 = g / w1.g(), ratioB1 = b / w1.b();
@@ -951,7 +951,7 @@ public class Colors {
 			r = Math.max(0, r);
 			g = Math.max(0, g);
 			b = Math.max(0, b);
-			return new RGBTW(r, g, b, W1, 0);
+			return new RGBWW(r, g, b, W1, 0);
 		}
 		r -= W2 * w2.r();
 		g -= W2 * w2.g();
@@ -959,16 +959,16 @@ public class Colors {
 		r = Math.max(0, r);
 		g = Math.max(0, g);
 		b = Math.max(0, b);
-		return new RGBTW(r, g, b, 0, W2);
+		return new RGBWW(r, g, b, 0, W2);
 	}
 
-	/** Convert CCT to RGBTW using two calibrated white LED colors. Brightness is maximized.
+	/** Convert CCT to RGBWW using two calibrated white LED colors. Brightness is maximized.
 	 * @param CCT [1667-25000K]
 	 * @param brightness [0-1]
 	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
 	 * @param w2 Second white LED color.
-	 * @return RGBTW values [0,1] */
-	static public RGBTW RGBTW (float CCT, float brightness, RGB w1, RGB w2) {
+	 * @return RGBWW values [0,1] */
+	static public RGBWW RGBWW (float CCT, float brightness, RGB w1, RGB w2) {
 		float cct1 = CCT(uv(w1));
 		float cct2 = CCT(uv(w2));
 		float W1, W2;
@@ -1007,7 +1007,7 @@ public class Colors {
 			W1 *= scale;
 			W2 *= scale;
 		}
-		return new RGBTW(r, g, b, W1, W2);
+		return new RGBWW(r, g, b, W1, W2);
 	}
 
 	/** Rg-Chromaticity space, illumination and pose invariant.
@@ -1511,13 +1511,13 @@ public class Colors {
 		}
 	}
 
-	public record RGBTW (float r, float g, float b, float t, float w) {
+	public record RGBWW (float r, float g, float b, float w1, float w2) {
 		public String hex () {
-			return Colors.hex(r(), g(), b(), t(), w());
+			return Colors.hex(r(), g(), b(), w1(), w2());
 		}
 
 		public String toString255 () {
-			return Colors.toString255(r(), g(), b(), t(), w());
+			return Colors.toString255(r(), g(), b(), w1(), w2());
 		}
 	}
 

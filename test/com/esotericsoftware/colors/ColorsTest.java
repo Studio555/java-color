@@ -30,7 +30,7 @@ import com.esotericsoftware.colors.Colors.Okhsv;
 import com.esotericsoftware.colors.Colors.Oklab;
 import com.esotericsoftware.colors.Colors.Oklch;
 import com.esotericsoftware.colors.Colors.RGB;
-import com.esotericsoftware.colors.Colors.RGBTW;
+import com.esotericsoftware.colors.Colors.RGBWW;
 import com.esotericsoftware.colors.Colors.RGBW;
 import com.esotericsoftware.colors.Colors.RGChromaticity;
 import com.esotericsoftware.colors.Colors.XYZ;
@@ -1446,45 +1446,45 @@ public class ColorsTest {
 	}
 
 	@Test
-	public void testRGBTWConversions () {
-		// Test RGB to RGBTW with two whites
+	public void testRGBWWConversions () {
+		// Test RGB to RGBWW with two whites
 		RGB warmWhite = new RGB(1.8f, 1.6f, 1.0f); // 2700K-ish, scaled
 		RGB coolWhite = new RGB(1.2f, 1.4f, 1.8f); // 6500K-ish, scaled
 
 		// Test warm color - should prefer warm white
 		RGB warmColor = new RGB(0.8f, 0.6f, 0.4f);
-		RGBTW warmResult = RGBTW(warmColor, warmWhite, coolWhite);
-		assertTrue(warmResult.t() > warmResult.w(), "Warm color should use more warm white");
+		RGBWW warmResult = RGBWW(warmColor, warmWhite, coolWhite);
+		assertTrue(warmResult.w1() > warmResult.w2(), "Warm color should use more warm white");
 
 		// Test cool color - should prefer cool white
 		RGB coolColor = new RGB(0.4f, 0.5f, 0.8f);
-		RGBTW coolResult = RGBTW(coolColor, warmWhite, coolWhite);
-		assertTrue(coolResult.w() > coolResult.t(), "Cool color should use more cool white");
+		RGBWW coolResult = RGBWW(coolColor, warmWhite, coolWhite);
+		assertTrue(coolResult.w2() > coolResult.w1(), "Cool color should use more cool white");
 
-		// Test CCT to RGBTW conversion
+		// Test CCT to RGBWW conversion
 
 		// Test intermediate CCT - should blend whites
-		RGBTW cct4000 = RGBTW(4000, 1.0f, warmWhite, coolWhite);
-		assertTrue(cct4000.t() > 0 && cct4000.w() > 0, "Mid CCT should blend both whites");
+		RGBWW cct4000 = RGBWW(4000, 1.0f, warmWhite, coolWhite);
+		assertTrue(cct4000.w1() > 0 && cct4000.w2() > 0, "Mid CCT should blend both whites");
 
 		// Test warm CCT - should use mostly warm white
-		RGBTW cct2700 = RGBTW(2700, 0.8f, warmWhite, coolWhite);
-		assertTrue(cct2700.t() >= cct2700.w(), "Warm CCT should favor warm white");
+		RGBWW cct2700 = RGBWW(2700, 0.8f, warmWhite, coolWhite);
+		assertTrue(cct2700.w1() >= cct2700.w2(), "Warm CCT should favor warm white");
 
 		// Test cool CCT - should use mostly cool white
-		RGBTW cct6500 = RGBTW(6500, 0.8f, warmWhite, coolWhite);
+		RGBWW cct6500 = RGBWW(6500, 0.8f, warmWhite, coolWhite);
 		// Note: if CCT calculation fails for the LEDs, it might fall back to equal blend
-		assertTrue(cct6500.t() + cct6500.w() > 0.7f, "Should use white channels for CCT");
+		assertTrue(cct6500.w1() + cct6500.w2() > 0.7f, "Should use white channels for CCT");
 
 		// Test low brightness - should still maintain white ratio
-		RGBTW cctLow = RGBTW(4500, 0.2f, warmWhite, coolWhite);
-		float totalWhite = cctLow.t() + cctLow.w();
+		RGBWW cctLow = RGBWW(4500, 0.2f, warmWhite, coolWhite);
+		float totalWhite = cctLow.w1() + cctLow.w2();
 		assertTrue(totalWhite > 0.15f && totalWhite < 0.25f, "Low brightness should scale whites proportionally");
 
-		// Test RGBTW hex and toString255
-		RGBTW hexTest = new RGBTW(1, 0.5f, 0.25f, 0.1f, 0.75f);
-		assertEquals("ff80401abf", hexTest.hex(), "RGBTW hex");
-		assertEquals("255, 127, 63, 25, 191", hexTest.toString255(), "RGBTW toString255");
+		// Test RGBWW hex and toString255
+		RGBWW hexTest = new RGBWW(1, 0.5f, 0.25f, 0.1f, 0.75f);
+		assertEquals("ff80401abf", hexTest.hex(), "RGBWW hex");
+		assertEquals("255, 127, 63, 25, 191", hexTest.toString255(), "RGBWW toString255");
 	}
 
 	static void assertClose (double expected, double actual, String name) {
