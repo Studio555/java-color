@@ -998,7 +998,7 @@ public class Colors {
 		float Y = rgbToXYZ[1][0] * r + rgbToXYZ[1][1] * g + rgbToXYZ[1][2] * b;
 		float Z = rgbToXYZ[2][0] * r + rgbToXYZ[2][1] * g + rgbToXYZ[2][2] * b;
 		float sum = X + Y + Z;
-		if (sum < 1e-10f) return new xy(Float.NaN, Float.NaN);
+		if (Math.abs(sum) < 1e-10f) return new xy(Float.NaN, Float.NaN);
 		return new xy(X / sum, Y / sum);
 	}
 

@@ -17,31 +17,31 @@ public class Gamut {
 		all = new Gamut(new xy(1, 0), new xy(0, 1), new xy(0, 0)); //
 
 	public final xy red, green, blue;
-	final float[][] RGB_XYZ, XYZ_RGB;
+	public final float[][] RGB_XYZ, XYZ_RGB;
 
 	public Gamut (xy red, xy green, xy blue) {
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
-		this.RGB_XYZ = calculateRGBtoXYZ();
-		this.XYZ_RGB = invert3x3(RGB_XYZ);
+		RGB_XYZ = RGB_XYZ();
+		XYZ_RGB = invert3x3(RGB_XYZ);
 	}
 
-	private float[][] calculateRGBtoXYZ () {
+	private float[][] RGB_XYZ () {
 		float Xr = red.x() / red.y();
-		float Yr = 1.0f;
+		float Yr = 1;
 		float Zr = (1 - red.x() - red.y()) / red.y();
 		float Xg = green.x() / green.y();
-		float Yg = 1.0f;
+		float Yg = 1;
 		float Zg = (1 - green.x() - green.y()) / green.y();
 		float Xb = blue.x() / blue.y();
-		float Yb = 1.0f;
+		float Yb = 1;
 		float Zb = (1 - blue.x() - blue.y()) / blue.y();
 		float[][] M = { //
 			{Xr, Xg, Xb}, //
 			{Yr, Yg, Yb}, //
 			{Zr, Zg, Zb}};
-		float[] white = {D65.X() / 100, D65.Y() / 100, D65.Z() / 100};
+		float[] white = {D65.X() / D65.Y(), 1, D65.Z() / D65.Y()};
 		float[] S = matrixSolve(M, white);
 		return new float[][] { //
 			{Xr * S[0], Xg * S[1], Xb * S[2]}, //
@@ -79,12 +79,12 @@ public class Gamut {
 		float det1 = b[0] * (A[1][1] * A[2][2] - A[2][1] * A[1][2]) //
 			- A[0][1] * (b[1] * A[2][2] - A[1][2] * b[2]) //
 			+ A[0][2] * (b[1] * A[2][1] - A[1][1] * b[2]);
-		float det2 = A[0][0] * (b[1] * A[2][2] - A[2][1] * b[2]) //
+		float det2 = A[0][0] * (b[1] * A[2][2] - b[2] * A[1][2]) //
 			- b[0] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) //
-			+ A[0][2] * (A[1][0] * b[2] - b[1] * A[2][0]);
-		float det3 = A[0][0] * (A[1][1] * b[2] - b[1] * A[1][2]) //
-			- A[0][1] * (A[1][0] * b[2] - b[1] * A[2][0]) //
-			+ b[0] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
+			+ A[0][2] * (A[1][0] * b[2] - A[2][0] * b[1]);
+		float det3 = A[0][0] * (A[1][1] * b[2] - A[2][1] * b[1]) //
+			- A[0][1] * (A[1][0] * b[2] - A[2][0] * b[1]) //
+			+ b[0] * (A[1][0] * A[2][1] - A[2][0] * A[1][1]);
 		return new float[] {det1 / det, det2 / det, det3 / det};
 	}
 
