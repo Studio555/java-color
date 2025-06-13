@@ -15,7 +15,7 @@
 <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 <maven.compiler.source>21</maven.compiler.source>
 <maven.compiler.target>21</maven.compiler.target>
-<junit.version>5.10.0</junit.version>
+<junit.version>5.11.0</junit.version>
 </properties>
 
 <dependencies>
@@ -25,10 +25,18 @@
 	<version>${junit.version}</version>
 	<scope>test</scope>
 </dependency>
+<dependency>
+	<groupId>org.junit.platform</groupId>
+	<artifactId>junit-platform-launcher</artifactId>
+	<version>1.11.0</version>
+	<scope>test</scope>
+</dependency>
 </dependencies>
 
 <build>
 	<sourceDirectory>src</sourceDirectory>
+	<testSourceDirectory>test</testSourceDirectory>
+	<outputDirectory>bin</outputDirectory>
 	<resources>
 		<resource>
 			<directory>assets</directory>
