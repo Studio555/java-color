@@ -3,32 +3,29 @@ package com.esotericsoftware.colors;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Colors {
-	static private final float PI = 3.1415927f;
-	static private final float radDeg = 180 / PI;
-	static private final float degRad = PI / 180;
+	static private final float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
 	static private final float k = 903.2963f; // 24389/27
 	static private final float e = 0.008856452f; // 216/24389
-	static private final float[][] hpe_forward = {{0.38971f, 0.68898f, -0.07868f}, {-0.22981f, 1.18340f, 0.04641f},
+	static private final float[][] HPE_forward = {{0.38971f, 0.68898f, -0.07868f}, {-0.22981f, 1.18340f, 0.04641f},
 		{0.00000f, 0.00000f, 1.00000f}};
-	static private final float[][] hpe_backward = {{1.91020f, -1.11212f, 0.20191f}, {0.37095f, 0.62905f, -0.00001f},
-		{0.00000f, 0.00000f, 1.00000f}};
-	static private final float[][] bradford_forward = {{0.8951000f, 0.2664000f, -0.1614000f},
-		{-0.7502000f, 1.7135000f, 0.0367000f}, {0.0389000f, -0.0685000f, 1.0296000f}};
-	static private final float[][] bradford_backward = {{0.9869929f, -0.1470543f, 0.1599627f},
+	static private final float[][] HPE_backward = {{1.91019683f, -1.11212389f, 0.20190796f},
+		{0.37095009f, 0.62905426f, -0.00000806f}, {0.00000f, 0.00000f, 1.00000f}};
+	static private final float[][] Badford_forward = {{0.8951000f, 0.2664000f, -0.1614000f}, {-0.7502000f, 1.7135000f, 0.0367000f},
+		{0.0389000f, -0.0685000f, 1.0296000f}};
+	static private final float[][] Bradford_backward = {{0.9869929f, -0.1470543f, 0.1599627f},
 		{0.4323053f, 0.5183603f, 0.0492912f}, {-0.0085287f, 0.0400428f, 0.9684867f}};
-	static private final float[][] vonkries_forward = {{0.4002f, 0.7076f, -0.0808f}, {-0.2263f, 1.1653f, 0.0457f},
+	static private final float[][] vonKries_forward = {{0.4002f, 0.7076f, -0.0808f}, {-0.2263f, 1.1653f, 0.0457f},
 		{0f, 0f, 0.9182f}};
-	static private final float[][] vonkries_backward = {{1.86007f, -1.12948f, 0.21990f}, {0.36122f, 0.63880f, -0.00001f},
-		{0.00000f, 0.00000f, 1.08909f}};
-	static private final float[][] cat97_forward = {{0.8562f, 0.3372f, -0.1934f}, {-0.8360f, 1.8327f, 0.0033f},
+	static private final float[][] vonKries_backward = {{1.86006661f, -1.12948008f, 0.21989830f},
+		{0.36122292f, 0.63880431f, -0.00000713f}, {0.00000f, 0.00000f, 1.08908734f}};
+	static private final float[][] CAT97_forward = {{0.8562f, 0.3372f, -0.1934f}, {-0.8360f, 1.8327f, 0.0033f},
 		{0.0357f, -0.00469f, 1.0112f}};
 	static private final float[][] cat97_backward = {{0.9838112f, -0.1805292f, 0.1887508f}, {0.4488317f, 0.4632779f, 0.0843307f},
 		{-0.0326513f, 0.0085222f, 0.9826514f}};
-	static private final float[][] cat02_forward = {{0.7328f, 0.4296f, -0.1624f}, {-0.7036f, 1.6975f, 0.0061f},
+	static private final float[][] CAT02_forward = {{0.7328f, 0.4296f, -0.1624f}, {-0.7036f, 1.6975f, 0.0061f},
 		{0.0030f, 0.0136f, 0.9834f}};
-	static private final float[][] cat02_backward = {{1.0961238f, -0.2788690f, 0.1827452f}, {0.4543690f, 0.4735332f, 0.0720978f},
+	static private final float[][] CAT02_backward = {{1.0961238f, -0.2788690f, 0.1827452f}, {0.4543690f, 0.4735332f, 0.0720978f},
 		{-0.0096276f, -0.0056980f, 1.0153256f}};
-
 	static private final float[][] HSLuv_XYZ_RGB = {{3.2404542f, -1.5371385f, -0.4985314f}, {-0.9692660f, 1.8760108f, 0.0415560f},
 		{0.0556434f, -0.2040259f, 1.0572252f}};
 
@@ -68,6 +65,84 @@ public class Colors {
 		float M = (1 - g - K) / (1 - K);
 		float Y = (1 - b - K) / (1 - K);
 		return new CMYK(C, M, Y, K);
+	}
+
+	/** @return Color difference value (0 = identical colors, larger values = more different) */
+	static public float deltaE2000 (Lab lab1, Lab lab2) {
+		return deltaE2000(lab1, lab2, 1, 1, 1);
+	}
+
+	/** @param kL Weight for lightness (default 1)
+	 * @param kC Weight for chroma (default 1)
+	 * @param kH Weight for hue (default 1)
+	 * @return Color difference value (0 = identical colors, larger values = more different) */
+	static public float deltaE2000 (Lab lab1, Lab lab2, float kL, float kC, float kH) {
+		float L1 = lab1.L(), a1 = lab1.a(), b1 = lab1.b();
+		float L2 = lab2.L(), a2 = lab2.a(), b2 = lab2.b();
+		float C1 = (float)Math.sqrt(a1 * a1 + b1 * b1); // Chroma.
+		float C2 = (float)Math.sqrt(a2 * a2 + b2 * b2);
+		float Cab = (C1 + C2) / 2; // Average chroma.
+		float Cab7 = (float)Math.pow(Cab, 7);
+		float G = 0.5f * (1 - (float)Math.sqrt(Cab7 / (Cab7 + 6103515625f))); // 25^7
+		float a1p = (1 + G) * a1;
+		float a2p = (1 + G) * a2;
+		float C1p = (float)Math.sqrt(a1p * a1p + b1 * b1);
+		float C2p = (float)Math.sqrt(a2p * a2p + b2 * b2);
+		float h1p = (float)Math.atan2(b1, a1p) * radDeg; // Hue angle.
+		float h2p = (float)Math.atan2(b2, a2p) * radDeg;
+		if (h1p < 0) h1p += 360;
+		if (h2p < 0) h2p += 360;
+		float dLp = L2 - L1; // Delta L'C'h'
+		float dCp = C2p - C1p;
+		float dhp = h2p - h1p;
+		if (dhp > 180)
+			dhp -= 360;
+		else if (dhp < -180) //
+			dhp += 360;
+		float dHp = 2 * (float)Math.sqrt(C1p * C2p) * (float)Math.sin((dhp * degRad) / 2);
+		float Lp = (L1 + L2) / 2; // Average.
+		float Cp = (C1p + C2p) / 2;
+		float hp;
+		if (Math.abs(h1p - h2p) > 180) {
+			if (h1p + h2p < 360)
+				hp = (h1p + h2p + 360) / 2;
+			else
+				hp = (h1p + h2p - 360) / 2;
+		} else
+			hp = (h1p + h2p) / 2;
+		float hpRad = hp * degRad;
+		float T = 1 - 0.17f * (float)Math.cos(hpRad - 30 * degRad) + 0.24f * (float)Math.cos(2 * hpRad)
+			+ 0.32f * (float)Math.cos(3 * hpRad + 6 * degRad) - 0.20f * (float)Math.cos(4 * hpRad - 63 * degRad);
+		float SL = 1 + (0.015f * (Lp - 50) * (Lp - 50)) / (float)Math.sqrt(20 + (Lp - 50) * (Lp - 50));
+		float SC = 1 + 0.045f * Cp;
+		float SH = 1 + 0.015f * Cp * T;
+		float dTheta = 30 * (float)Math.exp(-((hp - 275) / 25) * ((hp - 275) / 25));
+		float Cp7 = (float)Math.pow(Cp, 7);
+		float RC = 2 * (float)Math.sqrt(Cp7 / (Cp7 + 6103515625f)); // 25^7
+		float RT = -RC * (float)Math.sin(2 * dTheta * degRad);
+		float dLpKlSl = dLp / (kL * SL);
+		float dCpKcSc = dCp / (kC * SC);
+		float dHpKhSh = dHp / (kH * SH);
+		return (float)Math.sqrt(dLpKlSl * dLpKlSl + dCpKcSc * dCpKcSc + dHpKhSh * dHpKhSh + RT * dCpKcSc * dHpKhSh);
+	}
+
+	/** Uses the CIE 2-degree D65 tristimulus.
+	 * @param rgb1 First RGB color
+	 * @param rgb2 Second RGB color
+	 * @return Color difference value (0 = identical colors, larger values = more different) */
+	static public float deltaE2000 (RGB rgb1, RGB rgb2) {
+		return deltaE2000(Lab(rgb1), Lab(rgb2));
+	}
+
+	/** Calculates the CIEDE2000 color difference between two RGB colors with custom weights and D65 illuminant.
+	 * @param rgb1 First RGB color
+	 * @param rgb2 Second RGB color
+	 * @param kL Weight for lightness (default 1)
+	 * @param kC Weight for chroma (default 1)
+	 * @param kH Weight for hue (default 1)
+	 * @return Color difference value (0 = identical colors, larger values = more different) */
+	static public float deltaE2000 (RGB rgb1, RGB rgb2, float kL, float kC, float kH) {
+		return deltaE2000(Lab(rgb1), Lab(rgb2), kL, kC, kH);
 	}
 
 	static public float grayscale (RGB rgb) {
@@ -245,7 +320,7 @@ public class Colors {
 		return new Lab(L, a, b);
 	}
 
-	/** Default: CIE 2-degree D65 Tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public Lab Lab (RGB rgb) {
 		return Lab(rgb, Illuminant.CIE2.D65);
 	}
@@ -255,7 +330,7 @@ public class Colors {
 		return Lab(XYZ(rgb), tristimulus);
 	}
 
-	/** Default: CIE 2-degree D65 Tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public Lab Lab (XYZ XYZ) {
 		return Lab(XYZ, Illuminant.CIE2.D65);
 	}
@@ -288,12 +363,12 @@ public class Colors {
 		return Luv(XYZ(rgb));
 	}
 
-	/** Default: CIE 2-degree D65 Tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public Luv Luv (RGB rgb, XYZ tristimulus) {
 		return Luv(XYZ(rgb), tristimulus);
 	}
 
-	/** Default: CIE 2-degree D65 Tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public Luv Luv (XYZ XYZ) {
 		return Luv(XYZ, Illuminant.CIE2.D65);
 	}
@@ -339,7 +414,7 @@ public class Colors {
 		return new LCh(L, C, h);
 	}
 
-	/** Default: CIE 2-degree D65 Tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public LCh LCh (RGB rgb) {
 		return LCh(rgb, Illuminant.CIE2.D65);
 	}
@@ -357,7 +432,7 @@ public class Colors {
 		return new LinearRGB(r, g, b);
 	}
 
-	/** Default: LMS CIECAM02 transformation matrix. */
+	/** Uses the LMS CIECAM02 transformation matrix. */
 	static public LMS LMS (RGB rgb) {
 		return LMS(rgb, CAT.CAT02);
 	}
@@ -366,7 +441,7 @@ public class Colors {
 		return LMS(XYZ(rgb), matrix);
 	}
 
-	/** Default: LMS CIECAM02 transformation matrix. */
+	/** Uses the LMS CIECAM02 transformation matrix. */
 	static public LMS LMS (XYZ XYZ) {
 		return LMS(XYZ, CAT.CAT02);
 	}
@@ -374,11 +449,11 @@ public class Colors {
 	static public LMS LMS (XYZ XYZ, CAT matrix) {
 		float[] array = {XYZ.X(), XYZ.Y(), XYZ.Z()};
 		float[] lms = switch (matrix) {
-		case HPE -> matrixMultiply(array, hpe_forward);
-		case Bradford -> matrixMultiply(array, bradford_forward);
-		case VonKries -> matrixMultiply(array, vonkries_forward);
-		case CAT97 -> matrixMultiply(array, cat97_forward);
-		default -> matrixMultiply(array, cat02_forward);
+		case HPE -> matrixMultiply(array, HPE_forward);
+		case Bradford -> matrixMultiply(array, Badford_forward);
+		case VonKries -> matrixMultiply(array, vonKries_forward);
+		case CAT97 -> matrixMultiply(array, CAT97_forward);
+		default -> matrixMultiply(array, CAT02_forward);
 		};
 		return new LMS(lms[0], lms[1], lms[2]);
 	}
@@ -566,7 +641,7 @@ public class Colors {
 		return new RGB(r, g, b);
 	}
 
-	/** Default: CIE 2-degree D65 Tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public RGB RGB (Lab Lab) {
 		return RGB(Lab, Illuminant.CIE2.D65);
 	}
@@ -594,12 +669,12 @@ public class Colors {
 		return RGB(Luv(new LCHuv(L, C, H)));
 	}
 
-	/** Default: CIE 2-degree D65 Tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public RGB RGB (LCh LCh) {
 		return RGB(Lab(LCh), Illuminant.CIE2.D65);
 	}
 
-	/** Default: LMS CIECAM02 transformation matrix. */
+	/** Uses the LMS CIECAM02 transformation matrix. */
 	static public RGB RGB (LMS LMS) {
 		return RGB(LMS, CAT.CAT02);
 	}
@@ -673,22 +748,22 @@ public class Colors {
 		float Y = YCbCr.Y(), Cb = YCbCr.Cb(), Cr = YCbCr.Cr();
 		float r, g, b;
 		if (colorSpace == YCbCrColorSpace.ITU_BT_601) {
-			r = Y + 0.000f * Cb + 1.403f * Cr;
-			g = Y - 0.344f * Cb - 0.714f * Cr;
-			b = Y + 1.773f * Cb + 0.000f * Cr;
+			r = 1.00000000f * Y + 0.00000000f * Cb + 1.40200000f * Cr;
+			g = 1.00000000f * Y - 0.34413629f * Cb - 0.71413629f * Cr;
+			b = 1.00000000f * Y + 1.77200000f * Cb + 0.00000000f * Cr;
 		} else {
-			r = Y + 0.0000f * Cb + 1.5701f * Cr;
-			g = Y - 0.1870f * Cb - 0.4664f * Cr;
-			b = Y + 1.8556f * Cb + 0.0000f * Cr;
+			r = 1.000000f * Y - 0.000000295f * Cb + 1.574799932f * Cr;
+			g = 1.000000f * Y - 0.187324182f * Cb - 0.468124212f * Cr;
+			b = 1.000000f * Y + 1.855599963f * Cb - 0.000000402f * Cr;
 		}
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
 	static public RGB RGB (YCC YCC) {
 		float Y = YCC.Y(), C1 = YCC.C1(), C2 = YCC.C2();
-		float r = 0.981f * Y + 1.315f * (C2 - 0.537f);
-		float g = 0.981f * Y - 0.311f * (C1 - 0.612f) - 0.669f * (C2 - 0.537f);
-		float b = 0.981f * Y + 1.601f * (C1 - 0.612f);
+		float r = 1.402525f * Y + 0.002952f * (C1 - 0.612f) + 1.881096f * (C2 - 0.537f);
+		float g = 1.402525f * Y - 0.444393f * (C1 - 0.612f) - 0.956979f * (C2 - 0.537f);
+		float b = 1.402525f * Y + 2.291013f * (C1 - 0.612f) + 0.003713f * (C2 - 0.537f);
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
@@ -719,9 +794,9 @@ public class Colors {
 	 * Q quadrature in the range [-0.5..0.5]. */
 	static public RGB RGB (YIQ YIQ) {
 		float Y = YIQ.Y(), I = YIQ.I(), Q = YIQ.Q();
-		float r = clamp(Y + 0.956f * I + 0.621f * Q);
-		float g = clamp(Y - 0.272f * I - 0.647f * Q);
-		float b = clamp(Y - 1.105f * I + 1.702f * Q);
+		float r = clamp(1.00000000f * Y + 0.95629572f * I + 0.62102442f * Q);
+		float g = clamp(1.00000000f * Y - 0.27212210f * I - 0.64738060f * Q);
+		float b = clamp(1.00000000f * Y - 1.10698902f * I + 1.70461500f * Q);
 		return new RGB(r, g, b);
 	}
 
@@ -730,9 +805,9 @@ public class Colors {
 	 * V chrominance in the range [-0.5..0.5]. */
 	static public RGB RGB (YUV YUV) {
 		float Y = YUV.Y(), U = YUV.U(), V = YUV.V();
-		float r = Y + 0.000f * U + 1.140f * V;
-		float g = Y - 0.396f * U - 0.581f * V;
-		float b = Y + 2.029f * U + 0.000f * V;
+		float r = 1.00000000f * Y - 0.00000055f * U + 1.13988360f * V;
+		float g = 1.00000000f * Y - 0.39464236f * U - 0.58062209f * V;
+		float b = 1.00000000f * Y + 2.03206343f * U - 0.00000025f * V;
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
@@ -1040,7 +1115,7 @@ public class Colors {
 		return new XYZ(X * tristimulus.X(), Y * tristimulus.Y(), Z * tristimulus.Z());
 	}
 
-	/** Default: CIE 2-degree D65 Tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public XYZ XYZ (Luv luv) {
 		return XYZ(luv, Illuminant.CIE2.D65);
 	}
@@ -1078,11 +1153,11 @@ public class Colors {
 	static public XYZ XYZ (LMS lms, CAT matrix) {
 		float[] array = {lms.L(), lms.M(), lms.S()};
 		float[] xyz = switch (matrix) {
-		case HPE -> matrixMultiply(array, hpe_backward);
-		case Bradford -> matrixMultiply(array, bradford_backward);
-		case VonKries -> matrixMultiply(array, vonkries_backward);
+		case HPE -> matrixMultiply(array, HPE_backward);
+		case Bradford -> matrixMultiply(array, Bradford_backward);
+		case VonKries -> matrixMultiply(array, vonKries_backward);
 		case CAT97 -> matrixMultiply(array, cat97_backward);
-		default -> matrixMultiply(array, cat02_backward);
+		default -> matrixMultiply(array, CAT02_backward);
 		};
 		return new XYZ(xyz[0], xyz[1], xyz[2]);
 	}
@@ -1131,12 +1206,12 @@ public class Colors {
 		float Y, Cb, Cr;
 		if (colorSpace == YCbCrColorSpace.ITU_BT_601) {
 			Y = 0.299f * r + 0.587f * g + 0.114f * b;
-			Cb = -0.169f * r - 0.331f * g + 0.500f * b;
-			Cr = 0.500f * r - 0.419f * g - 0.081f * b;
+			Cb = -0.168735892f * r - 0.331264108f * g + 0.5f * b;
+			Cr = 0.5f * r - 0.418687589f * g - 0.081312411f * b;
 		} else {
-			Y = 0.2215f * r + 0.7154f * g + 0.0721f * b;
-			Cb = -0.1145f * r - 0.3855f * g + 0.5000f * b;
-			Cr = 0.5016f * r - 0.4556f * g - 0.0459f * b;
+			Y = 0.2126f * r + 0.7152f * g + 0.0722f * b;
+			Cb = -0.114572f * r - 0.385428f * g + 0.5f * b;
+			Cr = 0.5f * r - 0.454153f * g - 0.045847f * b;
 		}
 		return new YCbCr(Y, Cb, Cr);
 	}
@@ -1169,8 +1244,8 @@ public class Colors {
 	static public YIQ YIQ (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float Y = 0.299f * r + 0.587f * g + 0.114f * b;
-		float I = 0.596f * r - 0.275f * g - 0.322f * b;
-		float Q = 0.212f * r - 0.523f * g + 0.311f * b;
+		float I = 0.595716f * r - 0.274453f * g - 0.321263f * b;
+		float Q = 0.211456f * r - 0.522591f * g + 0.311135f * b;
 		return new YIQ(Y, I, Q);
 	}
 
@@ -1180,8 +1255,8 @@ public class Colors {
 	static public YUV YUV (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float Y = 0.299f * r + 0.587f * g + 0.114f * b;
-		float U = -0.14713f * r - 0.28886f * g + 0.436f * b;
-		float V = 0.615f * r - 0.51499f * g - 0.10001f * b;
+		float U = -0.147141f * r - 0.288869f * g + 0.436010f * b;
+		float V = 0.614975f * r - 0.514965f * g - 0.100010f * b;
 		return new YUV(Y, U, V);
 	}
 
@@ -1346,6 +1421,7 @@ public class Colors {
 	/** Oklch (cylindrical Oklab) */
 	public record Oklch (float L, float C, float h) {}
 
+	/** sRGB */
 	public record RGB (float r, float g, float b) {
 		public String hex () {
 			return Colors.hex(r(), g(), b());
