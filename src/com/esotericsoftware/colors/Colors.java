@@ -137,9 +137,7 @@ public class Colors {
 	static public HSLuv HSLuv (RGB rgb) {
 		Luv luv = Luv(rgb);
 		LCHuv lch = LCHuv(luv);
-		float L = lch.L();
-		float C = lch.C();
-		float H = lch.H();
+		float L = lch.L(), C = lch.C(), H = lch.H();
 		if (L > 99.9999999f) return new HSLuv(H, 0, 100);
 		if (L < 0.00000001f) return new HSLuv(H, 0, 0);
 		float maxChroma = maxChromaForLH(L, H);
