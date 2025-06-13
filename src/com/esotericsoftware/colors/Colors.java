@@ -63,6 +63,7 @@ public class Colors {
 	static public CMYK CMYK (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float K = 1 - Math.max(r, Math.max(g, b));
+		if (1 - K < 1e-10f) return new CMYK(0, 0, 0, K); // Black
 		float C = (1 - r - K) / (1 - K);
 		float M = (1 - g - K) / (1 - K);
 		float Y = (1 - b - K) / (1 - K);
@@ -151,6 +152,7 @@ public class Colors {
 		float minChroma = Float.MAX_VALUE;
 		for (float[] bound : getBounds(L)) {
 			float m1 = bound[0], b1 = bound[1];
+			if (Float.isNaN(m1) || Float.isNaN(b1)) continue;
 			float x, y;
 			if (Math.abs(Math.sin(hRad)) < 1e-10f) { // Hue is 0 or 180 degrees (vertical line).
 				x = 0;
@@ -158,6 +160,7 @@ public class Colors {
 			} else { // Calculate intersection based on hue angle.
 				float m2 = -1 / (float)Math.tan(hRad);
 				x = intersectLineLine(m1, b1, m2, 0);
+				if (Float.isNaN(x)) continue; // Lines are parallel.
 				y = m2 * x;
 			}
 			float chroma = (float)Math.sqrt(x * x + y * y);
@@ -178,8 +181,13 @@ public class Colors {
 				float top1 = (284517 * m1 - 94839 * m3) * sub2;
 				float top2 = (838422 * m3 + 769860 * m2 + 731718 * m1) * L * sub2 - 769860 * t * L;
 				float bottom = (632260 * m3 - 126452 * m2) * sub2 + 126452 * t;
-				bounds[index][0] = top1 / bottom;
-				bounds[index][1] = top2 / bottom;
+				if (Math.abs(bottom) < 1e-10f) {
+					bounds[index][0] = Float.NaN;
+					bounds[index][1] = Float.NaN;
+				} else {
+					bounds[index][0] = top1 / bottom;
+					bounds[index][1] = top2 / bottom;
+				}
 				index++;
 			}
 		}
@@ -187,7 +195,9 @@ public class Colors {
 	}
 
 	static private float intersectLineLine (float m1, float b1, float m2, float b2) {
-		return (b2 - b1) / (m1 - m2);
+		float denom = m1 - m2;
+		if (Math.abs(denom) < 1e-10f) return Float.NaN; // Parallel lines
+		return (b2 - b1) / denom;
 	}
 
 	static public HunterLab HunterLab (RGB rgb) {
@@ -196,6 +206,7 @@ public class Colors {
 
 	static public HunterLab HunterLab (XYZ xyz) {
 		float X = xyz.X(), Y = xyz.Y(), Z = xyz.Z();
+		if (Y < 1e-10f) return new HunterLab(0, Float.NaN, Float.NaN);
 		float sqrt = (float)Math.sqrt(Y);
 		float L = 10 * sqrt;
 		float a = 17.5f * ((1.02f * X - Y) / sqrt);
@@ -207,13 +218,18 @@ public class Colors {
 	static public IHS IHS (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float I = r + g + b;
+		if (I < 1e-10f) return new IHS(I, Float.NaN, Float.NaN);
 		float H;
-		if (b == Math.min(Math.min(r, g), b))
-			H = (g - b) / (I - 3 * b);
-		else if (r == Math.min(Math.min(r, g), b))
-			H = (b - r) / (I - 3 * r) + 1;
-		else
-			H = (r - g) / (I - 3 * g) + 2;
+		if (b == Math.min(Math.min(r, g), b)) {
+			float denom = I - 3 * b;
+			H = Math.abs(denom) < 1e-10f ? Float.NaN : (g - b) / denom;
+		} else if (r == Math.min(Math.min(r, g), b)) {
+			float denom = I - 3 * r;
+			H = Math.abs(denom) < 1e-10f ? Float.NaN : (b - r) / denom + 1;
+		} else {
+			float denom = I - 3 * g;
+			H = Math.abs(denom) < 1e-10f ? Float.NaN : (r - g) / denom + 2;
+		}
 		float S;
 		if (H >= 0 && H <= 1)
 			S = (I - 3 * b) / I;
@@ -291,7 +307,7 @@ public class Colors {
 		float L = yr > e ? 116 * (float)Math.cbrt(yr) - 16 : k * yr;
 		float divisor = X + 15 * Y + 3 * Z;
 		float divisorN = Xn + 15 * Yn + 3 * Zn;
-		if (divisor < 1e-10f || divisorN < 1e-10f) return new Luv(L, 0, 0);
+		if (divisor < 1e-10f || divisorN < 1e-10f) return new Luv(L, Float.NaN, Float.NaN);
 		float u_prime = 4 * X / divisor;
 		float v_prime = 9 * Y / divisor;
 		float un_prime = 4 * Xn / divisorN;
@@ -624,7 +640,7 @@ public class Colors {
 
 	static public RGB RGB (xy xy, Gamut gamut) {
 		xy = gamut.clamp(xy);
-		if (xy.y() < 1e-10f) return new RGB(0, 0, 0);
+		if (xy.y() < 1e-10f) return new RGB(Float.NaN, Float.NaN, Float.NaN);
 		float X = xy.x() / xy.y();
 		float Y = 1.0f;
 		float Z = (1 - xy.x() - xy.y()) / xy.y();
@@ -863,13 +879,14 @@ public class Colors {
 	static public RGChromaticity rgChromaticity (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float sum = r + g + b;
+		if (sum < 1e-10f) return new RGChromaticity(Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
 		float rNorm = r / sum;
 		float gNorm = g / sum;
 		float bNorm = 1 - rNorm - gNorm;
 		float rS = rNorm - 0.333f;
 		float gS = gNorm - 0.333f;
 		float saturation = (float)Math.sqrt(rS * rS + gS * gS);
-		float hue = (float)Math.atan(rS / gS);
+		float hue = (float)Math.atan2(rS, gS);
 		return new RGChromaticity(rNorm, gNorm, bNorm, saturation, hue);
 	}
 
@@ -907,6 +924,7 @@ public class Colors {
 		float perpV = uvNext.u() - uv.u();
 		// Normalize the perpendicular vector.
 		float length = (float)Math.sqrt(perpU * perpU + perpV * perpV);
+		if (length < 1e-10f) return new uv1960(Float.NaN, Float.NaN); // Cannot determine perpendicular.
 		perpU /= length;
 		perpV /= length;
 		return new uv1960(uv.u() + perpU * Duv, uv.v() + perpV * Duv);
@@ -1104,6 +1122,7 @@ public class Colors {
 	}
 
 	static public XYZ XYZ (xyY xyY) {
+		if (xyY.y() < 1e-10f) return new XYZ(Float.NaN, xyY.Y(), Float.NaN);
 		float X = xyY.x() * xyY.Y() / xyY.y();
 		float Z = (1 - xyY.x() - xyY.y()) * xyY.Y() / xyY.y();
 		return new XYZ(X, xyY.Y(), Z);
