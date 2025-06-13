@@ -8,7 +8,7 @@ import com.esotericsoftware.colors.Colors.xy;
 
 /** @see Colors#RGB(xy xy, Gamut gamut)
  * @see Colors#xy(RGB rgb, Gamut gamut)
- * @author Nathan Sweet */
+ * @author Nathan Sweet <misc@n4te.com> */
 public class Gamut {
 	static public final Gamut //
 	sRGB = new Gamut(new xy(0.64f, 0.33f), new xy(0.30f, 0.60f), new xy(0.15f, 0.06f)), //

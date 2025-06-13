@@ -42,6 +42,7 @@ import com.esotericsoftware.colors.Colors.uv1960;
 import com.esotericsoftware.colors.Colors.xy;
 import com.esotericsoftware.colors.Colors.xyY;
 
+/** @author Nathan Sweet <misc@n4te.com> */
 public class ColorsTest {
 	static final float EPSILON = 0.001f; // Tolerance for floating point comparisons
 	static final double EPSILON_D = 0.001; // Tolerance for double comparisons

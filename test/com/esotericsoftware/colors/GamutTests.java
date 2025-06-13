@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.esotericsoftware.colors.Colors.RGB;
 import com.esotericsoftware.colors.Colors.xy;
 
+/** @author Nathan Sweet <misc@n4te.com> */
 public class GamutTests {
 	private static final float EPSILON = 0.001f;
 

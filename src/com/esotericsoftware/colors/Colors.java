@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.colors;
 
-/** @author Nathan Sweet */
+/** @author Nathan Sweet <misc@n4te.com> */
 public class Colors {
 	static private final float PI = 3.1415927f;
 	static private final float radDeg = 180 / PI;
