@@ -493,6 +493,13 @@ public class Colors {
 		return new Oklab(L, a, bLab);
 	}
 
+	static public Oklab lerp (Oklab oklab1, Oklab oklab2, float t) {
+		float L = (1 - t) * oklab1.L() + t * oklab2.L();
+		float a = (1 - t) * oklab1.a() + t * oklab2.a();
+		float b = (1 - t) * oklab1.b() + t * oklab2.b();
+		return new Oklab(L, a, b);
+	}
+
 	static public Oklch Oklch (Oklab oklab) {
 		float L = oklab.L(), a = oklab.a(), b = oklab.b();
 		float C = (float)Math.sqrt(a * a + b * b);
@@ -1420,6 +1427,12 @@ public class Colors {
 
 	/** Oklch (cylindrical Oklab) */
 	public record Oklch (float L, float C, float h) {}
+
+	/** Okhsl (Oklab-based HSL) */
+	public record Okhsl (float h, float s, float l) {}
+
+	/** Okhsv (Oklab-based HSV) */
+	public record Okhsv (float h, float s, float v) {}
 
 	/** sRGB */
 	public record RGB (float r, float g, float b) {

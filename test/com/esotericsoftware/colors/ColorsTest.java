@@ -845,6 +845,111 @@ public class ColorsTest {
 	}
 
 	@Test
+	public void testOklabLerp () {
+		// Test lerp with t=0 returns first color
+		Oklab color1 = new Oklab(0.3f, 0.1f, -0.1f);
+		Oklab color2 = new Oklab(0.8f, -0.05f, 0.15f);
+		Oklab result = lerp(color1, color2, 0);
+		assertArrayClose(color1, result, "Oklab lerp t=0");
+
+		// Test lerp with t=1 returns second color
+		result = lerp(color1, color2, 1);
+		assertArrayClose(color2, result, "Oklab lerp t=1");
+
+		// Test lerp with t=0.5 returns midpoint
+		result = lerp(color1, color2, 0.5f);
+		Oklab expected = new Oklab((color1.L() + color2.L()) / 2, (color1.a() + color2.a()) / 2, (color1.b() + color2.b()) / 2);
+		assertArrayClose(expected, result, "Oklab lerp t=0.5");
+
+		// Test lerp between black and white
+		Oklab black = Oklab(new RGB(0, 0, 0));
+		Oklab white = Oklab(new RGB(1, 1, 1));
+		Oklab gray = lerp(black, white, 0.5f);
+		// Gray should have L around 0.5, a and b near 0
+		assertClose(0.5f, gray.L(), "Lerp black-white L", 0.1f);
+		assertClose(0, gray.a(), "Lerp black-white a", 0.01f);
+		assertClose(0, gray.b(), "Lerp black-white b", 0.01f);
+
+		// Test lerp between complementary colors
+		Oklab red = Oklab(new RGB(1, 0, 0));
+		Oklab cyan = Oklab(new RGB(0, 1, 1));
+		Oklab mid = lerp(red, cyan, 0.5f);
+		// Midpoint should be grayish
+		RGB midRGB = RGB(mid);
+		// Verify it's roughly gray (all channels similar)
+		float avgChannel = (midRGB.r() + midRGB.g() + midRGB.b()) / 3;
+		assertClose(avgChannel, midRGB.r(), "Lerp complementary R", 0.15f);
+		assertClose(avgChannel, midRGB.g(), "Lerp complementary G", 0.15f);
+		assertClose(avgChannel, midRGB.b(), "Lerp complementary B", 0.15f);
+
+		// Test lerp produces smooth gradient
+		float[] factors = {0, 0.25f, 0.5f, 0.75f, 1};
+		Oklab prevColor = null;
+		for (float t : factors) {
+			Oklab color = lerp(color1, color2, t);
+			if (prevColor != null) {
+				// Verify smooth progression
+				float deltaL = Math.abs(color.L() - prevColor.L());
+				float deltaA = Math.abs(color.a() - prevColor.a());
+				float deltaB = Math.abs(color.b() - prevColor.b());
+				// Each step should have similar deltas
+				assertClose(0.125f, deltaL, "Smooth L progression", 0.01f);
+				assertClose(0.0375f, deltaA, "Smooth a progression", 0.01f);
+				assertClose(0.0625f, deltaB, "Smooth b progression", 0.01f);
+			}
+			prevColor = color;
+		}
+
+		// Test lerp preserves perceptual uniformity
+		// Colors at equal t intervals should appear equally spaced
+		Oklab blue = Oklab(new RGB(0, 0, 1));
+		Oklab yellow = Oklab(new RGB(1, 1, 0));
+		Oklab q1 = lerp(blue, yellow, 0.25f);
+		Oklab q2 = lerp(blue, yellow, 0.5f);
+		Oklab q3 = lerp(blue, yellow, 0.75f);
+
+		// Convert to RGB to verify colors look reasonable
+		RGB rgbQ1 = RGB(q1);
+		RGB rgbQ2 = RGB(q2);
+		RGB rgbQ3 = RGB(q3);
+
+		// All should be valid RGB values
+		assertTrue(rgbQ1.r() >= 0 && rgbQ1.r() <= 1, "Q1 R in range");
+		assertTrue(rgbQ1.g() >= 0 && rgbQ1.g() <= 1, "Q1 G in range");
+		assertTrue(rgbQ1.b() >= 0 && rgbQ1.b() <= 1, "Q1 B in range");
+		assertTrue(rgbQ2.r() >= 0 && rgbQ2.r() <= 1, "Q2 R in range");
+		assertTrue(rgbQ2.g() >= 0 && rgbQ2.g() <= 1, "Q2 G in range");
+		assertTrue(rgbQ2.b() >= 0 && rgbQ2.b() <= 1, "Q2 B in range");
+		assertTrue(rgbQ3.r() >= 0 && rgbQ3.r() <= 1, "Q3 R in range");
+		assertTrue(rgbQ3.g() >= 0 && rgbQ3.g() <= 1, "Q3 G in range");
+		assertTrue(rgbQ3.b() >= 0 && rgbQ3.b() <= 1, "Q3 B in range");
+
+		// Test edge cases
+		// Lerp with same color should return that color
+		Oklab sameResult = lerp(color1, color1, 0.5f);
+		assertArrayClose(color1, sameResult, "Lerp same color");
+
+		// Test lerp with t outside [0,1] (extrapolation)
+		Oklab extrapolated = lerp(color1, color2, 1.5f);
+		// Should continue the line beyond color2
+		float expectedL = color1.L() + 1.5f * (color2.L() - color1.L());
+		float expectedA = color1.a() + 1.5f * (color2.a() - color1.a());
+		float expectedB = color1.b() + 1.5f * (color2.b() - color1.b());
+		assertClose(expectedL, extrapolated.L(), "Extrapolated L");
+		assertClose(expectedA, extrapolated.a(), "Extrapolated a");
+		assertClose(expectedB, extrapolated.b(), "Extrapolated b");
+
+		// Test lerp with negative t
+		Oklab negativeT = lerp(color1, color2, -0.5f);
+		expectedL = color1.L() - 0.5f * (color2.L() - color1.L());
+		expectedA = color1.a() - 0.5f * (color2.a() - color1.a());
+		expectedB = color1.b() - 0.5f * (color2.b() - color1.b());
+		assertClose(expectedL, negativeT.L(), "Negative t L");
+		assertClose(expectedA, negativeT.a(), "Negative t a");
+		assertClose(expectedB, negativeT.b(), "Negative t b");
+	}
+
+	@Test
 	public void testUV1976Conversions () {
 		// Test RGB to UV1976 conversions
 		RGB[] testColors = {new RGB(1, 0, 0), // Red
