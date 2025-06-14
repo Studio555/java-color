@@ -1010,6 +1010,66 @@ public class Colors {
 		return new RGBWW(r, g, b, W1, W2);
 	}
 
+	/** Returns the complementary color (opposite on color wheel). */
+	static public RGB complementary (RGB base) {
+		HSL hsl = HSL(base);
+		float h = hsl.H() + 180;
+		if (h >= 360) h -= 360;
+		return RGB(new HSL(h, hsl.S(), hsl.L()));
+	}
+
+	/** Returns a triadic color scheme (3 colors evenly spaced on color wheel). */
+	static public RGB[] triadic (RGB base) {
+		HSL hsl = HSL(base);
+		float h1 = hsl.H() + 120;
+		float h2 = hsl.H() + 240;
+		if (h1 >= 360) h1 -= 360;
+		if (h2 >= 360) h2 -= 360;
+		return new RGB[] {base, RGB(new HSL(h1, hsl.S(), hsl.L())), RGB(new HSL(h2, hsl.S(), hsl.L()))};
+	}
+
+	/** Returns an analogous color scheme (colors adjacent on color wheel). */
+	static public RGB[] analogous (RGB base, float angle) {
+		HSL hsl = HSL(base);
+		float h1 = hsl.H() + angle;
+		float h2 = hsl.H() - angle;
+		if (h1 >= 360) h1 -= 360;
+		if (h2 < 0) h2 += 360;
+		return new RGB[] {RGB(new HSL(h2, hsl.S(), hsl.L())), base, RGB(new HSL(h1, hsl.S(), hsl.L()))};
+	}
+
+	/** Returns a split-complementary color scheme. */
+	static public RGB[] splitComplementary (RGB base) {
+		HSL hsl = HSL(base);
+		float h1 = hsl.H() + 150;
+		float h2 = hsl.H() + 210;
+		if (h1 >= 360) h1 -= 360;
+		if (h2 >= 360) h2 -= 360;
+		return new RGB[] {base, RGB(new HSL(h1, hsl.S(), hsl.L())), RGB(new HSL(h2, hsl.S(), hsl.L()))};
+	}
+
+	/** Returns the WCAG contrast ratio between foreground and background colors.
+	 * @return Contrast ratio, 1:1 to 21:1. */
+	static public float contrastRatio (RGB foreground, RGB background) {
+		float fgLum = XYZ(foreground).Y() / 100;
+		float bgLum = XYZ(background).Y() / 100;
+		float L1 = Math.max(fgLum, bgLum);
+		float L2 = Math.min(fgLum, bgLum);
+		return (L1 + 0.05f) / (L2 + 0.05f);
+	}
+
+	/** Returns true if the colors meet the WCAG AA contrast accessibility standard.
+	 * @param largeText true for 18pt+ normal or 14pt+ bold text */
+	static public boolean WCAG_AA (RGB fg, RGB bg, boolean largeText) {
+		return contrastRatio(fg, bg) >= (largeText ? 3 : 4.5f);
+	}
+
+	/** Returns true if the colors meet the WCAG AAA contrast accessibility standard.
+	 * @param largeText true for 18pt+ normal or 14pt+ bold text */
+	static public boolean WCAG_AAA (RGB fg, RGB bg, boolean largeText) {
+		return contrastRatio(fg, bg) >= (largeText ? 4.5f : 7);
+	}
+
 	/** Rg-Chromaticity space, illumination and pose invariant.
 	 * @return Normalized RGChromaticity: RGB, saturation, hue. Range[0..1]. */
 	static public RGChromaticity rgChromaticity (RGB rgb) {
@@ -1044,6 +1104,32 @@ public class Colors {
 		float u = 4 * x / denominator;
 		float v = 9 * y / denominator;
 		return new uv(u, v);
+	}
+
+	static public float Duv (xy color) {
+		uv1960 uv = uv1960(color);
+		float cct = CCT(uv(color));
+		float delta = Math.min(50, cct * 0.01f);
+		xy bb1 = xy(Math.max(1667, cct - delta));
+		xy bb2 = xy(Math.min(25000, cct + delta));
+		uv1960 uv1 = uv1960(bb1), uv2 = uv1960(bb2);
+		float du = uv2.u() - uv1.u(), dv = uv2.v() - uv1.v();
+		float length = (float)Math.sqrt(du * du + dv * dv);
+		if (length > 0) {
+			du /= length;
+			dv /= length;
+		}
+		float perpU = -dv, perpV = du;
+		uv1960 uvbb = uv1960(xy(cct));
+		du = uv.u() - uvbb.u();
+		dv = uv.v() - uvbb.v();
+		return du * perpU + dv * perpV;
+	}
+
+	static public float MacAdamSteps (xy color1, xy color2) {
+		uv1960 uv1 = uv1960(color1), uv2 = uv1960(color2);
+		float du = uv1.u() - uv2.u(), dv = uv1.v() - uv2.v();
+		return (float)Math.sqrt(du * du + dv * dv) / 0.0011f;
 	}
 
 	static public uv1960 uv1960 (float CCT) {

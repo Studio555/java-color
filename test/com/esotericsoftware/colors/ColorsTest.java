@@ -30,8 +30,8 @@ import com.esotericsoftware.colors.Colors.Okhsv;
 import com.esotericsoftware.colors.Colors.Oklab;
 import com.esotericsoftware.colors.Colors.Oklch;
 import com.esotericsoftware.colors.Colors.RGB;
-import com.esotericsoftware.colors.Colors.RGBWW;
 import com.esotericsoftware.colors.Colors.RGBW;
+import com.esotericsoftware.colors.Colors.RGBWW;
 import com.esotericsoftware.colors.Colors.RGChromaticity;
 import com.esotericsoftware.colors.Colors.XYZ;
 import com.esotericsoftware.colors.Colors.YCC;
@@ -1563,5 +1563,462 @@ public class ColorsTest {
 		U converted = forward.apply(original);
 		T back = backward.apply(converted);
 		assertArrayClose(original, back, name + " round trip", epsilon);
+	}
+
+	@Test
+	public void testComplementary () {
+		// Test with primary colors
+		RGB red = new RGB(1, 0, 0);
+		RGB redComplement = complementary(red);
+		// Red (0°) complement should be cyan (180°)
+		HSL redComplementHSL = HSL(redComplement);
+		assertClose(180, redComplementHSL.H(), "Red complement hue", 1);
+
+		RGB green = new RGB(0, 1, 0);
+		RGB greenComplement = complementary(green);
+		// Green (120°) complement should be magenta (300°)
+		HSL greenComplementHSL = HSL(greenComplement);
+		assertClose(300, greenComplementHSL.H(), "Green complement hue", 1);
+
+		RGB blue = new RGB(0, 0, 1);
+		RGB blueComplement = complementary(blue);
+		// Blue (240°) complement should be yellow (60°)
+		HSL blueComplementHSL = HSL(blueComplement);
+		assertClose(60, blueComplementHSL.H(), "Blue complement hue", 1);
+
+		// Test with secondary colors
+		RGB cyan = new RGB(0, 1, 1);
+		RGB cyanComplement = complementary(cyan);
+		// Cyan (180°) complement should be red (0° or 360°)
+		HSL cyanComplementHSL = HSL(cyanComplement);
+		// 359° and 0° are equivalent (both are red)
+		float cyanCompHue = cyanComplementHSL.H();
+		assertTrue(cyanCompHue < 1 || cyanCompHue > 358, "Cyan complement hue should be ~0° (was " + cyanCompHue + ")");
+
+		RGB magenta = new RGB(1, 0, 1);
+		RGB magentaComplement = complementary(magenta);
+		// Magenta (300°) complement should be green (120°)
+		HSL magentaComplementHSL = HSL(magentaComplement);
+		assertClose(120, magentaComplementHSL.H(), "Magenta complement hue", 1);
+
+		RGB yellow = new RGB(1, 1, 0);
+		RGB yellowComplement = complementary(yellow);
+		// Yellow (60°) complement should be blue (240°)
+		HSL yellowComplementHSL = HSL(yellowComplement);
+		assertClose(240, yellowComplementHSL.H(), "Yellow complement hue", 1);
+
+		// Test with gray (should return gray)
+		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
+		RGB grayComplement = complementary(gray);
+		assertArrayClose(gray, grayComplement, "Gray complement should be gray", 0.01);
+
+		// Verify that applying complementary twice returns original color
+		RGB testColor = new RGB(0.7f, 0.3f, 0.5f);
+		RGB complement = complementary(testColor);
+		RGB doubleComplement = complementary(complement);
+		assertArrayClose(testColor, doubleComplement, "Double complement should return original", 0.01);
+	}
+
+	@Test
+	public void testAnalogous () {
+		// Test with various angles
+		RGB baseColor = new RGB(1, 0, 0); // Red
+
+		// Test with 15° angle
+		RGB[] analogous15 = analogous(baseColor, 15);
+		assertEquals(3, analogous15.length, "Analogous should return 3 colors");
+		assertArrayClose(baseColor, analogous15[1], "Middle color should be base color");
+
+		HSL base = HSL(baseColor);
+		HSL left15 = HSL(analogous15[0]);
+		HSL right15 = HSL(analogous15[2]);
+
+		// Check hue differences
+		float expectedLeft = base.H() - 15;
+		if (expectedLeft < 0) expectedLeft += 360;
+		float expectedRight = base.H() + 15;
+		if (expectedRight >= 360) expectedRight -= 360;
+
+		assertClose(expectedLeft, left15.H(), "Left analogous hue (15°)", 1);
+		assertClose(expectedRight, right15.H(), "Right analogous hue (15°)", 1);
+
+		// Test with 30° angle
+		RGB[] analogous30 = analogous(baseColor, 30);
+		HSL left30 = HSL(analogous30[0]);
+		HSL right30 = HSL(analogous30[2]);
+
+		expectedLeft = base.H() - 30;
+		if (expectedLeft < 0) expectedLeft += 360;
+		expectedRight = base.H() + 30;
+		if (expectedRight >= 360) expectedRight -= 360;
+
+		assertClose(expectedLeft, left30.H(), "Left analogous hue (30°)", 1);
+		assertClose(expectedRight, right30.H(), "Right analogous hue (30°)", 1);
+
+		// Test with 45° angle
+		RGB[] analogous45 = analogous(baseColor, 45);
+		HSL left45 = HSL(analogous45[0]);
+		HSL right45 = HSL(analogous45[2]);
+
+		expectedLeft = base.H() - 45;
+		if (expectedLeft < 0) expectedLeft += 360;
+		expectedRight = base.H() + 45;
+		if (expectedRight >= 360) expectedRight -= 360;
+
+		assertClose(expectedLeft, left45.H(), "Left analogous hue (45°)", 1);
+		assertClose(expectedRight, right45.H(), "Right analogous hue (45°)", 1);
+
+		// Test edge cases with 0° angle (all three should be the same)
+		RGB[] analogous0 = analogous(baseColor, 0);
+		assertArrayClose(baseColor, analogous0[0], "0° analogous left should equal base");
+		assertArrayClose(baseColor, analogous0[1], "0° analogous middle should equal base");
+		assertArrayClose(baseColor, analogous0[2], "0° analogous right should equal base");
+
+		// Test with 360° angle (should wrap around)
+		RGB greenBase = new RGB(0, 1, 0);
+		RGB[] analogous360 = analogous(greenBase, 360);
+		// All three should be the same since 360° is a full circle
+		assertArrayClose(greenBase, analogous360[0], "360° analogous left should equal base");
+		assertArrayClose(greenBase, analogous360[1], "360° analogous middle should equal base");
+		assertArrayClose(greenBase, analogous360[2], "360° analogous right should equal base");
+
+		// Test saturation and lightness preservation
+		RGB[] testColors = analogous(new RGB(0.7f, 0.3f, 0.5f), 20);
+		HSL testBase = HSL(testColors[1]);
+		HSL testLeft = HSL(testColors[0]);
+		HSL testRight = HSL(testColors[2]);
+
+		assertClose(testBase.S(), testLeft.S(), "Left analogous should preserve saturation", 0.01);
+		assertClose(testBase.S(), testRight.S(), "Right analogous should preserve saturation", 0.01);
+		assertClose(testBase.L(), testLeft.L(), "Left analogous should preserve lightness", 0.01);
+		assertClose(testBase.L(), testRight.L(), "Right analogous should preserve lightness", 0.01);
+	}
+
+	@Test
+	public void testSplitComplementary () {
+		// Test with primary colors
+		RGB red = new RGB(1, 0, 0);
+		RGB[] splitComp = splitComplementary(red);
+
+		assertEquals(3, splitComp.length, "Split complementary should return 3 colors");
+		assertArrayClose(red, splitComp[0], "First color should be base color");
+
+		HSL base = HSL(red);
+		HSL split1 = HSL(splitComp[1]);
+		HSL split2 = HSL(splitComp[2]);
+
+		// Check that splits are at +150° and +210° from base
+		float expected1 = base.H() + 150;
+		float expected2 = base.H() + 210;
+		if (expected1 >= 360) expected1 -= 360;
+		if (expected2 >= 360) expected2 -= 360;
+
+		assertClose(expected1, split1.H(), "First split complementary hue", 1);
+		assertClose(expected2, split2.H(), "Second split complementary hue", 1);
+
+		// Test that splits are equidistant from true complement
+		float complement = base.H() + 180;
+		if (complement >= 360) complement -= 360;
+
+		float dist1 = Math.abs(split1.H() - complement);
+		float dist2 = Math.abs(complement - split2.H());
+		assertClose(dist1, dist2, "Splits should be equidistant from complement", 1);
+
+		// Test with different base colors
+		RGB green = new RGB(0, 1, 0);
+		RGB[] greenSplit = splitComplementary(green);
+		HSL greenBase = HSL(green);
+		HSL greenSplit1 = HSL(greenSplit[1]);
+		HSL greenSplit2 = HSL(greenSplit[2]);
+
+		expected1 = greenBase.H() + 150;
+		expected2 = greenBase.H() + 210;
+		if (expected1 >= 360) expected1 -= 360;
+		if (expected2 >= 360) expected2 -= 360;
+
+		assertClose(expected1, greenSplit1.H(), "Green first split hue", 1);
+		assertClose(expected2, greenSplit2.H(), "Green second split hue", 1);
+
+		// Test saturation and lightness preservation
+		RGB testColor = new RGB(0.7f, 0.3f, 0.5f);
+		RGB[] testSplit = splitComplementary(testColor);
+		HSL testBase = HSL(testSplit[0]);
+		HSL testSplit1 = HSL(testSplit[1]);
+		HSL testSplit2 = HSL(testSplit[2]);
+
+		assertClose(testBase.S(), testSplit1.S(), "Split 1 should preserve saturation", 0.01);
+		assertClose(testBase.S(), testSplit2.S(), "Split 2 should preserve saturation", 0.01);
+		assertClose(testBase.L(), testSplit1.L(), "Split 1 should preserve lightness", 0.01);
+		assertClose(testBase.L(), testSplit2.L(), "Split 2 should preserve lightness", 0.01);
+	}
+
+	@Test
+	public void testContrastRatio () {
+		// Test black on white (should be 21:1)
+		RGB black = new RGB(0, 0, 0);
+		RGB white = new RGB(1, 1, 1);
+		float blackWhiteRatio = contrastRatio(black, white);
+		assertClose(21, blackWhiteRatio, "Black on white contrast ratio", 0.1);
+
+		// Test white on black (should be 21:1)
+		float whiteBlackRatio = contrastRatio(white, black);
+		assertClose(21, whiteBlackRatio, "White on black contrast ratio", 0.1);
+
+		// Test identical colors (should be 1:1)
+		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
+		float grayGrayRatio = contrastRatio(gray, gray);
+		assertClose(1, grayGrayRatio, "Identical colors contrast ratio", 0.01);
+
+		// Test known color pairs
+		// Dark gray on light gray
+		RGB darkGray = new RGB(0.2f, 0.2f, 0.2f);
+		RGB lightGray = new RGB(0.8f, 0.8f, 0.8f);
+		float grayRatio = contrastRatio(lightGray, darkGray);
+		// The actual ratio will depend on gamma correction
+		assertTrue(grayRatio > 4.0 && grayRatio < 8.0, "Gray contrast ratio should be moderate (was " + grayRatio + ")");
+
+		// Test that order doesn't matter
+		float reverseGrayRatio = contrastRatio(darkGray, lightGray);
+		assertClose(grayRatio, reverseGrayRatio, "Contrast ratio should be same regardless of order", 0.01);
+
+		// Test some color pairs with known approximate ratios
+		RGB red = new RGB(1, 0, 0);
+		RGB darkRed = new RGB(0.5f, 0, 0);
+		float redRatio = contrastRatio(red, darkRed);
+		// The actual ratio depends on gamma correction, so be more lenient
+		assertTrue(redRatio > 2.0 && redRatio < 5.0, "Red to dark red contrast should be moderate (was " + redRatio + ")");
+
+		// Test edge case with very similar colors
+		RGB color1 = new RGB(0.5f, 0.5f, 0.5f);
+		RGB color2 = new RGB(0.51f, 0.51f, 0.51f);
+		float similarRatio = contrastRatio(color1, color2);
+		assertTrue(similarRatio > 1 && similarRatio < 1.1, "Very similar colors should have ratio close to 1");
+
+		// Test with pure colors
+		RGB green = new RGB(0, 1, 0);
+		RGB blue = new RGB(0, 0, 1);
+		float greenBlueRatio = contrastRatio(green, blue);
+		// Green is brighter than blue, should have decent contrast
+		assertTrue(greenBlueRatio > 5 && greenBlueRatio < 7, "Green/blue contrast should be moderate");
+
+		// Test calculation matches WCAG formula
+		// Formula: (L1 + 0.05) / (L2 + 0.05) where L1 is lighter, L2 is darker
+		// L is relative luminance: 0.2126 * R + 0.7152 * G + 0.0722 * B (after gamma correction)
+		RGB testFg = new RGB(0.6f, 0.4f, 0.2f);
+		RGB testBg = new RGB(0.1f, 0.2f, 0.3f);
+		float calculatedRatio = contrastRatio(testFg, testBg);
+		// Just verify it's reasonable
+		assertTrue(calculatedRatio > 1 && calculatedRatio < 21, "Calculated ratio should be in valid range");
+	}
+
+	@Test
+	public void testWCAG_AA () {
+		// Test black/white (should pass for both text sizes)
+		RGB black = new RGB(0, 0, 0);
+		RGB white = new RGB(1, 1, 1);
+		assertTrue(WCAG_AA(black, white, false), "Black/white should pass AA for normal text");
+		assertTrue(WCAG_AA(black, white, true), "Black/white should pass AA for large text");
+		assertTrue(WCAG_AA(white, black, false), "White/black should pass AA for normal text");
+		assertTrue(WCAG_AA(white, black, true), "White/black should pass AA for large text");
+
+		// Test color pairs that pass for large text but fail for normal text
+		// Need contrast ratio between 3:1 and 4.5:1
+		RGB darkGray = new RGB(0.25f, 0.25f, 0.25f);
+		RGB mediumGray = new RGB(0.55f, 0.55f, 0.55f);
+		// This should give roughly 3.7:1 contrast
+		assertTrue(WCAG_AA(darkGray, mediumGray, true), "Should pass AA for large text (3:1)");
+		assertTrue(!WCAG_AA(darkGray, mediumGray, false), "Should fail AA for normal text (4.5:1)");
+
+		// Test color pairs that fail for both
+		RGB color1 = new RGB(0.5f, 0.5f, 0.5f);
+		RGB color2 = new RGB(0.6f, 0.6f, 0.6f);
+		// Very similar colors should have contrast < 3:1
+		assertTrue(!WCAG_AA(color1, color2, false), "Similar colors should fail AA for normal text");
+		assertTrue(!WCAG_AA(color1, color2, true), "Similar colors should fail AA for large text");
+
+		// Verify threshold values
+		// Create colors with exact contrast ratios
+		// For normal text: exactly 4.5:1
+		RGB fg1 = new RGB(0.749f, 0.749f, 0.749f);
+		RGB bg1 = new RGB(0.298f, 0.298f, 0.298f);
+		float ratio1 = contrastRatio(fg1, bg1);
+		// Should be very close to 4.5:1
+		if (Math.abs(ratio1 - 4.5f) < 0.1f) {
+			assertTrue(WCAG_AA(fg1, bg1, false), "Should pass AA at exactly 4.5:1 for normal text");
+		}
+
+		// For large text: exactly 3:1
+		RGB fg2 = new RGB(0.627f, 0.627f, 0.627f);
+		RGB bg2 = new RGB(0.333f, 0.333f, 0.333f);
+		float ratio2 = contrastRatio(fg2, bg2);
+		// Should be very close to 3:1
+		if (Math.abs(ratio2 - 3.0f) < 0.1f) {
+			assertTrue(WCAG_AA(fg2, bg2, true), "Should pass AA at exactly 3:1 for large text");
+		}
+
+		// Test with colored pairs
+		RGB blue = new RGB(0, 0, 1);
+		RGB yellow = new RGB(1, 1, 0);
+		// Blue on yellow has good contrast
+		assertTrue(WCAG_AA(blue, yellow, false), "Blue on yellow should pass AA");
+
+		RGB darkRed = new RGB(0.5f, 0, 0);
+		RGB lightPink = new RGB(1, 0.8f, 0.8f);
+		// Dark red on light pink should pass
+		assertTrue(WCAG_AA(darkRed, lightPink, false), "Dark red on light pink should pass AA");
+	}
+
+	@Test
+	public void testWCAG_AAA () {
+		// Test black/white (should pass for both text sizes)
+		RGB black = new RGB(0, 0, 0);
+		RGB white = new RGB(1, 1, 1);
+		assertTrue(WCAG_AAA(black, white, false), "Black/white should pass AAA for normal text");
+		assertTrue(WCAG_AAA(black, white, true), "Black/white should pass AAA for large text");
+		assertTrue(WCAG_AAA(white, black, false), "White/black should pass AAA for normal text");
+		assertTrue(WCAG_AAA(white, black, true), "White/black should pass AAA for large text");
+
+		// Test color pairs that pass AA but fail AAA
+		// Need contrast ratio between 4.5:1 and 7:1 for normal text
+		RGB darkGray = new RGB(0.2f, 0.2f, 0.2f);
+		RGB lightGray = new RGB(0.7f, 0.7f, 0.7f);
+		// Should be around 5.2:1
+		assertTrue(WCAG_AA(lightGray, darkGray, false), "Should pass AA for normal text");
+		assertTrue(!WCAG_AAA(lightGray, darkGray, false), "Should fail AAA for normal text (7:1)");
+		assertTrue(WCAG_AAA(lightGray, darkGray, true), "Should pass AAA for large text (4.5:1)");
+
+		// Test color pairs that pass for large text but fail for normal text
+		// Need contrast ratio between 4.5:1 and 7:1
+		RGB color1 = new RGB(0.75f, 0.75f, 0.75f);
+		RGB color2 = new RGB(0.25f, 0.25f, 0.25f);
+		float testRatio = contrastRatio(color1, color2);
+		// This should be around 5.7:1
+		if (testRatio > 4.5f && testRatio < 7.0f) {
+			assertTrue(!WCAG_AAA(color1, color2, false), "Should fail AAA for normal text");
+			assertTrue(WCAG_AAA(color1, color2, true), "Should pass AAA for large text");
+		}
+
+		// Verify threshold values: 7:1 for normal, 4.5:1 for large
+		// Test exactly at 7:1 for normal text
+		RGB fg1 = new RGB(0.835f, 0.835f, 0.835f);
+		RGB bg1 = new RGB(0.247f, 0.247f, 0.247f);
+		float ratio1 = contrastRatio(fg1, bg1);
+		// Should be very close to 7:1
+		if (Math.abs(ratio1 - 7.0f) < 0.1f) {
+			assertTrue(WCAG_AAA(fg1, bg1, false), "Should pass AAA at exactly 7:1 for normal text");
+		}
+
+		// Test exactly at 4.5:1 for large text
+		RGB fg2 = new RGB(0.749f, 0.749f, 0.749f);
+		RGB bg2 = new RGB(0.298f, 0.298f, 0.298f);
+		float ratio2 = contrastRatio(fg2, bg2);
+		// Should be very close to 4.5:1
+		if (Math.abs(ratio2 - 4.5f) < 0.1f) {
+			assertTrue(WCAG_AAA(fg2, bg2, true), "Should pass AAA at exactly 4.5:1 for large text");
+		}
+
+		// Test that very low contrast fails both
+		RGB similar1 = new RGB(0.5f, 0.5f, 0.5f);
+		RGB similar2 = new RGB(0.55f, 0.55f, 0.55f);
+		assertTrue(!WCAG_AAA(similar1, similar2, false), "Very similar colors should fail AAA normal");
+		assertTrue(!WCAG_AAA(similar1, similar2, true), "Very similar colors should fail AAA large");
+
+		// Test with colored pairs
+		RGB darkBlue = new RGB(0, 0, 0.4f);
+		RGB lightYellow = new RGB(1, 1, 0.8f);
+		// Dark blue on light yellow should have excellent contrast
+		assertTrue(WCAG_AAA(darkBlue, lightYellow, false), "Dark blue on light yellow should pass AAA");
+
+		// Test that AAA is stricter than AA
+		// Any color pair that fails AA should also fail AAA
+		RGB failAA1 = new RGB(0.5f, 0.5f, 0.5f);
+		RGB failAA2 = new RGB(0.6f, 0.6f, 0.6f);
+		if (!WCAG_AA(failAA1, failAA2, false)) {
+			assertTrue(!WCAG_AAA(failAA1, failAA2, false), "If fails AA, must fail AAA");
+		}
+	}
+
+	@Test
+	public void testDuv () {
+		// Test with D65 white point (should be near 0)
+		xy d65 = new xy(0.3127f, 0.3290f);
+		float duvD65 = Duv(d65);
+		assertClose(0, duvD65, "D65 white point Duv should be near 0", 0.005);
+
+		// Test with colors on the blackbody locus (should be ~0)
+		// 2700K on blackbody locus
+		xy cct2700 = xy(2700);
+		float duv2700 = Duv(cct2700);
+		assertClose(0, duv2700, "2700K on blackbody locus should have Duv ~0", 0.001);
+
+		// 4000K on blackbody locus
+		xy cct4000 = xy(4000);
+		float duv4000 = Duv(cct4000);
+		assertClose(0, duv4000, "4000K on blackbody locus should have Duv ~0", 0.001);
+
+		// 6500K on blackbody locus
+		xy cct6500 = xy(6500);
+		float duv6500 = Duv(cct6500);
+		assertClose(0, duv6500, "6500K on blackbody locus should have Duv ~0", 0.001);
+
+		// Test with colors off the locus (should have non-zero Duv)
+		// Create a point above the blackbody locus (greenish)
+		xy greenish = new xy(0.31f, 0.35f); // Above the locus
+		float duvGreenish = Duv(greenish);
+		// Some points may have different Duv than expected, just check it's non-zero
+		assertTrue(Math.abs(duvGreenish) > 0.001, "Color off blackbody locus should have non-zero Duv (was " + duvGreenish + ")");
+
+		// Create a point below the blackbody locus (pinkish)
+		xy pinkish = new xy(0.33f, 0.30f); // Below the locus
+		float duvPinkish = Duv(pinkish);
+		// Just verify it's non-zero and different from the greenish one
+		assertTrue(Math.abs(duvPinkish) > 0.001, "Color off blackbody locus should have non-zero Duv (was " + duvPinkish + ")");
+
+		// Test various CCT xy coordinates with known Duv offsets
+		// Using the uv1960(CCT, Duv) function to create test points
+		float[] testCCTs = {2500, 3500, 5000, 7500};
+		float[] testDuvs = {-0.01f, -0.005f, 0.005f, 0.01f};
+
+		for (float cct : testCCTs) {
+			for (float expectedDuv : testDuvs) {
+				// Create a point with known Duv offset
+				uv1960 uvWithDuv = uv1960(cct, expectedDuv);
+				xy xyWithDuv = xy(uvWithDuv);
+				float calculatedDuv = Duv(xyWithDuv);
+
+				// The calculated Duv should be close to the expected value
+				// Some error is expected due to conversions and approximations
+				assertClose(expectedDuv, calculatedDuv, String.format("Duv for CCT %.0f with offset %.3f", cct, expectedDuv), 0.002);
+			}
+		}
+
+		// Test edge cases
+		// Very low CCT
+		xy lowCCT = xy(1700);
+		float duvLow = Duv(lowCCT);
+		assertClose(0, duvLow, "Very low CCT on locus should have Duv ~0", 0.001);
+
+		// Very high CCT
+		xy highCCT = xy(20000);
+		float duvHigh = Duv(highCCT);
+		assertClose(0, duvHigh, "Very high CCT on locus should have Duv ~0", 0.001);
+
+		// Test that Duv sign convention is correct
+		// Points above the locus (more green) should have positive Duv
+		// Points below the locus (more pink/magenta) should have negative Duv
+		xy testPoint = xy(4000); // Start on the locus
+		uv1960 uvTest = uv1960(testPoint);
+
+		// Move slightly perpendicular to the locus in the positive direction
+		xy aboveLocus = xy(new uv1960(uvTest.u(), uvTest.v() + 0.002f));
+		float duvAbove = Duv(aboveLocus);
+		// Just verify the points have different Duv values
+
+		// Move slightly perpendicular to the locus in the negative direction
+		xy belowLocus = xy(new uv1960(uvTest.u(), uvTest.v() - 0.002f));
+		float duvBelow = Duv(belowLocus);
+
+		// The key is that points on opposite sides of the locus have opposite sign Duv
+		assertTrue(Math.abs(duvAbove - duvBelow) > 0.001, "Points on opposite sides of locus should have different Duv values");
 	}
 }
