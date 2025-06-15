@@ -38,6 +38,10 @@ public class Colors {
 		return new C1C2C3(C1, C2, C3);
 	}
 
+	static public float CCT (RGB rgb) {
+		return CCT(uv(rgb));
+	}
+
 	static public float CCT (uv uv) {
 		return CCT(xy(uv));
 	}
