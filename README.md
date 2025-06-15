@@ -1,6 +1,6 @@
-# Colors - Color Space Conversion Library
+# Colors
 
-A Java library providing color space conversions, color manipulation utilities, and gamut management.
+This Java library provides color space conversions and other color related utilities.
 
 - **Color space conversions** 30+, bidirectional
 - **Gamut management** for multiple display standards
