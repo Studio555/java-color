@@ -1,6 +1,8 @@
 
 package com.esotericsoftware.colors;
 
+import java.lang.reflect.RecordComponent;
+
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Colors {
 	static final float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
@@ -1454,6 +1456,19 @@ public class Colors {
 	 * @return 0-65535 */
 	static public int dmx16 (float value) {
 		return (int)(value * 65535);
+	}
+
+	static public float[] array (Record record) {
+		RecordComponent[] components = record.getClass().getRecordComponents();
+		float[] values = new float[components.length];
+		for (int i = 0; i < components.length; i++) {
+			try {
+				values[i] = (float)components[i].getAccessor().invoke(record);
+			} catch (Exception ex) {
+				throw new RuntimeException("Error accessing field", ex);
+			}
+		}
+		return values;
 	}
 
 	static public String hex (float... values) {

@@ -653,7 +653,7 @@ public class ColorsTest {
 	}
 
 	static double getMaxError (Record expectedRecord, Record actualRecord) {
-		float[] expected = toArray(expectedRecord), actual = toArray(actualRecord);
+		float[] expected = array(expectedRecord), actual = array(actualRecord);
 		double maxError = 0;
 		for (int i = 0; i < expected.length; i++)
 			maxError = Math.max(maxError, Math.abs(expected[i] - actual[i]));
@@ -1508,11 +1508,11 @@ public class ColorsTest {
 	}
 
 	static void assertArrayClose (Record expected, Record actual, String name) {
-		assertArrayClose(toArray(expected), toArray(actual), name, EPSILON_F);
+		assertArrayClose(array(expected), array(actual), name, EPSILON_F);
 	}
 
 	static void assertArrayClose (Record expected, Record actual, String name, double epsilon) {
-		assertArrayClose(toArray(expected), toArray(actual), name, epsilon);
+		assertArrayClose(array(expected), array(actual), name, epsilon);
 	}
 
 	static void assertClose (double expected, double actual, String name, double epsilon) {
@@ -1533,19 +1533,6 @@ public class ColorsTest {
 
 	static void assertTrue (boolean condition, String message) {
 		Assertions.assertTrue(condition, message);
-	}
-
-	static public float[] toArray (Record record) {
-		RecordComponent[] components = record.getClass().getRecordComponents();
-		float[] values = new float[components.length];
-		for (int i = 0; i < components.length; i++) {
-			try {
-				values[i] = (float)components[i].getAccessor().invoke(record);
-			} catch (Exception ex) {
-				throw new RuntimeException("Error accessing field", ex);
-			}
-		}
-		return values;
 	}
 
 	static <T extends Record, U extends Record> void roundTripd (T original, Function<T, U> forward, Function<U, T> backward,
