@@ -5,7 +5,7 @@ import static com.esotericsoftware.colors.Colors.*;
 
 import com.esotericsoftware.colors.Colors.Oklab;
 
-class Util {
+public class Util {
 	static public float[] matrixMultiply (float[] a, float[][] b) {
 		float[] result = new float[b[0].length];
 		for (int i = 0; i < b[0].length; i++)
