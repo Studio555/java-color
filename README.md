@@ -233,7 +233,7 @@ Gamut srgb = Gamut.sRGB;          // Standard RGB
 Gamut p3 = Gamut.DisplayP3;       // Display P3
 Gamut rec2020 = Gamut.Rec2020;    // Rec. 2020
 Gamut full = Gamut.all;           // Full visible spectrum
-Gamut huaA = Gamut.PhilipsHue.A;  // Philips Hue
+Gamut huaA = Gamut.PhilipsHue.A;  // Philips Hue A
 var custom = new Gamut(red, green blue);
 ```
 
@@ -248,8 +248,8 @@ xy clamped = gamut.clamp(chromaticity);
 ## Utility Functions
 
 ### Gamma Correction
-- `sRGB(float linear)` - Apply sRGB gamma encoding
-- `linear(float srgb)` - Remove sRGB gamma encoding
+- `sRGB(float linear)` - sRGB gamma encoding
+- `linear(float srgb)` - sRGB gamma decoding
 - `gammaEncode(float linear, float gamma)` - Custom gamma encoding
 - `gammaDecode(float encoded, float gamma)` - Custom gamma decoding
 
