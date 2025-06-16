@@ -6,8 +6,8 @@ import java.lang.reflect.RecordComponent;
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Colors {
 	static final float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
-	static final float k = 903.2963f; // 24389/27
-	static final float e = 0.008856452f; // 216/24389
+	static final float k = 903.2963f; // 24389 / 27
+	static final float e = 0.008856452f; // 216 / 24389
 	static private final float[][] HPE_forward = {{0.38971f, 0.68898f, -0.07868f}, {-0.22981f, 1.18340f, 0.04641f},
 		{0.00000f, 0.00000f, 1.00000f}};
 	static private final float[][] HPE_backward = {{1.91019683f, -1.11212389f, 0.20190796f},
@@ -40,20 +40,22 @@ public class Colors {
 		return new C1C2C3(C1, C2, C3);
 	}
 
+	/** @param rgb sRGB.
+	 * @return CCT [1667..25000K] or NaN if invalid. */
 	static public float CCT (RGB rgb) {
-		return CCT(uv(rgb));
+		return CCT(xy(rgb));
 	}
 
+	/** @return CCT [1667..25000K] or NaN if invalid. */
 	static public float CCT (uv uv) {
 		return CCT(xy(uv));
 	}
 
-	/** @return CCT in Kelvin [1667-25000], or NaN if outside valid range. */
+	/** @return CCT [1667..25000K], or NaN if outside valid range. */
 	static public float CCT (xy xy) {
 		float x = xy.x(), y = xy.y();
 		if (x < 0.25f || x > 0.565f || y < 0.20f || y > 0.45f) return Float.NaN;
-		// McCamy's approximation.
-		float n = (x - 0.3320f) / (0.1858f - y);
+		float n = (x - 0.3320f) / (0.1858f - y); // McCamy's approximation.
 		float CCT = 449 * n * n * n + 3525 * n * n + 6823.3f * n + 5520.33f;
 		if (CCT < 1667 || CCT > 25000) return Float.NaN;
 		return CCT;
@@ -192,7 +194,6 @@ public class Colors {
 		return new HSL(H, S, L);
 	}
 
-	/** Adds (hue + 360) % 360 to represent hue in the range [0..359]. */
 	static public HSV HSV (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float max = Math.max(r, Math.max(g, b));
@@ -223,10 +224,12 @@ public class Colors {
 		return new HSLuv(H, S, L);
 	}
 
+	/** @return NaN if invalid. */
 	static public HunterLab HunterLab (RGB rgb) {
 		return HunterLab(XYZ(rgb));
 	}
 
+	/** @return NaN if invalid. */
 	static public HunterLab HunterLab (XYZ xyz) {
 		float X = xyz.X(), Y = xyz.Y(), Z = xyz.Z();
 		if (Y < 1e-10f) return new HunterLab(0, Float.NaN, Float.NaN);
@@ -237,7 +240,7 @@ public class Colors {
 		return new HunterLab(L, a, b);
 	}
 
-	/** @return IHS color space. Normalized. */
+	/** @return IHS color space normalized or NaN if invalid. */
 	static public IHS IHS (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float I = r + g + b;
@@ -309,20 +312,24 @@ public class Colors {
 		return new Lab(L, a, b);
 	}
 
+	/** Uses the CIE 2-degree D65 tristimulus.
+	 * @return NaN if invalid. */
 	static public Luv Luv (RGB rgb) {
-		return Luv(XYZ(rgb));
+		return Luv(XYZ(rgb), Illuminant.CIE2.D65);
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus. */
+	/** @return NaN if invalid. */
 	static public Luv Luv (RGB rgb, XYZ tristimulus) {
 		return Luv(XYZ(rgb), tristimulus);
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus.
+	 * @return NaN if invalid. */
 	static public Luv Luv (XYZ XYZ) {
 		return Luv(XYZ, Illuminant.CIE2.D65);
 	}
 
+	/** @return NaN if invalid. */
 	static public Luv Luv (XYZ XYZ, XYZ tristimulus) {
 		float X = XYZ.X(), Y = XYZ.Y(), Z = XYZ.Z();
 		float Xn = tristimulus.X(), Yn = tristimulus.Y(), Zn = tristimulus.Z();
@@ -372,6 +379,10 @@ public class Colors {
 	/** @param tristimulus See {@link Illuminant}. */
 	static public LCh LCh (RGB rgb, XYZ tristimulus) {
 		return LCh(Lab(rgb, tristimulus));
+	}
+
+	static public LinearRGB LinearRGB (RGB rgb) {
+		return rgb.decode();
 	}
 
 	static public LinearRGB LinearRGB (XYZ xyz) {
@@ -439,7 +450,6 @@ public class Colors {
 
 	static public Oklab Oklab (RGB rgb) {
 		float r = linear(rgb.r()), g = linear(rgb.g()), b = linear(rgb.b());
-		// Convert to Oklab via XYZ.
 		float l = (float)Math.cbrt(0.4122214708f * r + 0.5363325363f * g + 0.0514459929f * b);
 		float m = (float)Math.cbrt(0.2119034982f * r + 0.6806995451f * g + 0.1073969566f * b);
 		float s = (float)Math.cbrt(0.0883024619f * r + 0.2817188376f * g + 0.6299787005f * b);
@@ -530,12 +540,15 @@ public class Colors {
 		return new RGB((1 - C) * (1 - K), (1 - M) * (1 - K), (1 - Y) * (1 - K));
 	}
 
-	/** CCT for Y=33. */
+	/** CCT for Y=33.
+	 * @param CCT [1667..25000K] */
 	static public RGB RGB (float CCT, float Duv) {
 		return RGB(CCT, Duv, 33);
 	}
 
-	/** @param Y > 33 clips R. */
+	/** @param CCT [1667..25000K]
+	 * @param Y > 33 clips R.
+	 * @return NaN if invalid. */
 	static public RGB RGB (float CCT, float Duv, float Y) {
 		xy xy;
 		if (Math.abs(Duv) < 1e-10f)
@@ -589,6 +602,10 @@ public class Colors {
 		return new RGB(r, g, b);
 	}
 
+	static public RGB RGB (LinearRGB LinearRGB) {
+		return LinearRGB.encode();
+	}
+
 	static private float hueToRGB (float v1, float v2, float vH) {
 		if (vH < 0) vH += 1;
 		if (vH > 1) vH -= 1;
@@ -598,9 +615,6 @@ public class Colors {
 		return v1;
 	}
 
-	/** saturation Saturation. In the range[0..1].<br>
-	 * value Value. In the range[0..1].
-	 * @return RGB color space. In the range[0..1]. */
 	static public RGB RGB (HSV HSV) {
 		float hue = HSV.H(), saturation = HSV.S(), value = HSV.V();
 		int hi = (int)Math.floor(hue / 60) % 6;
@@ -663,7 +677,7 @@ public class Colors {
 
 	/** Uses the CIE 2-degree D65 tristimulus. */
 	static public RGB RGB (Lab Lab) {
-		return RGB(Lab, Illuminant.CIE2.D65);
+		return RGB(XYZ(Lab, Illuminant.CIE2.D65));
 	}
 
 	/** @param tristimulus See {@link Illuminant}. */
@@ -671,15 +685,18 @@ public class Colors {
 		return RGB(XYZ(Lab, tristimulus));
 	}
 
+	/** @return NaN if invalid. */
 	static public RGB RGB (Luv luv) {
 		return RGB(luv, Illuminant.CIE2.D65);
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
+	/** @param tristimulus See {@link Illuminant}.
+	 * @return NaN if invalid. */
 	static public RGB RGB (Luv luv, XYZ tristimulus) {
 		return RGB(XYZ(luv, tristimulus));
 	}
 
+	/** @return NaN if invalid. */
 	static public RGB RGB (HSLuv hsluv) {
 		float H = hsluv.H(), S = hsluv.S(), L = hsluv.L();
 		if (L > 99.99999f) return new RGB(1, 1, 1);
@@ -711,7 +728,7 @@ public class Colors {
 		m *= m * m;
 		s *= s * s;
 		return new RGB( //
-			sRGB(clamp(+4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s)), //
+			sRGB(clamp(4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s)), //
 			sRGB(clamp(-1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s)), //
 			sRGB(clamp(-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s)));
 	}
@@ -780,6 +797,7 @@ public class Colors {
 		return new RGB(Math.max(0, rgb.r()), Math.max(0, rgb.g()), Math.max(0, rgb.b()));
 	}
 
+	/** @return NaN if invalid. */
 	static public RGB RGB (xy xy, Gamut gamut) {
 		xy = gamut.clamp(xy);
 		if (xy.y() < 1e-10f) return new RGB(Float.NaN, Float.NaN, Float.NaN);
@@ -817,13 +835,13 @@ public class Colors {
 		float Y = YCbCr.Y(), Cb = YCbCr.Cb(), Cr = YCbCr.Cr();
 		float r, g, b;
 		if (colorSpace == YCbCrColorSpace.ITU_BT_601) {
-			r = 1.00000000f * Y + 0.00000000f * Cb + 1.40200000f * Cr;
-			g = 1.00000000f * Y - 0.34413629f * Cb - 0.71413629f * Cr;
-			b = 1.00000000f * Y + 1.77200000f * Cb + 0.00000000f * Cr;
+			r = Y + 0.00000000f * Cb + 1.40200000f * Cr;
+			g = Y - 0.34413629f * Cb - 0.71413629f * Cr;
+			b = Y + 1.77200000f * Cb + 0.00000000f * Cr;
 		} else {
-			r = 1.000000f * Y - 0.000000295f * Cb + 1.574799932f * Cr;
-			g = 1.000000f * Y - 0.187324182f * Cb - 0.468124212f * Cr;
-			b = 1.000000f * Y + 1.855599963f * Cb - 0.000000402f * Cr;
+			r = Y - 0.000000295f * Cb + 1.574799932f * Cr;
+			g = Y - 0.187324182f * Cb - 0.468124212f * Cr;
+			b = Y + 1.855599963f * Cb - 0.000000402f * Cr;
 		}
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
@@ -847,9 +865,6 @@ public class Colors {
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
-	/** Y Luminance component. [0..1]<br>
-	 * E Chrominance factor. Difference of red and green channels. [-0.5..0.5]<br>
-	 * S Chrominance factor. Difference of yellow and blue. [-0.5..0.5] */
 	static public RGB RGB (YES YES) {
 		float Y = YES.Y(), E = YES.E(), S = YES.S();
 		float r = Y + E * 1.431f + S * 0.126f;
@@ -858,54 +873,44 @@ public class Colors {
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
-	/** Y in the range [0..1].<br>
-	 * I in-phase in the range [-0.5..0.5].<br>
-	 * Q quadrature in the range [-0.5..0.5]. */
 	static public RGB RGB (YIQ YIQ) {
 		float Y = YIQ.Y(), I = YIQ.I(), Q = YIQ.Q();
-		float r = clamp(1.00000000f * Y + 0.95629572f * I + 0.62102442f * Q);
-		float g = clamp(1.00000000f * Y - 0.27212210f * I - 0.64738060f * Q);
-		float b = clamp(1.00000000f * Y - 1.10698902f * I + 1.70461500f * Q);
+		float r = clamp(1 * Y + 0.95629572f * I + 0.62102442f * Q);
+		float g = clamp(1 * Y - 0.27212210f * I - 0.64738060f * Q);
+		float b = clamp(1 * Y - 1.10698902f * I + 1.70461500f * Q);
 		return new RGB(r, g, b);
 	}
 
-	/** Y in the range [0..1].<br>
-	 * U chrominance in the range [-0.5..0.5].<br>
-	 * V chrominance in the range [-0.5..0.5]. */
 	static public RGB RGB (YUV YUV) {
 		float Y = YUV.Y(), U = YUV.U(), V = YUV.V();
-		float r = 1.00000000f * Y - 0.00000055f * U + 1.13988360f * V;
-		float g = 1.00000000f * Y - 0.39464236f * U - 0.58062209f * V;
-		float b = 1.00000000f * Y + 2.03206343f * U - 0.00000025f * V;
+		float r = Y - 0.00000055f * U + 1.13988360f * V;
+		float g = Y - 0.39464236f * U - 0.58062209f * V;
+		float b = Y + 2.03206343f * U - 0.00000025f * V;
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
 	/** Convert RGB to RGBW using one calibrated white LED color. Brightness of {@code rgb} paramter is preserved.
 	 * @param rgb Target color, including brightness.
-	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
-	 * @return RGBW values [0,1] */
+	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux */
 	static public RGBW RGBW (RGB rgb, RGB w) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
-		// Calculate how much of each channel the white LED can provide.
+		// How much of each channel the white LED can provide.
 		float ratioR = r / w.r(), ratioG = g / w.g(), ratioB = b / w.b();
 		// The white level is limited by the channel that needs the least white contribution.
 		float W = Math.min(ratioR, Math.min(ratioG, ratioB));
 		W = Math.min(W, 1);
 		// Subtract the white contribution from each channel.
-		r -= W * w.r();
-		g -= W * w.g();
-		b -= W * w.b();
-		r = Math.max(0, r);
-		g = Math.max(0, g);
-		b = Math.max(0, b);
+		r = Math.max(0, r - W * w.r());
+		g = Math.max(0, g - W * w.g());
+		b = Math.max(0, b - W * w.b());
 		return new RGBW(r, g, b, W);
 	}
 
 	/** Convert CCT to RGBW using one calibrated white LED color. Brightness is maximized.
-	 * @param CCT [1667-25000K]
-	 * @param brightness [0-1]
+	 * @param CCT [1667..25000K]
+	 * @param brightness [0..1]
 	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
-	 * @return RGBW values [0,1] */
+	 * @return NaN if invalid. */
 	static public RGBW RGBW (float CCT, float brightness, RGB w) {
 		RGB target = RGB(CCT, 0);
 		float W = 1;
@@ -933,17 +938,20 @@ public class Colors {
 			b *= scale;
 			W *= scale;
 		}
+		if (r > 1) r = 1;
+		if (g > 1) g = 1;
+		if (b > 1) b = 1;
+		if (W > 1) W = 1;
 		return new RGBW(r, g, b, W);
 	}
 
 	/** Convert RGB to RGBWW using two calibrated white LED colors. Brightness of {@code rgb} paramter is preserved.
 	 * @param rgb Target color, including brightness.
 	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
-	 * @param w2 Second white LED color.
-	 * @return RGBW in the range [0,1] */
+	 * @param w2 Second white LED color. */
 	static public RGBWW RGBWW (RGB rgb, RGB w1, RGB w2) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
-		// Calculate how much of each channel the white LED can provide.
+		// How much of each channel the white LED can provide.
 		float ratioR1 = r / w1.r(), ratioG1 = g / w1.g(), ratioB1 = b / w1.b();
 		float ratioR2 = r / w2.r(), ratioG2 = g / w2.g(), ratioB2 = b / w2.b();
 		// The white level is limited by the channel that needs the least white contribution.
@@ -951,29 +959,23 @@ public class Colors {
 		float W2 = Math.min(ratioR2, Math.min(ratioG2, ratioB2));
 		// Subtract the white contribution from each channel.
 		if (W1 > W2) {
-			r -= W1 * w1.r();
-			g -= W1 * w1.g();
-			b -= W1 * w1.b();
-			r = Math.max(0, r);
-			g = Math.max(0, g);
-			b = Math.max(0, b);
+			r = Math.max(0, r - W1 * w1.r());
+			g = Math.max(0, g - W1 * w1.g());
+			b = Math.max(0, b - W1 * w1.b());
 			return new RGBWW(r, g, b, W1, 0);
 		}
-		r -= W2 * w2.r();
-		g -= W2 * w2.g();
-		b -= W2 * w2.b();
-		r = Math.max(0, r);
-		g = Math.max(0, g);
-		b = Math.max(0, b);
+		r = Math.max(0, r - W2 * w2.r());
+		g = Math.max(0, g - W2 * w2.g());
+		b = Math.max(0, b - W2 * w2.b());
 		return new RGBWW(r, g, b, 0, W2);
 	}
 
 	/** Convert CCT to RGBWW using two calibrated white LED colors. Brightness is maximized.
-	 * @param CCT [1667-25000K]
-	 * @param brightness [0-1]
+	 * @param CCT [1667..25000K]
+	 * @param brightness [0..1]
 	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
 	 * @param w2 Second white LED color.
-	 * @return RGBWW values [0,1] */
+	 * @return NaN if invalid. */
 	static public RGBWW RGBWW (float CCT, float brightness, RGB w1, RGB w2) {
 		float cct1 = CCT(uv(w1));
 		float cct2 = CCT(uv(w2));
@@ -1013,6 +1015,11 @@ public class Colors {
 			W1 *= scale;
 			W2 *= scale;
 		}
+		if (r > 1) r = 1;
+		if (g > 1) g = 1;
+		if (b > 1) b = 1;
+		if (W1 > 1) W1 = 1;
+		if (W2 > 1) W2 = 1;
 		return new RGBWW(r, g, b, W1, W2);
 	}
 
@@ -1034,7 +1041,8 @@ public class Colors {
 		return new RGB[] {base, RGB(new HSL(h1, hsl.S(), hsl.L())), RGB(new HSL(h2, hsl.S(), hsl.L()))};
 	}
 
-	/** Returns an analogous color scheme (colors adjacent on color wheel). */
+	/** Returns an analogous color scheme (colors adjacent on color wheel).
+	 * @param angle [0..360] */
 	static public RGB[] analogous (RGB base, float angle) {
 		HSL hsl = HSL(base);
 		float h1 = hsl.H() + angle;
@@ -1077,21 +1085,19 @@ public class Colors {
 	}
 
 	/** Rg-Chromaticity space, illumination and pose invariant.
-	 * @return Normalized RGChromaticity: RGB, saturation, hue. Range[0..1]. */
+	 * @return RGChromaticity normalized or NaN if invalid. */
 	static public RGChromaticity rgChromaticity (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float sum = r + g + b;
 		if (sum < 1e-10f) return new RGChromaticity(Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
-		float rNorm = r / sum;
-		float gNorm = g / sum;
-		float bNorm = 1 - rNorm - gNorm;
-		float rS = rNorm - 0.333f;
-		float gS = gNorm - 0.333f;
+		float rNorm = r / sum, gNorm = g / sum, bNorm = 1 - rNorm - gNorm;
+		float rS = rNorm - 0.333f, gS = gNorm - 0.333f;
 		float saturation = (float)Math.sqrt(rS * rS + gS * gS);
-		float hue = (float)Math.atan2(rS, gS);
+		float hue = ((float)Math.atan2(rS, gS) * radDeg + 360) % 360;
 		return new RGChromaticity(rNorm, gNorm, bNorm, saturation, hue);
 	}
 
+	/** @return NaN if invalid. */
 	static public uv uv (RGB rgb) {
 		XYZ xyz = XYZ(rgb);
 		xyY xyY = xyY(xyz);
@@ -1112,6 +1118,7 @@ public class Colors {
 		return new uv(u, v);
 	}
 
+	/** @return NaN if invalid. */
 	static public float Duv (xy color) {
 		uv1960 uv = uv1960(color);
 		float cct = CCT(uv(color));
@@ -1132,16 +1139,21 @@ public class Colors {
 		return du * perpU + dv * perpV;
 	}
 
+	/** @return NaN if invalid. */
 	static public float MacAdamSteps (xy color1, xy color2) {
 		uv1960 uv1 = uv1960(color1), uv2 = uv1960(color2);
 		float du = uv1.u() - uv2.u(), dv = uv1.v() - uv2.v();
 		return (float)Math.sqrt(du * du + dv * dv) / 0.0011f;
 	}
 
+	/** @param CCT [1667..25000K]
+	 * @return NaN if invalid. */
 	static public uv1960 uv1960 (float CCT) {
 		return uv1960(xy(CCT));
 	}
 
+	/** @param CCT [1667..25000K]
+	 * @return NaN if invalid. */
 	static public uv1960 uv1960 (float CCT, float Duv) {
 		// The isothermal lines in CIE 1960 are approximately perpendicular to the locus.
 		// Find the slope of the locus at this CCT using forward difference to get the perpendicular.
@@ -1172,7 +1184,7 @@ public class Colors {
 		return new uv1960(u, v);
 	}
 
-	/** @param CCT 1667-25000K
+	/** @param CCT [1667..25000K]
 	 * @return xy chromaticity, or NaN if CCT is outside valid range. */
 	static public xy xy (float CCT) {
 		if (CCT < 1667 || CCT > 25000) return new xy(Float.NaN, Float.NaN);
@@ -1194,6 +1206,7 @@ public class Colors {
 		return new xy(x, y);
 	}
 
+	/** @return NaN if invalid. */
 	static public xy xy (uv uv) {
 		float u = uv.u(), v = uv.v();
 		float denominator = 6 * u - 16 * v + 12;
@@ -1203,6 +1216,7 @@ public class Colors {
 		return new xy(x, y);
 	}
 
+	/** @return NaN if invalid. */
 	static public xy xy (uv1960 uv) {
 		float u = uv.u(), v = uv.v();
 		float denominator = 2 + u - 4 * v;
@@ -1213,17 +1227,19 @@ public class Colors {
 		return new xy(x, y);
 	}
 
+	/** @return NaN if invalid. */
 	static public xy xy (XYZ xyz) {
 		float sum = xyz.X() + xyz.Y() + xyz.Z();
 		if (sum < 1e-10f) return new xy(Float.NaN, Float.NaN);
 		return new xy(xyz.X() / sum, xyz.Y() / sum);
 	}
 
-	/** Converts RGB to xy assuming sRGB color space. */
+	/** @param rgb sRGB. */
 	static public xy xy (RGB rgb) {
 		return xy(rgb, Gamut.sRGB);
 	}
 
+	/** @return NaN if invalid. */
 	static public xy xy (RGB rgb, Gamut gamut) {
 		float r = linear(rgb.r()), g = linear(rgb.g()), b = linear(rgb.b());
 		float[][] rgbToXYZ = gamut.RGB_XYZ;
@@ -1235,6 +1251,7 @@ public class Colors {
 		return new xy(X / sum, Y / sum);
 	}
 
+	/** @return NaN if invalid. */
 	static public xyY xyY (XYZ xyz) {
 		float sum = xyz.X() + xyz.Y() + xyz.Z();
 		if (sum < 1e-10f) return new xyY(Float.NaN, Float.NaN, Float.NaN);
@@ -1275,12 +1292,14 @@ public class Colors {
 		return new XYZ(X * tristimulus.X(), Y * tristimulus.Y(), Z * tristimulus.Z());
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus. */
+	/** Uses the CIE 2-degree D65 tristimulus.
+	 * @return NaN if invalid. */
 	static public XYZ XYZ (Luv luv) {
 		return XYZ(luv, Illuminant.CIE2.D65);
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
+	/** @param tristimulus See {@link Illuminant}.
+	 * @return NaN if invalid. */
 	static public XYZ XYZ (Luv luv, XYZ tristimulus) {
 		float L = luv.L(), u = luv.u(), v = luv.v();
 		float Xn = tristimulus.X(), Yn = tristimulus.Y(), Zn = tristimulus.Z();
@@ -1310,7 +1329,6 @@ public class Colors {
 			(0.0193339f * r + 0.1191920f * g + 0.9503041f * b) * 100);
 	}
 
-	/** Converts linear RGB to XYZ using the specified gamut. */
 	static public XYZ XYZ (LinearRGB rgb, Gamut gamut) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float[][] rgbToXYZ = gamut.RGB_XYZ;
@@ -1322,17 +1340,17 @@ public class Colors {
 
 	static public XYZ XYZ (LMS lms, CAT matrix) {
 		float[] array = {lms.L(), lms.M(), lms.S()};
-		float[] xyz = switch (matrix) {
-		case HPE -> Util.matrixMultiply(array, HPE_backward);
-		case Bradford -> Util.matrixMultiply(array, Bradford_backward);
-		case VonKries -> Util.matrixMultiply(array, vonKries_backward);
-		case CAT97 -> Util.matrixMultiply(array, cat97_backward);
-		default -> Util.matrixMultiply(array, CAT02_backward);
-		};
+		float[] xyz = Util.matrixMultiply(array, switch (matrix) {
+		case HPE -> HPE_backward;
+		case Bradford -> Bradford_backward;
+		case VonKries -> vonKries_backward;
+		case CAT97 -> cat97_backward;
+		default -> CAT02_backward;
+		});
 		return new XYZ(xyz[0], xyz[1], xyz[2]);
 	}
 
-	/** Converts RGB to XYZ assuming sRGB color space. */
+	/** @param rgb sRGB. */
 	static public XYZ XYZ (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		if (r > 0.04045f)
@@ -1356,7 +1374,6 @@ public class Colors {
 		return new XYZ(X, Y, Z);
 	}
 
-	/** Converts RGB to XYZ using the specified gamut. */
 	static public XYZ XYZ (RGB rgb, Gamut gamut) {
 		float r = linear(rgb.r()), g = linear(rgb.g()), b = linear(rgb.b());
 		float[][] rgbToXYZ = gamut.RGB_XYZ;
@@ -1375,6 +1392,7 @@ public class Colors {
 		return XYZ(new xyY(xy.x(), xy.y(), 100));
 	}
 
+	/** @return NaN X and Z if y is 0. */
 	static public XYZ XYZ (xyY xyY) {
 		if (xyY.y() < 1e-10f) return new XYZ(Float.NaN, xyY.Y(), Float.NaN);
 		float X = xyY.x() * xyY.Y() / xyY.y();
@@ -1397,7 +1415,6 @@ public class Colors {
 		return new YCbCr(Y, Cb, Cr);
 	}
 
-	/** @return YCC color space. In the range [0..1]. */
 	static public YCC YCC (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float Y = 0.213f * r + 0.419f * g + 0.081f * b;
@@ -1430,9 +1447,6 @@ public class Colors {
 		return new YIQ(Y, I, Q);
 	}
 
-	/** @return Y in the range [0..1].<br>
-	 *         U in the range [-0.5..0.5].<br>
-	 *         V in the range [-0.5..0.5]. */
 	static public YUV YUV (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		float Y = 0.299f * r + 0.587f * g + 0.114f * b;
@@ -1441,19 +1455,18 @@ public class Colors {
 		return new YUV(Y, U, V);
 	}
 
-	/** Clamps a value to the range [0, 1]. */
+	/** @return [0..1]. */
 	static public float clamp (float value) {
 		return Math.max(0, Math.min(1, value));
 	}
 
-	/** @param linear In the range [0,1]. */
+	/** @param linear [0..1]. */
 	static public float gammaEncode (float linear, float gamma) {
 		if (linear <= 0) return 0;
 		if (linear >= 1) return 1;
 		return (float)Math.pow(linear, 1 / gamma);
 	}
 
-	/** @param encoded In the range [0,1]. */
 	static public float gammaDecode (float encoded, float gamma) {
 		if (encoded <= 0) return 0;
 		if (encoded >= 1) return 1;
@@ -1472,14 +1485,12 @@ public class Colors {
 		return (float)Math.pow((srgb + 0.055f) / 1.055f, 2.4f);
 	}
 
-	/** @param value In the range [0,1].
-	 * @return 0-255 */
+	/** @return [0-255] */
 	static public int dmx8 (float value) {
 		return (int)(value * 255);
 	}
 
-	/** @param value In the range [0,1].
-	 * @return 0-65535 */
+	/** @return [0-65535] */
 	static public int dmx16 (float value) {
 		return (int)(value * 65535);
 	}
@@ -1571,37 +1582,93 @@ public class Colors {
 	public record CMYK (float C, float M, float Y, float K) {}
 
 	/** HSI (Hue, Saturation, Intensity) */
-	public record HSI (float H, float S, float I) {}
+	public record HSI (
+		/** [0..360] */
+		float H,
+		float S,
+		float I) {}
 
 	/** HSL (Hue, Saturation, Lightness) */
-	public record HSL (float H, float S, float L) {}
+	public record HSL (
+		/** [0..360] */
+		float H,
+		float S,
+		float L) {}
 
 	/** HSLuv (Human-friendly HSL) */
-	public record HSLuv (float H, float S, float L) {}
+	public record HSLuv (
+		/** [0..360] */
+		float H,
+		/** [0..100] */
+		float S,
+		/** [0..100] */
+		float L) {}
 
 	/** HSV (Hue, Saturation, Value) */
-	public record HSV (float H, float S, float V) {}
+	public record HSV (
+		/** [0-359] */
+		float H,
+		float S,
+		float V) {}
 
 	/** Hunter Lab */
-	public record HunterLab (float L, float a, float b) {}
+	public record HunterLab (
+		/** [0..100] */
+		float L,
+		float a,
+		float b) {}
 
 	/** IHS (Intensity, Hue, Saturation) */
-	public record IHS (float I, float H, float S) {}
+	public record IHS (
+		float I,
+		/** [0..360] */
+		float H,
+		float S) {}
 
 	/** CIE Lab */
-	public record Lab (float L, float a, float b) {}
+	public record Lab (
+		/** [0..100] */
+		float L,
+		float a,
+		float b) {}
 
 	/** CIE LCh (cylindrical Lab) */
-	public record LCh (float L, float C, float h) {}
+	public record LCh (
+		/** [0..100] */
+		float L,
+		float C,
+		/** [0..360] */
+		float h) {}
 
 	/** CIE Luv */
-	public record Luv (float L, float u, float v) {}
+	public record Luv (
+		/** [0..100] */
+		float L,
+		float u,
+		float v) {}
 
 	/** CIE LCHuv (cylindrical Luv) */
-	public record LCHuv (float L, float C, float H) {}
+	public record LCHuv (
+		/** [0..100] */
+		float L,
+		float C,
+		/** [0..360] */
+		float H) {}
 
 	/** Linear RGB (no gamma correction) */
-	public record LinearRGB (float r, float g, float b) {}
+	public record LinearRGB (float r, float g, float b) {
+		public RGB encode () {
+			return new RGB(sRGB(r), sRGB(g), sRGB(b));
+		}
+
+		public String hex () {
+			return Colors.hex(r(), g(), b());
+		}
+
+		public String toString255 () {
+			return Colors.toString255(r(), g(), b());
+		}
+	}
 
 	/** LMS cone response */
 	public record LMS (float L, float M, float S) {}
@@ -1613,16 +1680,32 @@ public class Colors {
 	public record Oklab (float L, float a, float b) {}
 
 	/** Oklch (cylindrical Oklab) */
-	public record Oklch (float L, float C, float h) {}
+	public record Oklch (
+		float L,
+		float C,
+		/** [0..360] */
+		float h) {}
 
 	/** Okhsl (Oklab-based HSL) */
-	public record Okhsl (float h, float s, float l) {}
+	public record Okhsl (
+		/** [0..360] */
+		float h,
+		float s,
+		float l) {}
 
 	/** Okhsv (Oklab-based HSV) */
-	public record Okhsv (float h, float s, float v) {}
+	public record Okhsv (
+		/** [0..360] */
+		float h,
+		float s,
+		float v) {}
 
 	/** sRGB */
 	public record RGB (float r, float g, float b) {
+		public LinearRGB decode () {
+			return new LinearRGB(linear(r), linear(g), linear(b));
+		}
+
 		public String hex () {
 			return Colors.hex(r(), g(), b());
 		}
@@ -1652,8 +1735,14 @@ public class Colors {
 		}
 	}
 
-	/** RG Chromaticity (5 values) */
-	public record RGChromaticity (float r, float g, float b, float saturation, float hue) {}
+	/** RG Chromaticity */
+	public record RGChromaticity (
+		float r,
+		float g,
+		float b,
+		float saturation,
+		/** [0..360] */
+		float hue) {}
 
 	/** CIE 1976 u'v' */
 	public record uv (float u, float v) {}
@@ -1677,14 +1766,36 @@ public class Colors {
 	public record YCoCg (float Y, float Co, float Cg) {}
 
 	/** YES */
-	public record YES (float Y, float E, float S) {}
+	public record YES (
+		/** Luminance [0..1] */
+		float Y,
+		/** Chrominance factor, red and green difference [-0.5..0.5] */
+		float E,
+		/** Chrominance factor, yellow and blue difference [-0.5..0.5] */
+		float S) {}
 
 	/** YIQ */
-	public record YIQ (float Y, float I, float Q) {}
+	public record YIQ (
+		float Y,
+		/** In-phase [-0.5..0.5] */
+		float I,
+		/** Quadrature [-0.5..0.5] */
+		float Q) {}
 
 	/** YUV */
-	public record YUV (float Y, float U, float V) {}
+	public record YUV (
+		float Y,
+		/** Chrominance [-0.5..0.5] */
+		float U,
+		/** Chrominance [-0.5..0.5] */
+		float V) {}
 
-	/** CIE XYZ [0,100] */
-	public record XYZ (float X, float Y, float Z) {}
+	/** CIE XYZ */
+	public record XYZ (
+		/** [0..100] */
+		float X,
+		/** [0..100] */
+		float Y,
+		/** [0..100] */
+		float Z) {}
 }
