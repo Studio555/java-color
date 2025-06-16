@@ -241,6 +241,7 @@ var custom = new Gamut(red, green blue);
 ```java
 boolean inGamut = gamut.contains(chromaticity);
 
+// Closest point if outside gamut
 xy clamped = gamut.clamp(chromaticity);
 ```
 
