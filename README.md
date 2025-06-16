@@ -5,9 +5,9 @@ This Java library provides color space conversions and other color related utili
 - **Color space conversions** 30+, bidirectional
 - **Gamut management** for multiple display standards
 - **RGBW/RGBWW mixing** for LED systems
-- **Color harmony** complementary, triadic, analogous
 - **Industry standard color spaces** video, broadcasting, printing
 - **Color difference** Delta E 2000, MacAdam steps, WCAG contrast
+- **Color utilities** CCT/Duv, gamma, harmony, formatting
 
 ## Color Space Conversions
 
@@ -61,7 +61,7 @@ It is convenient to omit `Colors.` using a static import:
 import static com.esotericsoftware.Colors.*;
 ```
 
-Records are provided rather than using `float[]`.
+Records are provided for type safety and method signature clarity rather than using `float[]`. Any record can be converted using `float[] values = array(record)`.
 
 This library breaks from Java naming conventions to use capitalization that matches the color space names, making the code clearer and more aligned with color science literature.
 
