@@ -1219,6 +1219,11 @@ public class Colors {
 		return new xy(xyz.X() / sum, xyz.Y() / sum);
 	}
 
+	/** Converts RGB to xy assuming sRGB color space. */
+	static public xy xy (RGB rgb) {
+		return xy(rgb, Gamut.sRGB);
+	}
+
 	static public xy xy (RGB rgb, Gamut gamut) {
 		float r = linear(rgb.r()), g = linear(rgb.g()), b = linear(rgb.b());
 		float[][] rgbToXYZ = gamut.RGB_XYZ;
@@ -1305,6 +1310,16 @@ public class Colors {
 			(0.0193339f * r + 0.1191920f * g + 0.9503041f * b) * 100);
 	}
 
+	/** Converts linear RGB to XYZ using the specified gamut. */
+	static public XYZ XYZ (LinearRGB rgb, Gamut gamut) {
+		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float[][] rgbToXYZ = gamut.RGB_XYZ;
+		float X = rgbToXYZ[0][0] * r + rgbToXYZ[0][1] * g + rgbToXYZ[0][2] * b;
+		float Y = rgbToXYZ[1][0] * r + rgbToXYZ[1][1] * g + rgbToXYZ[1][2] * b;
+		float Z = rgbToXYZ[2][0] * r + rgbToXYZ[2][1] * g + rgbToXYZ[2][2] * b;
+		return new XYZ(X * 100, Y * 100, Z * 100);
+	}
+
 	static public XYZ XYZ (LMS lms, CAT matrix) {
 		float[] array = {lms.L(), lms.M(), lms.S()};
 		float[] xyz = switch (matrix) {
@@ -1317,6 +1332,7 @@ public class Colors {
 		return new XYZ(xyz[0], xyz[1], xyz[2]);
 	}
 
+	/** Converts RGB to XYZ assuming sRGB color space. */
 	static public XYZ XYZ (RGB rgb) {
 		float r = rgb.r(), g = rgb.g(), b = rgb.b();
 		if (r > 0.04045f)
@@ -1338,6 +1354,16 @@ public class Colors {
 		float Y = 0.2126729f * r + 0.7151522f * g + 0.0721750f * b;
 		float Z = 0.0193339f * r + 0.1191920f * g + 0.9503041f * b;
 		return new XYZ(X, Y, Z);
+	}
+
+	/** Converts RGB to XYZ using the specified gamut. */
+	static public XYZ XYZ (RGB rgb, Gamut gamut) {
+		float r = linear(rgb.r()), g = linear(rgb.g()), b = linear(rgb.b());
+		float[][] rgbToXYZ = gamut.RGB_XYZ;
+		float X = rgbToXYZ[0][0] * r + rgbToXYZ[0][1] * g + rgbToXYZ[0][2] * b;
+		float Y = rgbToXYZ[1][0] * r + rgbToXYZ[1][1] * g + rgbToXYZ[1][2] * b;
+		float Z = rgbToXYZ[2][0] * r + rgbToXYZ[2][1] * g + rgbToXYZ[2][2] * b;
+		return new XYZ(X * 100, Y * 100, Z * 100);
 	}
 
 	static public XYZ XYZ (uv uv) {
