@@ -4,11 +4,15 @@ package com.esotericsoftware.colors;
 import static com.esotericsoftware.colors.Colors.Illuminant.CIE2.*;
 import static com.esotericsoftware.colors.Util.*;
 
+import com.esotericsoftware.colors.Colors.LinearRGB;
 import com.esotericsoftware.colors.Colors.RGB;
 import com.esotericsoftware.colors.Colors.xy;
 
-/** @see Colors#RGB(xy xy, Gamut gamut)
+/** @see Colors#XYZ(RGB, Gamut)
+ * @see Colors#XYZ(LinearRGB, Gamut)
  * @see Colors#xy(RGB rgb, Gamut gamut)
+ * @see Colors#RGB(xy, float, Gamut)
+ * @see Colors#RGB(xy, float, Gamut)
  * @author Nathan Sweet <misc@n4te.com> */
 public class Gamut {
 	static public final Gamut //
