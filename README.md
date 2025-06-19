@@ -7,7 +7,7 @@ This Java library provides color space conversions and other color related utili
 - **RGBW/RGBWW mixing** for LED systems
 - **Industry standard color spaces** video, broadcasting, printing
 - **Color difference** Delta E 2000, MacAdam steps, WCAG contrast
-- **Color utilities** CCT/Duv, gamma, harmony, formatting
+- **Color utilities** CCT/Duv, gamma, harmony, formatting, lerp
 - **Extensive tests** 100+
 
 The code uses floats and is straightforward, without dependencies, making it easy to port if needed.
@@ -477,6 +477,33 @@ Oklab color2 = Oklab(rgb2);
 // Interpolate in perceptual space
 Oklab middle = lerp(color1, color2, 0.5f);
 RGB result = RGB(middle);
+```
+
+### Color Interpolation (Lerp)
+```java
+RGB red = new RGB(1, 0, 0);
+RGB blue = new RGB(0, 0, 1);
+
+// RGB interpolation (simple but not perceptual)
+RGB rgbMix = lerp(red, blue, 0.5f);  // Purple
+
+// Lab interpolation (perceptually uniform)
+Lab labMix = lerp(Lab(red), Lab(blue), 0.5f);
+RGB labResult = RGB(labMix);  // More perceptual purple
+
+// HSL interpolation (hue-based, handles angles correctly)
+HSL hslMix = lerp(HSL(red), HSL(blue), 0.5f);
+RGB hslResult = RGB(hslMix);  // Goes through magenta
+
+// Oklab interpolation (modern perceptual)
+Oklab oklabMix = lerp(Oklab(red), Oklab(blue), 0.5f);
+RGB oklabResult = RGB(oklabMix);  // Best perceptual result
+
+// Create smooth gradients
+for (float t = 0; t <= 1; t += 0.1f) {
+	RGB color = RGB(lerp(Oklab(red), Oklab(blue), t));
+	// Use color for gradient.
+}
 ```
 
 ### Color Temperature to RGB

@@ -5,6 +5,7 @@ import static com.esotericsoftware.colors.Util.*;
 
 import java.lang.reflect.RecordComponent;
 
+import com.esotericsoftware.colors.Colors.CAM16;
 import com.esotericsoftware.colors.Util.ACESccUtil;
 import com.esotericsoftware.colors.Util.HCTUtil;
 import com.esotericsoftware.colors.Util.HSLUtil;
@@ -35,6 +36,11 @@ public class Colors {
 	static public ACEScc ACEScc (RGB rgb) {
 		ACEScg cg = ACEScg(rgb);
 		return new ACEScc(ACESccUtil.encode(cg.r), ACESccUtil.encode(cg.g), ACESccUtil.encode(cg.b));
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	static public CAM16 CAM16 (CAM16UCS ucs) {
+		return CAM16(ucs, CAM16.VC.sRGB);
 	}
 
 	static public CAM16 CAM16 (CAM16UCS ucs, CAM16.VC vc) { // Based on Copyright 2021 Google LLC (Apache 2.0).
@@ -1482,6 +1488,105 @@ public class Colors {
 
 	static public float lerp (float start, float stop, float percent) {
 		return start + (stop - start) * percent;
+	}
+
+	static public float lerpAngle (float from, float to, float t) {
+		if (Float.isNaN(from) && Float.isNaN(to)) return 0;
+		if (Float.isNaN(from)) return to;
+		if (Float.isNaN(to)) return from;
+		float diff = to - from;
+		if (diff > 180)
+			diff -= 360;
+		else if (diff < -180) //
+			diff += 360;
+		float result = from + diff * t;
+		if (result < 0)
+			result += 360;
+		else if (result >= 360) //
+			result -= 360;
+		return result;
+	}
+
+	static public CAM16 lerp (CAM16 a, CAM16 b, float t) {
+		return new CAM16(lerp(a.J, b.J, t), lerp(a.C, b.C, t), lerpAngle(a.h, b.h, t), 0, 0, 0);
+	}
+
+	static public CAM16UCS lerp (CAM16UCS a, CAM16UCS b, float t) {
+		return new CAM16UCS(lerp(a.J, b.J, t), lerp(a.a, b.a, t), lerp(a.b, b.b, t));
+	}
+
+	static public HCT lerp (HCT a, HCT b, float t) {
+		return new HCT(lerpAngle(a.h, b.h, t), lerp(a.C, b.C, t), lerp(a.T, b.T, t));
+	}
+
+	static public HSL lerp (HSL a, HSL b, float t) {
+		return new HSL(lerpAngle(a.H, b.H, t), lerp(a.S, b.S, t), lerp(a.L, b.L, t));
+	}
+
+	static public HSLuv lerp (HSLuv a, HSLuv b, float t) {
+		return new HSLuv(lerpAngle(a.H, b.H, t), lerp(a.S, b.S, t), lerp(a.L, b.L, t));
+	}
+
+	static public HSV lerp (HSV a, HSV b, float t) {
+		return new HSV(lerpAngle(a.H, b.H, t), lerp(a.S, b.S, t), lerp(a.V, b.V, t));
+	}
+
+	static public ITP lerp (ITP a, ITP b, float t) {
+		return new ITP(lerp(a.I, b.I, t), lerp(a.Ct, b.Ct, t), lerp(a.Cp, b.Cp, t));
+	}
+
+	static public Lab lerp (Lab a, Lab b, float t) {
+		return new Lab(lerp(a.L, b.L, t), lerp(a.a, b.a, t), lerp(a.b, b.b, t));
+	}
+
+	static public LinearRGB lerp (LinearRGB a, LinearRGB b, float t) {
+		return new LinearRGB(lerp(a.r, b.r, t), lerp(a.g, b.g, t), lerp(a.b, b.b, t));
+	}
+
+	static public LCh lerp (LCh a, LCh b, float t) {
+		return new LCh(lerp(a.L, b.L, t), lerp(a.C, b.C, t), lerpAngle(a.h, b.h, t));
+	}
+
+	static public Luv lerp (Luv a, Luv b, float t) {
+		float u, v;
+		if (Float.isNaN(a.u) && Float.isNaN(b.u))
+			u = 0;
+		else if (Float.isNaN(a.u))
+			u = b.u;
+		else if (Float.isNaN(b.u))
+			u = a.u;
+		else
+			u = lerp(a.u, b.u, t);
+		if (Float.isNaN(a.v) && Float.isNaN(b.v)) {
+			v = 0;
+		} else if (Float.isNaN(a.v)) {
+			v = b.v;
+		} else if (Float.isNaN(b.v)) {
+			v = a.v;
+		} else {
+			v = lerp(a.v, b.v, t);
+		}
+		return new Luv(lerp(a.L, b.L, t), u, v);
+	}
+
+	static public Oklab lerp (Oklab a, Oklab b, float t) {
+		return new Oklab(lerp(a.L, b.L, t), lerp(a.a, b.a, t), lerp(a.b, b.b, t));
+	}
+
+	static public Oklch lerp (Oklch a, Oklch b, float t) {
+		return new Oklch(lerp(a.L, b.L, t), lerp(a.C, b.C, t), lerpAngle(a.h, b.h, t));
+	}
+
+	static public Okhsv lerp (Okhsv a, Okhsv b, float t) {
+		return new Okhsv(lerpAngle(a.h, b.h, t), lerp(a.s, b.s, t), lerp(a.v, b.v, t));
+	}
+
+	static public RGB lerp (RGB a, RGB b, float t) {
+		return new RGB(lerp(a.r, b.r, t), lerp(a.g, b.g, t), lerp(a.b, b.b, t));
+	}
+
+	static public XYZ lerp (XYZ a, XYZ b, float t) {
+		return new XYZ(lerp(a.X, b.X, t), lerp(a.Y, b.Y, t), lerp(a.Z, b.Z, t));
 	}
 
 	/** @param linear [0..1]. */

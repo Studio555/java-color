@@ -10,20 +10,10 @@ import javax.imageio.ImageIO;
 
 import com.esotericsoftware.colors.Colors.CAM16;
 import com.esotericsoftware.colors.Colors.CAM16UCS;
-import com.esotericsoftware.colors.Colors.HCT;
-import com.esotericsoftware.colors.Colors.HSL;
-import com.esotericsoftware.colors.Colors.HSLuv;
-import com.esotericsoftware.colors.Colors.HSV;
-import com.esotericsoftware.colors.Colors.ITP;
-import com.esotericsoftware.colors.Colors.LCh;
 import com.esotericsoftware.colors.Colors.Lab;
 import com.esotericsoftware.colors.Colors.LinearRGB;
-import com.esotericsoftware.colors.Colors.Luv;
-import com.esotericsoftware.colors.Colors.Okhsv;
 import com.esotericsoftware.colors.Colors.Oklab;
-import com.esotericsoftware.colors.Colors.Oklch;
 import com.esotericsoftware.colors.Colors.RGB;
-import com.esotericsoftware.colors.Colors.XYZ;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -92,14 +82,12 @@ public class Gradients {
 
 	private RGB interpolateInColorSpace (String colorSpace, RGB from, RGB to, float t) {
 		return switch (colorSpace) {
-		case "RGB" -> new RGB(lerp(from.r(), to.r(), t), lerp(from.g(), to.g(), t), lerp(from.b(), to.b(), t));
+		case "RGB" -> lerp(from, to, t);
 		case "LinearRGB" -> {
 			var c1 = LinearRGB(from);
 			var c2 = LinearRGB(to);
-			float r = lerp(c1.r(), c2.r(), t);
-			float g = lerp(c1.g(), c2.g(), t);
-			float b = lerp(c1.b(), c2.b(), t);
-			yield new RGB(sRGB(r), sRGB(g), sRGB(b));
+			var interpolated = lerp(c1, c2, t);
+			yield new RGB(sRGB(interpolated.r()), sRGB(interpolated.g()), sRGB(interpolated.b()));
 		}
 		case "LinearRGB+L" -> {
 			// Get target L* in Lab space.
@@ -119,15 +107,7 @@ public class Gradients {
 			// Use target L* but preserve a,b ratios (color direction).
 			yield RGB(new Lab(targetL, currentLab.a(), currentLab.b()));
 		}
-		case "Oklch" -> {
-			// Convert to Oklch for perceptually uniform interpolation
-			Oklch c1 = Oklch(from);
-			Oklch c2 = Oklch(to);
-			float L = lerp(c1.L(), c2.L(), t);
-			float C = lerp(c1.C(), c2.C(), t);
-			float h = lerpAngle(c1.h(), c2.h(), t);
-			yield RGB(new Oklch(L, C, h));
-		}
+		case "Oklab" -> RGB(lerp(Oklab(from), Oklab(to), t));
 		case "Oklab+L" -> {
 			// Get target L in Oklab space.
 			Oklab ok1 = Oklab(from);
@@ -146,133 +126,25 @@ public class Gradients {
 			// Use target L* but preserve a,b ratios (color direction).
 			yield RGB(new Oklab(targetL, currentOklab.a(), currentOklab.b()));
 		}
-		case "HSL" -> {
-			HSL c1 = HSL(from);
-			HSL c2 = HSL(to);
-			float h = lerpAngle(c1.H(), c2.H(), t);
-			float s = lerp(c1.S(), c2.S(), t);
-			float l = lerp(c1.L(), c2.L(), t);
-			yield RGB(new HSL(h, s, l));
-		}
-		case "HSV" -> {
-			HSV c1 = HSV(from);
-			HSV c2 = HSV(to);
-			float h = lerpAngle(c1.H(), c2.H(), t);
-			float s = lerp(c1.S(), c2.S(), t);
-			float v = lerp(c1.V(), c2.V(), t);
-			yield RGB(new HSV(h, s, v));
-		}
-		case "Lab" -> {
-			Lab c1 = Lab(from);
-			Lab c2 = Lab(to);
-			float L = lerp(c1.L(), c2.L(), t);
-			float a = lerp(c1.a(), c2.a(), t);
-			float b = lerp(c1.b(), c2.b(), t);
-			yield RGB(new Lab(L, a, b));
-		}
-		case "Oklab" -> {
-			Oklab c1 = Oklab(from);
-			Oklab c2 = Oklab(to);
-			float L = lerp(c1.L(), c2.L(), t);
-			float a = lerp(c1.a(), c2.a(), t);
-			float b = lerp(c1.b(), c2.b(), t);
-			yield RGB(new Oklab(L, a, b));
-		}
-		case "HCT" -> {
-			HCT c1 = HCT(from);
-			HCT c2 = HCT(to);
-			float h = lerpAngle(c1.h(), c2.h(), t);
-			float c = lerp(c1.C(), c2.C(), t);
-			float tone = lerp(c1.T(), c2.T(), t);
-			yield RGB(new HCT(h, c, tone));
-		}
-		case "CAM16" -> {
-			CAM16 c1 = CAM16(from);
-			CAM16 c2 = CAM16(to);
-			float J = lerp(c1.J(), c2.J(), t);
-			float C = lerp(c1.C(), c2.C(), t);
-			float h = lerpAngle(c1.h(), c2.h(), t);
-			yield RGB(new CAM16(J, C, h, 0, 0, 0));
-		}
+		case "Oklch" -> RGB(lerp(Oklch(from), Oklch(to), t));
+		case "Okhsv" -> RGB(lerp(Okhsv(from), Okhsv(to), t));
+		case "HSV" -> RGB(lerp(HSV(from), HSV(to), t));
+		case "HSL" -> RGB(lerp(HSL(from), HSL(to), t));
+		case "Lab" -> RGB(lerp(Lab(from), Lab(to), t));
+		case "HCT" -> RGB(lerp(HCT(from), HCT(to), t));
+		case "CAM16" -> RGB(lerp(CAM16(from), CAM16(to), t));
 		case "CAM16UCS" -> {
 			CAM16UCS c1 = CAM16UCS(CAM16(from));
 			CAM16UCS c2 = CAM16UCS(CAM16(to));
-			float J = lerp(c1.J(), c2.J(), t);
-			float a = lerp(c1.a(), c2.a(), t);
-			float b = lerp(c1.b(), c2.b(), t);
-			yield RGB(CAM16(new CAM16UCS(J, a, b), CAM16.VC.sRGB));
+			yield RGB(CAM16(lerp(c1, c2, t), CAM16.VC.sRGB));
 		}
-		case "HSLuv" -> {
-			HSLuv c1 = HSLuv(from);
-			HSLuv c2 = HSLuv(to);
-			float h = lerpAngle(c1.H(), c2.H(), t);
-			float s = lerp(c1.S(), c2.S(), t);
-			float l = lerp(c1.L(), c2.L(), t);
-			yield RGB(new HSLuv(h, s, l));
-		}
-		case "LCh" -> {
-			LCh c1 = LCh(from);
-			LCh c2 = LCh(to);
-			float L = lerp(c1.L(), c2.L(), t);
-			float C = lerp(c1.C(), c2.C(), t);
-			float h = lerpAngle(c1.h(), c2.h(), t);
-			yield RGB(new LCh(L, C, h));
-		}
-		case "XYZ" -> {
-			XYZ c1 = XYZ(from);
-			XYZ c2 = XYZ(to);
-			float X = lerp(c1.X(), c2.X(), t);
-			float Y = lerp(c1.Y(), c2.Y(), t);
-			float Z = lerp(c1.Z(), c2.Z(), t);
-			yield RGB(new XYZ(X, Y, Z));
-		}
-		case "Luv" -> {
-			Luv c1 = Luv(from);
-			Luv c2 = Luv(to);
-			float u1 = Float.isNaN(c1.u()) ? 0 : c1.u();
-			float v1 = Float.isNaN(c1.v()) ? 0 : c1.v();
-			float u2 = Float.isNaN(c2.u()) ? 0 : c2.u();
-			float v2 = Float.isNaN(c2.v()) ? 0 : c2.v();
-			float L = lerp(c1.L(), c2.L(), t);
-			float u = lerp(u1, u2, t);
-			float v = lerp(v1, v2, t);
-			yield RGB(new Luv(L, u, v));
-		}
-		case "ITP" -> {
-			ITP c1 = ITP(from);
-			ITP c2 = ITP(to);
-			float I = lerp(c1.I(), c2.I(), t);
-			float T = lerp(c1.Ct(), c2.Ct(), t);
-			float P = lerp(c1.Cp(), c2.Cp(), t);
-			yield RGB(new ITP(I, T, P));
-		}
-		case "Okhsv" -> {
-			Okhsv c1 = Okhsv(from);
-			Okhsv c2 = Okhsv(to);
-			float h = lerpAngle(c1.h(), c2.h(), t);
-			float s = lerp(c1.s(), c2.s(), t);
-			float v = lerp(c1.v(), c2.v(), t);
-			yield RGB(new Okhsv(h, s, v));
-		}
+		case "HSLuv" -> RGB(lerp(HSLuv(from), HSLuv(to), t));
+		case "Luv" -> RGB(lerp(Luv(from), Luv(to), t));
+		case "LCh" -> RGB(lerp(LCh(from), LCh(to), t));
+		case "XYZ" -> RGB(lerp(XYZ(from), XYZ(to), t));
+		case "ITP" -> RGB(lerp(ITP(from), ITP(to), t));
 		default -> throw new RuntimeException(colorSpace);
 		};
-	}
-
-	private float lerpAngle (float from, float to, float t) {
-		// Handle NaN for achromatic colors
-		if (Float.isNaN(from) && Float.isNaN(to)) return 0;
-		if (Float.isNaN(from)) return to;
-		if (Float.isNaN(to)) return from;
-
-		float diff = to - from;
-		if (diff > 180)
-			diff -= 360;
-		else if (diff < -180) //
-			diff += 360;
-		float result = from + diff * t;
-		if (result < 0) result += 360;
-		if (result >= 360) result -= 360;
-		return result;
 	}
 
 	static class Gradient {
@@ -303,6 +175,7 @@ public class Gradients {
 		var config = new Table();
 
 		config.colorSpaces.add("RGB");
+		config.colorSpaces.add("Lab");
 		config.colorSpaces.add("XYZ");
 		config.colorSpaces.add("LinearRGB");
 		config.colorSpaces.add("LinearRGB+L");
@@ -315,7 +188,6 @@ public class Gradients {
 		config.colorSpaces.add("CAM16");
 		config.colorSpaces.add("Oklch");
 		config.colorSpaces.add("LCh");
-		config.colorSpaces.add("Lab");
 		config.colorSpaces.add("Okhsv");
 		config.colorSpaces.add("HSV");
 		config.colorSpaces.add("HSL");
