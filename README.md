@@ -8,7 +8,7 @@ This Java library provides color space conversions and other color related utili
 - **Industry standard color spaces** video, broadcasting, printing
 - **Color difference** Delta E 2000, MacAdam steps, WCAG contrast
 - **Color utilities** CCT/Duv, gamma, harmony, formatting
-- **Extensive tests**
+- **Extensive tests** 100+
 
 The code uses floats and is straightforward, without dependencies, making it easy to port if needed.
 
@@ -67,6 +67,9 @@ The code uses floats and is straightforward, without dependencies, making it eas
 - ACEScg - Working space for CGI, AP1 primaries
 - ACEScc - Logarithmic for color grading, AP1 primaries
 - ITP (ICtCp/ITU-R BT.2100) - HDR and wide color gamut
+
+### Gradient Interpolation
+![](gradients.png)
 
 ### Example Usage
 It is convenient to omit `Colors.` using a static import:

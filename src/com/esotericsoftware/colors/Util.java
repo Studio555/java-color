@@ -239,57 +239,24 @@ public class Util {
 		static private final float[][] XYZ_RGB = {{3.2404542f, -1.5371385f, -0.4985314f}, {-0.9692660f, 1.8760108f, 0.0415560f},
 			{0.0556434f, -0.2040259f, 1.0572252f}};
 
-		static float maxChromaForLH (float L, float H) {
-			float hRad = H * degRad;
-			float minChroma = Float.MAX_VALUE;
-			for (float[] bound : getBounds(L)) {
-				float m1 = bound[0], b1 = bound[1];
-				if (Float.isNaN(m1) || Float.isNaN(b1)) continue;
-				float x, y;
-				if (Math.abs(Math.sin(hRad)) < EPSILON) { // Hue is 0 or 180 degrees (vertical line).
-					x = 0;
-					y = b1;
-				} else { // Calculate intersection based on hue angle.
-					float m2 = -1 / (float)Math.tan(hRad);
-					x = intersectLineLine(m1, b1, m2, 0);
-					if (Float.isNaN(x)) continue; // Lines are parallel.
-					y = m2 * x;
-				}
-				float chroma = (float)Math.sqrt(x * x + y * y);
-				if (chroma >= 0 && chroma < minChroma) minChroma = chroma;
-			}
-			return minChroma == Float.MAX_VALUE ? 0 : minChroma;
-		}
-
-		static private float[][] getBounds (float L) {
-			float[][] bounds = new float[6][2];
-			float sub1 = (float)Math.pow(L + 16, 3) / 1560896;
-			float sub2 = sub1 > LabUtil.e ? sub1 : L / LabUtil.k;
-			for (int c = 0, index = 0; c < 3; c++) {
-				float m1 = XYZ_RGB[c][0];
-				float m2 = XYZ_RGB[c][1];
-				float m3 = XYZ_RGB[c][2];
+		static float maxChromaForLH (float L, float H) { // Based on Copyright (c) 2016 Alexei Boronine (MIT License).
+			H *= degRad;
+			float sin = (float)Math.sin(H), cos = (float)Math.cos(H);
+			float sub1 = (L + 0.16f) / 1.16f;
+			sub1 *= sub1 * sub1;
+			float sub2 = sub1 > EPSILON ? sub1 : L / LabUtil.k;
+			float min = Float.MAX_VALUE;
+			for (int i = 0; i < 3; i++) {
+				float m1 = XYZ_RGB[i][0] * sub2, m2 = XYZ_RGB[i][1] * sub2, m3 = XYZ_RGB[i][2] * sub2;
 				for (int t = 0; t < 2; t++) {
-					float top1 = (284517 * m1 - 94839 * m3) * sub2;
-					float top2 = (838422 * m3 + 769860 * m2 + 731718 * m1) * L * sub2 - 769860 * t * L;
-					float bottom = (632260 * m3 - 126452 * m2) * sub2 + 126452 * t;
-					if (Math.abs(bottom) < EPSILON) {
-						bounds[index][0] = Float.NaN;
-						bounds[index][1] = Float.NaN;
-					} else {
-						bounds[index][0] = top1 / bottom;
-						bounds[index][1] = top2 / bottom;
-					}
-					index++;
+					float top1 = 2845.17f * m1 - 948.39f * m3;
+					float top2 = (8384.22f * m3 + 7698.60f * m2 + 7317.18f * m1 - 7698.60f * t) * L;
+					float bottom = (6322.60f * m3 - 1264.52f * m2) + 1264.52f * t;
+					float length = top2 / bottom / (sin - top1 / bottom * cos);
+					if (length >= 0) min = Math.min(min, length);
 				}
 			}
-			return bounds;
-		}
-
-		static private float intersectLineLine (float m1, float b1, float m2, float b2) {
-			float denom = m1 - m2;
-			if (Math.abs(denom) < EPSILON) return Float.NaN; // Parallel lines
-			return (b2 - b1) / denom;
+			return min;
 		}
 	}
 
@@ -320,8 +287,8 @@ public class Util {
 	}
 
 	static public class LabUtil {
-		static final float k = 903.2963f; // 24389 / 27
-		static final float e = 0.008856452f; // 216 / 24389
+		static public final float k = 24389 / 27f;
+		static public final float e = 216 / 24389f;
 
 		/** @return [0..100] */
 		static public float LstarToY (float Lstar) {
