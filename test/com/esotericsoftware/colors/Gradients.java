@@ -19,6 +19,7 @@ import com.esotericsoftware.colors.Colors.LCh;
 import com.esotericsoftware.colors.Colors.Lab;
 import com.esotericsoftware.colors.Colors.LinearRGB;
 import com.esotericsoftware.colors.Colors.Luv;
+import com.esotericsoftware.colors.Colors.Okhsv;
 import com.esotericsoftware.colors.Colors.Oklab;
 import com.esotericsoftware.colors.Colors.Oklch;
 import com.esotericsoftware.colors.Colors.RGB;
@@ -245,6 +246,14 @@ public class Gradients {
 			float P = lerp(c1.Cp(), c2.Cp(), t);
 			yield RGB(new ITP(I, T, P));
 		}
+		case "Okhsv" -> {
+			Okhsv c1 = Okhsv(from);
+			Okhsv c2 = Okhsv(to);
+			float h = lerpAngle(c1.h(), c2.h(), t);
+			float s = lerp(c1.s(), c2.s(), t);
+			float v = lerp(c1.v(), c2.v(), t);
+			yield RGB(new Okhsv(h, s, v));
+		}
 		default -> throw new RuntimeException(colorSpace);
 		};
 	}
@@ -307,9 +316,10 @@ public class Gradients {
 		config.colorSpaces.add("Oklch");
 		config.colorSpaces.add("LCh");
 		config.colorSpaces.add("Lab");
-		config.colorSpaces.add("ITP"); // Intended for HDR.
-		config.colorSpaces.add("HSL");
+		config.colorSpaces.add("Okhsv");
 		config.colorSpaces.add("HSV");
+		config.colorSpaces.add("HSL");
+		config.colorSpaces.add("ITP"); // Intended for HDR.
 
 		config.gradients.add(new Gradient(RGB(0xe93227), RGB(0x0422f3))); // Red to Blue
 		config.gradients.add(new Gradient(RGB(0xe93824), RGB(0x80f54b))); // Orange to Light Green

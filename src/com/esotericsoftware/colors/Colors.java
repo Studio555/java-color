@@ -342,14 +342,6 @@ public class Colors {
 		return new Luv(L, u, v);
 	}
 
-	static public LCHuv LCHuv (Luv luv) {
-		float L = luv.L, u = luv.u, v = luv.v;
-		float C = (float)Math.sqrt(u * u + v * v);
-		float H = C < EPSILON ? Float.NaN : (float)Math.atan2(v, u) * radDeg;
-		if (H < 0) H += 360;
-		return new LCHuv(L, C, H);
-	}
-
 	static public Luv Luv (LCHuv lch) {
 		float L = lch.L, C = lch.C, H = lch.H;
 		if (C < EPSILON || Float.isNaN(H)) return new Luv(L, 0, 0);
@@ -357,6 +349,14 @@ public class Colors {
 		float u = C * (float)Math.cos(rad);
 		float v = C * (float)Math.sin(rad);
 		return new Luv(L, u, v);
+	}
+
+	static public LCHuv LCHuv (Luv luv) {
+		float L = luv.L, u = luv.u, v = luv.v;
+		float C = (float)Math.sqrt(u * u + v * v);
+		float H = C < EPSILON ? Float.NaN : (float)Math.atan2(v, u) * radDeg;
+		if (H < 0) H += 360;
+		return new LCHuv(L, C, H);
 	}
 
 	static public LCh LCh (Lab Lab) {
