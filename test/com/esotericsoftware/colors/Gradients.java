@@ -95,14 +95,8 @@ public class Gradients {
 			Lab lab2 = Lab(to);
 			float targetL = lerp(lab1.L(), lab2.L(), t);
 
-			var c1 = LinearRGB(from);
-			var c2 = LinearRGB(to);
-			float r = lerp(c1.r(), c2.r(), t);
-			float g = lerp(c1.g(), c2.g(), t);
-			float b = lerp(c1.b(), c2.b(), t);
-
 			// Convert to Lab to adjust lightness while preserving hue/chroma direction.
-			Lab currentLab = Lab(RGB(new LinearRGB(r, g, b)));
+			Lab currentLab = Lab(RGB(lerp(LinearRGB(from), LinearRGB(to), t)));
 
 			// Use target L* but preserve a,b ratios (color direction).
 			yield RGB(new Lab(targetL, currentLab.a(), currentLab.b()));
@@ -114,14 +108,8 @@ public class Gradients {
 			Oklab ok2 = Oklab(to);
 			float targetL = lerp(ok1.L(), ok2.L(), t);
 
-			var lin1 = LinearRGB(from);
-			var lin2 = LinearRGB(to);
-			float r = lerp(lin1.r(), lin2.r(), t);
-			float g = lerp(lin1.g(), lin2.g(), t);
-			float b = lerp(lin1.b(), lin2.b(), t);
-
 			// Convert to Oklab to adjust lightness while preserving hue/chroma direction.
-			Oklab currentOklab = Oklab(RGB(new LinearRGB(r, g, b)));
+			Oklab currentOklab = Oklab(RGB(lerp(LinearRGB(from), LinearRGB(to), t)));
 
 			// Use target L* but preserve a,b ratios (color direction).
 			yield RGB(new Oklab(targetL, currentOklab.a(), currentOklab.b()));
@@ -187,11 +175,11 @@ public class Gradients {
 		config.colorSpaces.add("HSLuv");
 		config.colorSpaces.add("CAM16");
 		config.colorSpaces.add("Oklch");
+		config.colorSpaces.add("ITP"); // Intended for HDR.
 		config.colorSpaces.add("LCh");
 		config.colorSpaces.add("Okhsv");
 		config.colorSpaces.add("HSV");
 		config.colorSpaces.add("HSL");
-		config.colorSpaces.add("ITP"); // Intended for HDR.
 
 		config.gradients.add(new Gradient(RGB(0xe93227), RGB(0x0422f3))); // Red to Blue
 		config.gradients.add(new Gradient(RGB(0xe93824), RGB(0x80f54b))); // Orange to Light Green

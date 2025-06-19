@@ -483,15 +483,6 @@ public class Util {
 		}
 	}
 
-	static class OklabUtil {
-		static public Oklab lerp (Oklab Oklab1, Oklab Oklab2, float t) {
-			float L = (1 - t) * Oklab1.L() + t * Oklab2.L();
-			float a = (1 - t) * Oklab1.a() + t * Oklab2.a();
-			float b = (1 - t) * Oklab1.b() + t * Oklab2.b();
-			return new Oklab(L, a, b);
-		}
-	}
-
 	static public class RGBUtil {
 		static public float grayscale (RGB rgb) {
 			return rgb.r() * 0.2125f + rgb.g() * 0.7154f + rgb.b() * 0.0721f;

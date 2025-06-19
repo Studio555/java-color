@@ -3,7 +3,6 @@ package com.esotericsoftware.colors;
 
 import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
-import static com.esotericsoftware.colors.Util.OklabUtil.*;
 
 import org.junit.jupiter.api.Test;
 

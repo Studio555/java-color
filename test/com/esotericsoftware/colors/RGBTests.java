@@ -23,11 +23,6 @@ import com.esotericsoftware.colors.Colors.RGB;
 import com.esotericsoftware.colors.Colors.RGBW;
 import com.esotericsoftware.colors.Colors.RGBWW;
 import com.esotericsoftware.colors.Colors.XYZ;
-import com.esotericsoftware.colors.Colors.YCC;
-import com.esotericsoftware.colors.Colors.YCbCr;
-import com.esotericsoftware.colors.Colors.YCbCrColorSpace;
-import com.esotericsoftware.colors.Colors.YIQ;
-import com.esotericsoftware.colors.Colors.YUV;
 import com.esotericsoftware.colors.Colors.xy;
 import com.esotericsoftware.colors.Colors.xyY;
 

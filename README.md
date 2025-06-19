@@ -270,12 +270,6 @@ RGB[] analogous = analogous(baseColor, 30.0f);  // 30° angle
 RGB[] splitComp = splitComplementary(baseColor);
 ```
 
-### Interpolation
-```java
-// Perceptually uniform interpolation in Oklab space
-Oklab blended = OklabUtil.lerp(oklab1, oklab2, 0.6f);  // 60% blend
-```
-
 #### Video & Broadcasting Examples
 - **YCbCr** - Digital video color space
   ```java
@@ -479,7 +473,7 @@ Oklab middle = lerp(color1, color2, 0.5f);
 RGB result = RGB(middle);
 ```
 
-### Color Interpolation (Lerp)
+### Color Interpolation
 ```java
 RGB red = new RGB(1, 0, 0);
 RGB blue = new RGB(0, 0, 1);
