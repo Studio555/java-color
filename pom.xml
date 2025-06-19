@@ -36,7 +36,6 @@
 <build>
 	<sourceDirectory>src</sourceDirectory>
 	<testSourceDirectory>test</testSourceDirectory>
-	<outputDirectory>bin</outputDirectory>
 	<resources>
 		<resource>
 			<directory>assets</directory>

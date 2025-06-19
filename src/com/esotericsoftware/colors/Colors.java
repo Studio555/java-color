@@ -1,47 +1,128 @@
 
 package com.esotericsoftware.colors;
 
+import static com.esotericsoftware.colors.Util.*;
+
 import java.lang.reflect.RecordComponent;
+
+import com.esotericsoftware.colors.Util.ACESccUtil;
+import com.esotericsoftware.colors.Util.HCTUtil;
+import com.esotericsoftware.colors.Util.HSLUtil;
+import com.esotericsoftware.colors.Util.HSLuvUtil;
+import com.esotericsoftware.colors.Util.ITPUtil;
+import com.esotericsoftware.colors.Util.LMSUtil;
+import com.esotericsoftware.colors.Util.LabUtil;
+import com.esotericsoftware.colors.Util.OkhsvUtil;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Colors {
-	static final float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
-	static final float k = 903.2963f; // 24389 / 27
-	static final float e = 0.008856452f; // 216 / 24389
-	static private final float[][] HPE_forward = {{0.38971f, 0.68898f, -0.07868f}, {-0.22981f, 1.18340f, 0.04641f},
-		{0.00000f, 0.00000f, 1.00000f}};
-	static private final float[][] HPE_backward = {{1.91019683f, -1.11212389f, 0.20190796f},
-		{0.37095009f, 0.62905426f, -0.00000806f}, {0.00000f, 0.00000f, 1.00000f}};
-	static private final float[][] Badford_forward = {{0.8951000f, 0.2664000f, -0.1614000f}, {-0.7502000f, 1.7135000f, 0.0367000f},
-		{0.0389000f, -0.0685000f, 1.0296000f}};
-	static private final float[][] Bradford_backward = {{0.9869929f, -0.1470543f, 0.1599627f},
-		{0.4323053f, 0.5183603f, 0.0492912f}, {-0.0085287f, 0.0400428f, 0.9684867f}};
-	static private final float[][] vonKries_forward = {{0.4002f, 0.7076f, -0.0808f}, {-0.2263f, 1.1653f, 0.0457f},
-		{0f, 0f, 0.9182f}};
-	static private final float[][] vonKries_backward = {{1.86006661f, -1.12948008f, 0.21989830f},
-		{0.36122292f, 0.63880431f, -0.00000713f}, {0.00000f, 0.00000f, 1.08908734f}};
-	static private final float[][] CAT97_forward = {{0.8562f, 0.3372f, -0.1934f}, {-0.8360f, 1.8327f, 0.0033f},
-		{0.0357f, -0.00469f, 1.0112f}};
-	static private final float[][] cat97_backward = {{0.9838112f, -0.1805292f, 0.1887508f}, {0.4488317f, 0.4632779f, 0.0843307f},
-		{-0.0326513f, 0.0085222f, 0.9826514f}};
-	static private final float[][] CAT02_forward = {{0.7328f, 0.4296f, -0.1624f}, {-0.7036f, 1.6975f, 0.0061f},
-		{0.0030f, 0.0136f, 0.9834f}};
-	static private final float[][] CAT02_backward = {{1.0961238f, -0.2788690f, 0.1827452f}, {0.4543690f, 0.4735332f, 0.0720978f},
-		{-0.0096276f, -0.0056980f, 1.0153256f}};
+	static public ACES2065_1 ACES2065_1 (RGB rgb) {
+		float r = linear(rgb.r), g = linear(rgb.g), b = linear(rgb.b);
+		float r2065 = 0.43953127f * r + 0.38391885f * g + 0.17654988f * b; // To AP0.
+		float g2065 = 0.08959387f * r + 0.81347942f * g + 0.09692672f * b;
+		float b2065 = 0.01738063f * r + 0.11176223f * g + 0.87085713f * b;
+		return new ACES2065_1(r2065, g2065, b2065);
+	}
 
-	private Colors () {
+	static public ACEScg ACEScg (RGB rgb) {
+		float r = linear(rgb.r), g = linear(rgb.g), b = linear(rgb.b);
+		float rcg = 0.61309741f * r + 0.33952315f * g + 0.04737945f * b; // To AP1.
+		float gcg = 0.07019486f * r + 0.91635524f * g + 0.01344990f * b;
+		float bcg = 0.02061560f * r + 0.10956263f * g + 0.86982177f * b;
+		return new ACEScg(rcg, gcg, bcg);
+	}
+
+	static public ACEScc ACEScc (RGB rgb) {
+		ACEScg cg = ACEScg(rgb);
+		return new ACEScc(ACESccUtil.encode(cg.r), ACESccUtil.encode(cg.g), ACESccUtil.encode(cg.b));
+	}
+
+	static public CAM16 CAM16 (CAM16UCS ucs, CAM16.VC vc) { // Based on Copyright 2021 Google LLC (Apache 2.0).
+		float jstar = ucs.J, astar = ucs.a, bstar = ucs.b;
+		float C = (float)(Math.expm1(Math.hypot(astar, bstar) * 0.0228) / 0.0228) / vc.FLRoot;
+		float h = (float)Math.atan2(bstar, astar) * radDeg;
+		if (h < 0) h += 360;
+		float J = jstar / (1 - (jstar - 100) * 0.007f);
+		float sqrtJ = (float)Math.sqrt(J / 100);
+		float Q = 4 / vc.c * sqrtJ * (vc.Aw + 4) * vc.FLRoot;
+		float M = C * vc.FLRoot;
+		float s = 50 * (float)Math.sqrt((C / sqrtJ * vc.c) / (vc.Aw + 4));
+		return new CAM16(J, C, h, Q, M, s);
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	static public CAM16 CAM16 (RGB rgb) {
+		return CAM16(rgb, CAM16.VC.sRGB);
+	}
+
+	static public CAM16 CAM16 (RGB rgb, CAM16.VC vc) {
+		float r = linear(rgb.r) * 100, g = linear(rgb.g) * 100, b = linear(rgb.b) * 100;
+		float X = 0.41233895f * r + 0.35762064f * g + 0.18051042f * b;
+		float Y = 0.2126f * r + 0.7152f * g + 0.0722f * b;
+		float Z = 0.01932141f * r + 0.11916382f * g + 0.95034478f * b;
+		return CAM16(new XYZ((float)X, (float)Y, (float)Z), vc);
+	}
+
+	static public CAM16 CAM16 (XYZ XYZ, CAM16.VC vc) { // Based on Copyright 2021 Google LLC (Apache 2.0).
+		float rT = (XYZ.X * 0.401288f) + (XYZ.Y * 0.650173f) + (XYZ.Z * -0.051461f); // To cone/RGB responses.
+		float gT = (XYZ.X * -0.250268f) + (XYZ.Y * 1.204414f) + (XYZ.Z * 0.045854f);
+		float bT = (XYZ.X * -0.002079f) + (XYZ.Y * 0.048952f) + (XYZ.Z * 0.953127f);
+		float rD = vc.rgbD[0] * rT; // Discount illuminant.
+		float gD = vc.rgbD[1] * gT;
+		float bD = vc.rgbD[2] * bT;
+		float rAF = (float)Math.pow(vc.FL * Math.abs(rD) / 100, 0.42); // Chromatic adaptation.
+		float gAF = (float)Math.pow(vc.FL * Math.abs(gD) / 100, 0.42);
+		float bAF = (float)Math.pow(vc.FL * Math.abs(bD) / 100, 0.42);
+		float rA = Math.signum(rD) * 400 * rAF / (rAF + 27.13f);
+		float gA = Math.signum(gD) * 400 * gAF / (gAF + 27.13f);
+		float bA = Math.signum(bD) * 400 * bAF / (bAF + 27.13f);
+		float a = (11 * rA + -12 * gA + bA) / 11; // Redness-greenness.
+		float b = (rA + gA - 2 * bA) / 9; // Yellowness-blueness.
+		float u = (20 * rA + 20 * gA + 21 * bA) / 20; // Auxiliary components.
+		float p2 = (40 * rA + 20 * gA + bA) / 20;
+		float hDeg = (float)Math.atan2(b, a) * radDeg; // Hue.
+		float h = hDeg < 0 ? hDeg + 360 : hDeg >= 360 ? hDeg - 360 : hDeg;
+		float ac = p2 * vc.Nbb; // Achromatic response to color.
+		float J = 100 * (float)Math.pow(ac / vc.Aw, vc.c * vc.z); // CAM16 lightness and brightness.
+		float Q = 4 / vc.c * (float)Math.sqrt(J / 100) * (vc.Aw + 4) * vc.FLRoot;
+		float huePrime = (h < 20.14f) ? h + 360 : h; // CAM16 chroma, colorfulness, and saturation.
+		float eHue = 0.25f * ((float)Math.cos(huePrime * degRad + 2) + 3.8f);
+		float p1 = 50000 / 13f * eHue * vc.Nc * vc.Ncb;
+		float t = p1 * (float)Math.hypot(a, b) / (u + 0.305f);
+		float alpha = (float)Math.pow(1.64 - Math.pow(0.29, vc.n), 0.73) * (float)Math.pow(t, 0.9);
+		float C = alpha * (float)Math.sqrt(J / 100); // CAM16 chroma, colorfulness, saturation.
+		float M = C * vc.FLRoot;
+		float s = 50 * (float)Math.sqrt((alpha * vc.c) / (vc.Aw + 4));
+		return new CAM16(J, C, h, Q, M, s);
+	}
+
+	static public CAM16UCS CAM16UCS (CAM16 cam16) { // Based on Copyright 2021 Google LLC (Apache 2.0).
+		float J = cam16.J, M = cam16.M, h = cam16.h * degRad;
+		float Jstar = 1.7f * J / (1 + 0.007f * J);
+		float Mstar = (1 / 0.0228f) * (float)Math.log1p(0.0228f * M);
+		float astar = Mstar * (float)Math.cos(h);
+		float bstar = Mstar * (float)Math.sin(h);
+		return new CAM16UCS(Jstar, astar, bstar);
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	static public CAM16UCS CAM16UCS (RGB rgb) {
+		return CAM16UCS(CAM16(rgb));
+	}
+
+	static public CAM16UCS CAM16UCS (RGB rgb, CAM16.VC vc) {
+		return CAM16UCS(CAM16(rgb, vc));
 	}
 
 	static public C1C2C3 C1C2C3 (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float C1 = (float)Math.atan(r / Math.max(g, b));
 		float C2 = (float)Math.atan(g / Math.max(r, b));
 		float C3 = (float)Math.atan(b / Math.max(r, g));
 		return new C1C2C3(C1, C2, C3);
 	}
 
-	/** @param rgb sRGB.
-	 * @return CCT [1667..25000K] or NaN if invalid. */
+	/** @return CCT [1667..25000K] or NaN if invalid. */
 	static public float CCT (RGB rgb) {
 		return CCT(xy(rgb));
 	}
@@ -53,112 +134,41 @@ public class Colors {
 
 	/** @return CCT [1667..25000K], or NaN if outside valid range. */
 	static public float CCT (xy xy) {
-		float x = xy.x(), y = xy.y();
+		float x = xy.x, y = xy.y;
 		if (x < 0.25f || x > 0.565f || y < 0.20f || y > 0.45f) return Float.NaN;
-		float n = (x - 0.3320f) / (0.1858f - y); // McCamy's approximation.
+		float d = 0.1858f - y;
+		if (Math.abs(d) < EPSILON) return Float.NaN;
+		float n = (x - 0.3320f) / d; // McCamy's approximation.
 		float CCT = 449 * n * n * n + 3525 * n * n + 6823.3f * n + 5520.33f;
 		if (CCT < 1667 || CCT > 25000) return Float.NaN;
 		return CCT;
 	}
 
-	/** @return CMYK color space. Normalized. */
 	static public CMYK CMYK (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
-		float K = 1 - Math.max(r, Math.max(g, b));
-		if (1 - K < 1e-10f) return new CMYK(0, 0, 0, K); // Black
+		float r = rgb.r, g = rgb.g, b = rgb.b;
+		float K = 1 - max(r, g, b);
+		if (1 - K < EPSILON) return new CMYK(0, 0, 0, K); // Black
 		float C = (1 - r - K) / (1 - K);
 		float M = (1 - g - K) / (1 - K);
 		float Y = (1 - b - K) / (1 - K);
 		return new CMYK(C, M, Y, K);
 	}
 
-	/** @return Color difference value (0 = identical colors, larger values = more different) */
-	static public float deltaE2000 (Lab lab1, Lab lab2) {
-		return deltaE2000(lab1, lab2, 1, 1, 1);
+	/** Uses {@link CAM16.VC#sRGB}. */
+	static public HCT HCT (RGB rgb) {
+		return HCT(rgb, CAM16.VC.sRGB);
 	}
 
-	/** @param kL Weight for lightness (default 1)
-	 * @param kC Weight for chroma (default 1)
-	 * @param kH Weight for hue (default 1)
-	 * @return Color difference value (0 = identical colors, larger values = more different) */
-	static public float deltaE2000 (Lab lab1, Lab lab2, float kL, float kC, float kH) {
-		float L1 = lab1.L(), a1 = lab1.a(), b1 = lab1.b();
-		float L2 = lab2.L(), a2 = lab2.a(), b2 = lab2.b();
-		float C1 = (float)Math.sqrt(a1 * a1 + b1 * b1); // Chroma.
-		float C2 = (float)Math.sqrt(a2 * a2 + b2 * b2);
-		float Cab = (C1 + C2) / 2; // Average chroma.
-		float Cab7 = (float)Math.pow(Cab, 7);
-		float G = 0.5f * (1 - (float)Math.sqrt(Cab7 / (Cab7 + 6103515625f))); // 25^7
-		float a1p = (1 + G) * a1;
-		float a2p = (1 + G) * a2;
-		float C1p = (float)Math.sqrt(a1p * a1p + b1 * b1);
-		float C2p = (float)Math.sqrt(a2p * a2p + b2 * b2);
-		float h1p = (float)Math.atan2(b1, a1p) * radDeg; // Hue angle.
-		float h2p = (float)Math.atan2(b2, a2p) * radDeg;
-		if (h1p < 0) h1p += 360;
-		if (h2p < 0) h2p += 360;
-		float dLp = L2 - L1; // Delta L'C'h'
-		float dCp = C2p - C1p;
-		float dhp = h2p - h1p;
-		if (dhp > 180)
-			dhp -= 360;
-		else if (dhp < -180) //
-			dhp += 360;
-		float dHp = 2 * (float)Math.sqrt(C1p * C2p) * (float)Math.sin((dhp * degRad) / 2);
-		float Lp = (L1 + L2) / 2; // Average.
-		float Cp = (C1p + C2p) / 2;
-		float hp;
-		if (Math.abs(h1p - h2p) > 180) {
-			if (h1p + h2p < 360)
-				hp = (h1p + h2p + 360) / 2;
-			else
-				hp = (h1p + h2p - 360) / 2;
-		} else
-			hp = (h1p + h2p) / 2;
-		float hpRad = hp * degRad;
-		float T = 1 - 0.17f * (float)Math.cos(hpRad - 30 * degRad) + 0.24f * (float)Math.cos(2 * hpRad)
-			+ 0.32f * (float)Math.cos(3 * hpRad + 6 * degRad) - 0.20f * (float)Math.cos(4 * hpRad - 63 * degRad);
-		float SL = 1 + (0.015f * (Lp - 50) * (Lp - 50)) / (float)Math.sqrt(20 + (Lp - 50) * (Lp - 50));
-		float SC = 1 + 0.045f * Cp;
-		float SH = 1 + 0.015f * Cp * T;
-		float dTheta = 30 * (float)Math.exp(-((hp - 275) / 25) * ((hp - 275) / 25));
-		float Cp7 = (float)Math.pow(Cp, 7);
-		float RC = 2 * (float)Math.sqrt(Cp7 / (Cp7 + 6103515625f)); // 25^7
-		float RT = -RC * (float)Math.sin(2 * dTheta * degRad);
-		float dLpKlSl = dLp / (kL * SL);
-		float dCpKcSc = dCp / (kC * SC);
-		float dHpKhSh = dHp / (kH * SH);
-		return (float)Math.sqrt(dLpKlSl * dLpKlSl + dCpKcSc * dCpKcSc + dHpKhSh * dHpKhSh + RT * dCpKcSc * dHpKhSh);
-	}
-
-	/** Uses the CIE 2-degree D65 tristimulus.
-	 * @param rgb1 First RGB color
-	 * @param rgb2 Second RGB color
-	 * @return Color difference value (0 = identical colors, larger values = more different) */
-	static public float deltaE2000 (RGB rgb1, RGB rgb2) {
-		return deltaE2000(Lab(rgb1), Lab(rgb2));
-	}
-
-	/** Calculates the CIEDE2000 color difference between two RGB colors with custom weights and D65 illuminant.
-	 * @param rgb1 First RGB color
-	 * @param rgb2 Second RGB color
-	 * @param kL Weight for lightness (default 1)
-	 * @param kC Weight for chroma (default 1)
-	 * @param kH Weight for hue (default 1)
-	 * @return Color difference value (0 = identical colors, larger values = more different) */
-	static public float deltaE2000 (RGB rgb1, RGB rgb2, float kL, float kC, float kH) {
-		return deltaE2000(Lab(rgb1), Lab(rgb2), kL, kC, kH);
-	}
-
-	static public float grayscale (RGB rgb) {
-		return rgb.r() * 0.2125f + rgb.g() * 0.7154f + rgb.b() * 0.0721f;
+	static public HCT HCT (RGB rgb, CAM16.VC vc) {
+		CAM16 cam16 = CAM16(rgb, vc);
+		return new HCT(cam16.h, cam16.C, LabUtil.YtoLstar(XYZ(rgb).Y));
 	}
 
 	static public HSI HSI (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float I = (r + g + b) / 3;
-		float min = Math.min(r, Math.min(g, b));
-		float S = I < 1e-10f ? 0 : 1 - min / I, H = 0;
+		float min = min(r, g, b);
+		float S = I < EPSILON ? 0 : 1 - min / I, H = Float.NaN;
 		if (S != 0 && I != 0) {
 			float alpha = 0.5f * (2 * r - g - b);
 			float beta = 0.8660254f * (g - b); // sqrt(3) / 2
@@ -170,38 +180,37 @@ public class Colors {
 	}
 
 	static public HSL HSL (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
-		float max = Math.max(r, Math.max(g, b));
-		float min = Math.min(r, Math.min(g, b));
-		float delta = max - min;
-		float H = 0, S = 0, L = (max + min) / 2;
-		if (delta < 1e-10f) { // Gray.
-			H = 0;
-			S = 0;
-		} else {
-			S = L <= 0.5f ? delta / (max + min) : delta / (2 - max - min);
-			float hue;
-			if (r == max)
-				hue = (g - b) / 6 / delta;
-			else if (g == max)
-				hue = 1 / 3f + (b - r) / 6 / delta;
-			else
-				hue = 2 / 3f + (r - g) / 6 / delta;
-			if (hue < 0) hue += 1;
-			if (hue > 1) hue -= 1;
-			H = (int)(hue * 360);
-		}
+		float r = rgb.r, g = rgb.g, b = rgb.b;
+		float min = min(r, g, b), max = max(r, g, b), delta = max - min, L = (max + min) / 2;
+		if (delta < EPSILON) return new HSL(Float.NaN, 0, L); // Gray.
+		float S = L <= 0.5f ? delta / (max + min) : delta / (2 - max - min), H;
+		if (r == max)
+			H = (g - b) / 6 / delta;
+		else if (g == max)
+			H = 1 / 3f + (b - r) / 6 / delta;
+		else
+			H = 2 / 3f + (r - g) / 6 / delta;
+		if (H < 0) H += 1;
+		if (H > 1) H -= 1;
+		H *= 360;
 		return new HSL(H, S, L);
 	}
 
+	static public HSLuv HSLuv (RGB rgb) {
+		LCHuv lch = LCHuv(Luv(rgb));
+		float L = lch.L, C = lch.C, H = lch.H;
+		if (L > 100 - EPSILON) return new HSLuv(H, 0, 100);
+		if (L < EPSILON) return new HSLuv(H, 0, 0);
+		float maxChroma = HSLuvUtil.maxChromaForLH(L, H);
+		float S = maxChroma < EPSILON ? 0 : Math.min(100, (C / maxChroma) * 100);
+		return new HSLuv(H, S, L);
+	}
+
 	static public HSV HSV (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
-		float max = Math.max(r, Math.max(g, b));
-		float min = Math.min(r, Math.min(g, b));
-		float delta = max - min;
-		float H = 0;
+		float r = rgb.r, g = rgb.g, b = rgb.b;
+		float min = min(r, g, b), max = max(r, g, b), delta = max - min, H = 0;
 		if (max == min)
-			H = 0;
+			H = Float.NaN;
 		else if (max == r) {
 			H = (g - b) / delta * 60;
 			if (H < 0) H += 360;
@@ -209,19 +218,8 @@ public class Colors {
 			H = ((b - r) / delta + 2) * 60;
 		else if (max == b) //
 			H = ((r - g) / delta + 4) * 60;
-		float S = delta < 1e-10f ? 0 : delta / max;
+		float S = delta < EPSILON ? 0 : delta / max;
 		return new HSV(H, S, max);
-	}
-
-	static public HSLuv HSLuv (RGB rgb) {
-		Luv luv = Luv(rgb);
-		LCHuv lch = LCHuv(luv);
-		float L = lch.L(), C = lch.C(), H = lch.H();
-		if (L > 99.9999999f) return new HSLuv(H, 0, 100);
-		if (L < 0.00000001f) return new HSLuv(H, 0, 0);
-		float maxChroma = Util.HSLuv.maxChromaForLH(L, H);
-		float S = maxChroma < 1e-10f ? 0 : Math.min(100, (C / maxChroma) * 100);
-		return new HSLuv(H, S, L);
 	}
 
 	/** @return NaN if invalid. */
@@ -231,32 +229,30 @@ public class Colors {
 
 	/** @return NaN if invalid. */
 	static public HunterLab HunterLab (XYZ xyz) {
-		float X = xyz.X(), Y = xyz.Y(), Z = xyz.Z();
-		if (Y < 1e-10f) return new HunterLab(0, Float.NaN, Float.NaN);
+		float X = xyz.X, Y = xyz.Y, Z = xyz.Z;
+		if (Y < EPSILON) return new HunterLab(0, 0, 0);
 		float sqrt = (float)Math.sqrt(Y);
-		float L = 10 * sqrt;
 		float a = 17.5f * ((1.02f * X - Y) / sqrt);
 		float b = 7 * ((Y - 0.847f * Z) / sqrt);
-		return new HunterLab(L, a, b);
+		return new HunterLab(10 * sqrt, a, b);
 	}
 
 	/** @return IHS color space normalized or NaN if invalid. */
 	static public IHS IHS (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float I = r + g + b;
-		if (I < 1e-10f) return new IHS(I, Float.NaN, Float.NaN);
-		float H;
-		if (b == Math.min(Math.min(r, g), b)) {
+		if (I < EPSILON) return new IHS(I, Float.NaN, Float.NaN);
+		float H, S, min = min(r, g, b);
+		if (b == min) {
 			float denom = I - 3 * b;
-			H = Math.abs(denom) < 1e-10f ? Float.NaN : (g - b) / denom;
-		} else if (r == Math.min(Math.min(r, g), b)) {
+			H = Math.abs(denom) < EPSILON ? Float.NaN : (g - b) / denom;
+		} else if (r == min) {
 			float denom = I - 3 * r;
-			H = Math.abs(denom) < 1e-10f ? Float.NaN : (b - r) / denom + 1;
+			H = Math.abs(denom) < EPSILON ? Float.NaN : (b - r) / denom + 1;
 		} else {
 			float denom = I - 3 * g;
-			H = Math.abs(denom) < 1e-10f ? Float.NaN : (r - g) / denom + 2;
+			H = Math.abs(denom) < EPSILON ? Float.NaN : (r - g) / denom + 2;
 		}
-		float S;
 		if (H >= 0 && H <= 1)
 			S = (I - 3 * b) / I;
 		else if (H >= 1 && H <= 2)
@@ -266,8 +262,23 @@ public class Colors {
 		return new IHS(I, H, S);
 	}
 
+	static public ITP ITP (RGB rgb) {
+		float r = linear(rgb.r), g = linear(rgb.g), b = linear(rgb.b);
+		float r2020 = 0.6274040f * r + 0.3292820f * g + 0.0433136f * b; // To BT.2020.
+		float g2020 = 0.0690970f * r + 0.9195400f * g + 0.0113612f * b;
+		float b2020 = 0.0163916f * r + 0.0880132f * g + 0.8955950f * b;
+		float L = ITPUtil.PQ_EOTF_inverse((1688f / 4096f) * r2020 + (2146f / 4096f) * g2020 + (262f / 4096f) * b2020);
+		float M = ITPUtil.PQ_EOTF_inverse((683f / 4096f) * r2020 + (2951f / 4096f) * g2020 + (462f / 4096f) * b2020);
+		float S = ITPUtil.PQ_EOTF_inverse((99f / 4096f) * r2020 + (309f / 4096f) * g2020 + (3688f / 4096f) * b2020);
+		float I = 0.5f * L + 0.5f * M + 0f * S; // L'M'S' to ITP.
+		float Ct = 1.613769531f * L + -3.323486328f * M + 1.709716797f * S;
+		float Cp = 4.378173828f * L + -4.245605469f * M + -0.132568359f * S;
+		return new ITP(I, Ct, Cp);
+	}
+
 	static public Lab Lab (LCh lch) {
-		float L = lch.L(), C = lch.C(), h = lch.h();
+		float L = lch.L, C = lch.C, h = lch.h;
+		if (C < EPSILON || Float.isNaN(h)) return new Lab(L, 0, 0);
 		float a = C * (float)Math.cos(h * degRad);
 		float b = C * (float)Math.sin(h * degRad);
 		return new Lab(L, a, b);
@@ -290,22 +301,10 @@ public class Colors {
 
 	/** @param tristimulus See {@link Illuminant}. */
 	static public Lab Lab (XYZ XYZ, XYZ tristimulus) {
-		float X = XYZ.X(), Y = XYZ.Y(), Z = XYZ.Z();
-		X /= tristimulus.X();
-		Y /= tristimulus.Y();
-		Z /= tristimulus.Z();
-		if (X > 0.008856f)
-			X = (float)Math.pow(X, 1 / 3f);
-		else
-			X = 7.787036f * X + 0.13793103f;
-		if (Y > 0.008856f)
-			Y = (float)Math.pow(Y, 1 / 3f);
-		else
-			Y = 7.787036f * Y + 0.13793103f;
-		if (Z > 0.008856f)
-			Z = (float)Math.pow(Z, 1 / 3f);
-		else
-			Z = 7.787036f * Z + 0.13793103f;
+		float X = XYZ.X / tristimulus.X, Y = XYZ.Y / tristimulus.Y, Z = XYZ.Z / tristimulus.Z;
+		X = X > LabUtil.e ? (float)Math.pow(X, 1 / 3d) : (LabUtil.k * X + 16) / 116;
+		Y = Y > LabUtil.e ? (float)Math.pow(Y, 1 / 3d) : (LabUtil.k * Y + 16) / 116;
+		Z = Z > LabUtil.e ? (float)Math.pow(Z, 1 / 3d) : (LabUtil.k * Z + 16) / 116;
 		float L = 116 * Y - 16;
 		float a = 500 * (X - Y);
 		float b = 200 * (Y - Z);
@@ -331,32 +330,29 @@ public class Colors {
 
 	/** @return NaN if invalid. */
 	static public Luv Luv (XYZ XYZ, XYZ tristimulus) {
-		float X = XYZ.X(), Y = XYZ.Y(), Z = XYZ.Z();
-		float Xn = tristimulus.X(), Yn = tristimulus.Y(), Zn = tristimulus.Z();
-		float yr = Y / Yn;
-		float L = yr > e ? 116 * (float)Math.cbrt(yr) - 16 : k * yr;
-		float divisor = X + 15 * Y + 3 * Z;
-		float divisorN = Xn + 15 * Yn + 3 * Zn;
-		if (divisor < 1e-10f || divisorN < 1e-10f) return new Luv(L, Float.NaN, Float.NaN);
-		float u_prime = 4 * X / divisor;
-		float v_prime = 9 * Y / divisor;
-		float un_prime = 4 * Xn / divisorN;
-		float vn_prime = 9 * Yn / divisorN;
+		float X = XYZ.X, Y = XYZ.Y, Z = XYZ.Z;
+		float Xn = tristimulus.X, Yn = tristimulus.Y, Zn = tristimulus.Z;
+		float yr = Y / Yn, L = yr > LabUtil.e ? 116 * (float)Math.cbrt(yr) - 16 : LabUtil.k * yr;
+		float divisor = X + 15 * Y + 3 * Z, divisorN = Xn + 15 * Yn + 3 * Zn;
+		if (divisor < EPSILON || divisorN < EPSILON) return new Luv(L, Float.NaN, Float.NaN);
+		float u_prime = 4 * X / divisor, v_prime = 9 * Y / divisor;
+		float un_prime = 4 * Xn / divisorN, vn_prime = 9 * Yn / divisorN;
 		float u = 13 * L * (u_prime - un_prime);
 		float v = 13 * L * (v_prime - vn_prime);
 		return new Luv(L, u, v);
 	}
 
 	static public LCHuv LCHuv (Luv luv) {
-		float L = luv.L(), u = luv.u(), v = luv.v();
+		float L = luv.L, u = luv.u, v = luv.v;
 		float C = (float)Math.sqrt(u * u + v * v);
-		float H = (float)Math.atan2(v, u) * radDeg;
+		float H = C < EPSILON ? Float.NaN : (float)Math.atan2(v, u) * radDeg;
 		if (H < 0) H += 360;
 		return new LCHuv(L, C, H);
 	}
 
 	static public Luv Luv (LCHuv lch) {
-		float L = lch.L(), C = lch.C(), H = lch.H();
+		float L = lch.L, C = lch.C, H = lch.H;
+		if (C < EPSILON || Float.isNaN(H)) return new Luv(L, 0, 0);
 		float rad = H * degRad;
 		float u = C * (float)Math.cos(rad);
 		float v = C * (float)Math.sin(rad);
@@ -364,10 +360,10 @@ public class Colors {
 	}
 
 	static public LCh LCh (Lab Lab) {
-		float L = Lab.L(), a = Lab.a(), b = Lab.b();
-		float h = (float)Math.atan2(b, a) * radDeg;
-		if (h < 0) h += 360;
+		float L = Lab.L, a = Lab.a, b = Lab.b;
 		float C = (float)Math.sqrt(a * a + b * b);
+		float h = C < EPSILON ? Float.NaN : (float)Math.atan2(b, a) * radDeg;
+		if (h < 0) h += 360;
 		return new LCh(L, C, h);
 	}
 
@@ -382,11 +378,11 @@ public class Colors {
 	}
 
 	static public LinearRGB LinearRGB (RGB rgb) {
-		return rgb.decode();
+		return new LinearRGB(linear(rgb.r), linear(rgb.g), linear(rgb.b));
 	}
 
 	static public LinearRGB LinearRGB (XYZ xyz) {
-		float X = xyz.X() / 100, Y = xyz.Y() / 100, Z = xyz.Z() / 100;
+		float X = xyz.X / 100, Y = xyz.Y / 100, Z = xyz.Z / 100;
 		float r = 3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z;
 		float g = -0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z;
 		float b = 0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z;
@@ -394,7 +390,7 @@ public class Colors {
 	}
 
 	static public LinearRGB LinearRGB (Oklab Oklab) {
-		float L = Oklab.L(), a = Oklab.a(), b = Oklab.b();
+		float L = Oklab.L, a = Oklab.a, b = Oklab.b;
 		float l = L + 0.3963377774f * a + 0.2158037573f * b;
 		float m = L - 0.1055613458f * a - 0.0638541728f * b;
 		float s = L - 0.0894841775f * a - 1.2914855480f * b;
@@ -422,34 +418,34 @@ public class Colors {
 	}
 
 	static public LMS LMS (XYZ XYZ, CAT matrix) {
-		float[] array = {XYZ.X(), XYZ.Y(), XYZ.Z()};
-		float[] lms = switch (matrix) {
-		case HPE -> Util.matrixMultiply(array, HPE_forward);
-		case Bradford -> Util.matrixMultiply(array, Badford_forward);
-		case VonKries -> Util.matrixMultiply(array, vonKries_forward);
-		case CAT97 -> Util.matrixMultiply(array, CAT97_forward);
-		default -> Util.matrixMultiply(array, CAT02_forward);
-		};
+		float[] lms = matrixMultiply(XYZ.X, XYZ.Y, XYZ.Z, switch (matrix) {
+		case HPE -> LMSUtil.HPE_forward;
+		case Bradford -> LMSUtil.Bradford_forward;
+		case VonKries -> LMSUtil.vonKries_forward;
+		case CAT97 -> LMSUtil.CAT97_forward;
+		default -> LMSUtil.CAT02_forward;
+		});
 		return new LMS(lms[0], lms[1], lms[2]);
 	}
 
 	/** O1O2 version 2. */
 	static public O1O2 O1O2 (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float O1 = (r - g) / 2;
 		float O2 = (r + g) / 4 - b / 2;
 		return new O1O2(O1, O2);
 	}
 
 	static public Oklab Oklab (Oklch Oklch) {
-		float L = Oklch.L(), C = Oklch.C(), h = Oklch.h() * degRad;
+		float L = Oklch.L, C = Oklch.C, h = Oklch.h * degRad;
+		if (C < EPSILON || Float.isNaN(h)) return new Oklab(L, 0, 0);
 		float a = C * (float)Math.cos(h);
 		float b = C * (float)Math.sin(h);
 		return new Oklab(L, a, b);
 	}
 
 	static public Oklab Oklab (RGB rgb) {
-		float r = linear(rgb.r()), g = linear(rgb.g()), b = linear(rgb.b());
+		float r = linear(rgb.r), g = linear(rgb.g), b = linear(rgb.b);
 		float l = (float)Math.cbrt(0.4122214708f * r + 0.5363325363f * g + 0.0514459929f * b);
 		float m = (float)Math.cbrt(0.2119034982f * r + 0.6806995451f * g + 0.1073969566f * b);
 		float s = (float)Math.cbrt(0.0883024619f * r + 0.2817188376f * g + 0.6299787005f * b);
@@ -459,17 +455,10 @@ public class Colors {
 		return new Oklab(L, a, bLab);
 	}
 
-	static public Oklab lerp (Oklab Oklab1, Oklab Oklab2, float t) {
-		float L = (1 - t) * Oklab1.L() + t * Oklab2.L();
-		float a = (1 - t) * Oklab1.a() + t * Oklab2.a();
-		float b = (1 - t) * Oklab1.b() + t * Oklab2.b();
-		return new Oklab(L, a, b);
-	}
-
 	static public Oklch Oklch (Oklab Oklab) {
-		float L = Oklab.L(), a = Oklab.a(), b = Oklab.b();
+		float L = Oklab.L, a = Oklab.a, b = Oklab.b;
 		float C = (float)Math.sqrt(a * a + b * b);
-		float h = (float)Math.atan2(b, a) * radDeg;
+		float h = C < EPSILON ? Float.NaN : (float)Math.atan2(b, a) * radDeg;
 		if (h < 0) h += 360;
 		return new Oklch(L, C, h);
 	}
@@ -480,64 +469,97 @@ public class Colors {
 
 	static public Okhsl Okhsl (RGB rgb) {
 		Oklab lab = Oklab(rgb);
-		float L = lab.L();
-		if (L >= 0.9999999f) return new Okhsl(0, 0, 1); // White.
-		if (L <= 0.0000001f) return new Okhsl(0, 0, 0); // Black.
-		float C = (float)Math.sqrt(lab.a() * lab.a() + lab.b() * lab.b());
-		if (C < 1e-10f) return new Okhsl(0, 0, Util.Okhsv.toe(L)); // Gray.
-		float h = 0.5f + 0.5f * (float)Math.atan2(-lab.b(), -lab.a()) / PI;
-		float a_ = lab.a() / C, b_ = lab.b() / C;
-		float[] Cs = Util.Okhsv.Cs(L, a_, b_);
+		float L = lab.L;
+		if (L >= 1 - EPSILON) return new Okhsl(Float.NaN, 0, 1); // White.
+		if (L <= EPSILON) return new Okhsl(Float.NaN, 0, 0); // Black.
+		float C = (float)Math.sqrt(lab.a * lab.a + lab.b * lab.b);
+		if (C < EPSILON) return new Okhsl(Float.NaN, 0, OkhsvUtil.toe(L)); // Gray.
+		float h = 0.5f + 0.5f * (float)Math.atan2(-lab.b, -lab.a) / PI;
+		float a_ = lab.a / C, b_ = lab.b / C;
+		float[] Cs = OkhsvUtil.Cs(L, a_, b_);
 		float C_0 = Cs[0], C_mid = Cs[1], C_max = Cs[2];
 		float mid = 0.8f, s;
 		if (C < C_mid) {
-			float k_1 = mid * C_0;
-			float k_2 = (1.f - k_1 / C_mid);
-			float t = C / (k_1 + k_2 * C);
+			float k_1 = mid * C_0, k_2 = (1.f - k_1 / C_mid), t = C / (k_1 + k_2 * C);
 			s = t * mid;
 		} else {
 			float mid_inv = 1.25f;
-			float k_0 = C_mid;
-			float k_1 = (1.f - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0;
-			float k_2 = (1.f - (k_1) / (C_max - C_mid));
+			float k_0 = C_mid, k_1 = (1.f - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0, k_2 = (1.f - (k_1) / (C_max - C_mid));
 			float t = (C - k_0) / (k_1 + k_2 * (C - k_0));
 			s = mid + (1.f - mid) * t;
 		}
-		float l = Util.Okhsv.toe(L);
-		return new Okhsl(h * 360, s, l);
+		return new Okhsl(h * 360, s, OkhsvUtil.toe(L));
 	}
 
 	static public Okhsv Okhsv (RGB rgb) {
 		Oklab lab = Oklab(rgb);
-		float L = lab.L();
-		if (L >= 0.9999999f) return new Okhsv(0, 0, 1); // White.
-		if (L <= 0.0000001f) return new Okhsv(0, 0, 0); // Black.
-		float C = (float)Math.sqrt(lab.a() * lab.a() + lab.b() * lab.b());
-		if (C < 1e-10f) return new Okhsv(0, 0, L); // Gray.
-		float h = (float)Math.atan2(lab.b(), lab.a()) * radDeg;
+		float L = lab.L;
+		if (L >= 1 - EPSILON) return new Okhsv(Float.NaN, 0, 1); // White.
+		if (L <= EPSILON) return new Okhsv(Float.NaN, 0, 0); // Black.
+		float C = (float)Math.sqrt(lab.a * lab.a + lab.b * lab.b);
+		if (C < EPSILON) return new Okhsv(Float.NaN, 0, L); // Gray.
+		float h = (float)Math.atan2(lab.b, lab.a) * radDeg;
 		if (h < 0) h += 360;
-		float a_ = lab.a() / C, b_ = lab.b() / C;
-		float[] ST_max = Util.Okhsv.cuspST(a_, b_);
+		float a_ = lab.a / C, b_ = lab.b / C;
+		float[] ST_max = OkhsvUtil.cuspST(a_, b_);
 		float S_max = ST_max[0], T_max = ST_max[1], S_0 = 0.5f;
-		float k = 1 - S_0 / S_max;
-		float t = T_max / (C + L * T_max);
+		float k = 1 - S_0 / S_max, t = T_max / (C + L * T_max);
 		float L_v = t * L, C_v = t * C;
-		float L_vt = Util.Okhsv.toeInv(L_v);
-		float C_vt = C_v * L_vt / L_v;
+		float L_vt = OkhsvUtil.toeInv(L_v), C_vt = C_v * L_vt / L_v;
 		var l_r = LinearRGB(new Oklab(L_vt, a_ * C_vt, b_ * C_vt));
-		float scale_L = (float)Math.cbrt(1.f / Math.max(Math.max(l_r.r(), l_r.g()), Math.max(l_r.b(), 0.f)));
-		L = L / scale_L;
-		C = C / scale_L;
-		C = C * Util.Okhsv.toe(L) / L;
-		L = Util.Okhsv.toe(L);
-		float v = L / L_v;
-		float s = (S_0 + T_max) * C_v / ((T_max * S_0) + T_max * k * C_v);
+		float scale_L = (float)Math.cbrt(1.f / Math.max(0, max(l_r.r, l_r.g, l_r.b)));
+		L /= scale_L;
+		C /= scale_L;
+		float Lt = OkhsvUtil.toe(L);
+		C *= Lt / L;
+		float v = Lt / L_v;
+		float s = (S_0 + T_max) * C_v / (T_max * S_0 + T_max * k * C_v);
 		return new Okhsv(h, clamp(s), clamp(v));
 	}
 
-	static public RGB RGB (CMYK cmyk) {
-		float C = cmyk.C(), M = cmyk.M(), Y = cmyk.Y(), K = cmyk.K();
-		return new RGB((1 - C) * (1 - K), (1 - M) * (1 - K), (1 - Y) * (1 - K));
+	static public RGB RGB (int rgb) {
+		return new RGB( //
+			((rgb & 0xff0000) >>> 16) / 255f, //
+			((rgb & 0x00ff00) >>> 8) / 255f, //
+			((rgb & 0x0000ff)) / 255f);
+	}
+
+	static public RGB RGB (ACES2065_1 aces) {
+		float r = aces.r, g = aces.g, b = aces.b;
+		float rLin = 2.52140088f * r + -1.13389840f * g + -0.38750249f * b; // From AP0.
+		float gLin = -0.27621892f * r + 1.37270743f * g + -0.09648852f * b;
+		float bLin = -0.01538264f * r + -0.15297240f * g + 1.16835505f * b;
+		return new RGB(sRGB(rLin), sRGB(gLin), sRGB(bLin));
+	}
+
+	static public RGB RGB (ACEScc aces) {
+		return RGB(new ACEScg(ACESccUtil.decode(aces.r), ACESccUtil.decode(aces.g), ACESccUtil.decode(aces.b)));
+	}
+
+	static public RGB RGB (ACEScg aces) {
+		float r = aces.r, g = aces.g, b = aces.b;
+		float rLin = 1.70482663f * r + -0.62151743f * g + -0.08330920f * b; // From AP1.
+		float gLin = -0.13028185f * r + 1.14085365f * g + -0.01057180f * b;
+		float bLin = -0.02400720f * r + -0.12895973f * g + 1.15296693f * b;
+		return new RGB(sRGB(rLin), sRGB(gLin), sRGB(bLin));
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	static public RGB RGB (CAM16 cam16) {
+		return RGB(XYZ(cam16, CAM16.VC.sRGB));
+	}
+
+	static public RGB RGB (CAM16 cam16, CAM16.VC vc) {
+		return RGB(XYZ(cam16, vc));
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	static public RGB RGB (CAM16UCS ucs) {
+		return RGB(ucs, CAM16.VC.sRGB);
+	}
+
+	static public RGB RGB (CAM16UCS ucs, CAM16.VC vc) {
+		return RGB(CAM16(ucs, vc), vc);
 	}
 
 	/** CCT for Y=33.
@@ -550,22 +572,22 @@ public class Colors {
 	 * @param Y > 33 clips R.
 	 * @return NaN if invalid. */
 	static public RGB RGB (float CCT, float Duv, float Y) {
-		xy xy;
-		if (Math.abs(Duv) < 1e-10f)
-			xy = xy(CCT);
-		else
-			xy = xy(uv1960(CCT, Duv));
-		XYZ XYZ = XYZ(new xyY(xy.x(), xy.y(), Y));
-		RGB rgb = RGB(XYZ);
-		float max = Math.max(rgb.r(), Math.max(rgb.g(), rgb.b()));
-		if (max > 1) rgb = new RGB(rgb.r() / max, rgb.g() / max, rgb.b() / max);
-		return new RGB(Math.max(0, rgb.r()), Math.max(0, rgb.g()), Math.max(0, rgb.b()));
+		xy xy = Math.abs(Duv) < EPSILON ? xy(CCT) : xy(uv1960(CCT, Duv));
+		RGB rgb = RGB(XYZ(new xyY(xy.x, xy.y, Y)));
+		float max = max(rgb.r, rgb.g, rgb.b);
+		if (max > 1) rgb = new RGB(rgb.r / max, rgb.g / max, rgb.b / max);
+		return new RGB(Math.max(0, rgb.r), Math.max(0, rgb.g), Math.max(0, rgb.b));
+	}
+
+	static public RGB RGB (CMYK CMYK) {
+		float C = CMYK.C, M = CMYK.M, Y = CMYK.Y, K = CMYK.K;
+		return new RGB((1 - C) * (1 - K), (1 - M) * (1 - K), (1 - Y) * (1 - K));
 	}
 
 	static public RGB RGB (HSI HSI) {
-		float H = HSI.H() * degRad, S = HSI.S(), I = HSI.I();
+		float H = HSI.H * degRad, S = HSI.S, I = HSI.I;
 		float r, g, b;
-		if (S < 1e-10f) // Gray.
+		if (S < EPSILON) // Gray.
 			r = g = b = I;
 		else if (H >= 0 && H < 2 * PI / 3) {
 			b = I * (1 - S);
@@ -586,67 +608,89 @@ public class Colors {
 	}
 
 	static public RGB RGB (HSL HSL) {
-		float hue = HSL.H(), saturation = HSL.S(), luminance = HSL.L();
+		float H = HSL.H / 360, S = HSL.S, L = HSL.L;
 		float r = 0, g = 0, b = 0;
-		if (saturation < 1e-10f) // Gray.
-			r = g = b = luminance;
+		if (S < EPSILON) // Gray.
+			r = g = b = L;
 		else {
-			float v1, v2;
-			float h = hue / 360;
-			v2 = luminance < 0.5f ? luminance * (1 + saturation) : luminance + saturation - luminance * saturation;
-			v1 = 2 * luminance - v2;
-			r = hueToRGB(v1, v2, h + 1 / 3f);
-			g = hueToRGB(v1, v2, h);
-			b = hueToRGB(v1, v2, h - 1 / 3f);
+			float v2 = L < 0.5f ? L * (1 + S) : L + S - L * S, v1 = 2 * L - v2;
+			r = HSLUtil.hueToRGB(v1, v2, H + 1 / 3f);
+			g = HSLUtil.hueToRGB(v1, v2, H);
+			b = HSLUtil.hueToRGB(v1, v2, H - 1 / 3f);
 		}
 		return new RGB(r, g, b);
 	}
 
 	static public RGB RGB (LinearRGB LinearRGB) {
-		return LinearRGB.encode();
+		return new RGB(sRGB(LinearRGB.r), sRGB(LinearRGB.g), sRGB(LinearRGB.b));
 	}
 
-	static private float hueToRGB (float v1, float v2, float vH) {
-		if (vH < 0) vH += 1;
-		if (vH > 1) vH -= 1;
-		if (6 * vH < 1) return v1 + (v2 - v1) * 6 * vH;
-		if (2 * vH < 1) return v2;
-		if (3 * vH < 2) return v1 + (v2 - v1) * (2 / 3f - vH) * 6;
-		return v1;
+	/** Uses {@link CAM16.VC#sRGB}. */
+	static public RGB RGB (HCT HCT) {
+		return RGB(HCT, CAM16.VC.sRGB);
+	}
+
+	static public RGB RGB (HCT HCT, CAM16.VC vc) {
+		float T = HCT.T, C = HCT.C, h = HCT.h * degRad;
+		if (T < 0.0001f) return new RGB(0, 0, 0); // Black.
+		if (T > 99.9999f) return new RGB(1, 1, 1); // White.
+		if (C < 0.0001f) { // Gray.
+			float gray = sRGB(LabUtil.LstarToYn(T));
+			return new RGB(gray, gray, gray);
+		}
+		float Y = LabUtil.LstarToY(T);
+		RGB rgb = HCTUtil.findRGB(h, C, Y, vc);
+		return rgb != null ? rgb : HCTUtil.bisectToLimit(Y, h);
+	}
+
+	/** @return NaN if invalid. */
+	static public RGB RGB (HSLuv HSLuv) {
+		float H = HSLuv.H, S = HSLuv.S, L = HSLuv.L;
+		if (L > 100 - EPSILON) return new RGB(1, 1, 1);
+		if (L < EPSILON) return new RGB(0, 0, 0);
+		float C = HSLuvUtil.maxChromaForLH(L, H) * S / 100;
+		return RGB(Luv(new LCHuv(L, C, H)));
 	}
 
 	static public RGB RGB (HSV HSV) {
-		float hue = HSV.H(), saturation = HSV.S(), value = HSV.V();
-		int hi = (int)Math.floor(hue / 60) % 6;
+		float hue = HSV.H, saturation = HSV.S, value = HSV.V;
+		if (Float.isNaN(hue) || saturation < EPSILON) return new RGB(value, value, value);
 		float f = hue / 60 - (float)Math.floor(hue / 60);
 		float p = value * (1 - saturation);
 		float q = value * (1 - f * saturation);
 		float t = value * (1 - (1 - f) * saturation);
 		float r, g, b;
-		if (hi == 0) {
+		switch ((int)Math.floor(hue / 60) % 6) {
+		case 0 -> {
 			r = value;
 			g = t;
 			b = p;
-		} else if (hi == 1) {
+		}
+		case 1 -> {
 			r = q;
 			g = value;
 			b = p;
-		} else if (hi == 2) {
+		}
+		case 2 -> {
 			r = p;
 			g = value;
 			b = t;
-		} else if (hi == 3) {
+		}
+		case 3 -> {
 			r = p;
 			g = q;
 			b = value;
-		} else if (hi == 4) {
+		}
+		case 4 -> {
 			r = t;
 			g = p;
 			b = value;
-		} else {
+		}
+		default -> {
 			r = value;
 			g = p;
 			b = q;
+		}
 		}
 		return new RGB(r, g, b);
 	}
@@ -656,23 +700,36 @@ public class Colors {
 	}
 
 	static public RGB RGB (IHS IHS) {
-		float I = IHS.I(), H = IHS.H(), S = IHS.S();
+		float I = IHS.I, H = IHS.H, S = IHS.S;
+		float r, g, b;
 		if (H >= 0 && H <= 1) {
-			float r = I * (1 + 2 * S - 3 * S * H) / 3;
-			float g = I * (1 - S + 3 * S * H) / 3;
-			float b = I * (1 - S) / 3;
-			return new RGB(r, g, b);
+			r = I * (1 + 2 * S - 3 * S * H) / 3;
+			g = I * (1 - S + 3 * S * H) / 3;
+			b = I * (1 - S) / 3;
+		} else if (H >= 1 && H <= 2) {
+			r = I * (1 - S) / 3;
+			g = I * (1 + 2 * S - 3 * S * (H - 1)) / 3;
+			b = I * (1 - S + 3 * S * (H - 1)) / 3;
+		} else {
+			r = I * (1 - S + 3 * S * (H - 2)) / 3;
+			g = I * (1 - S) / 3;
+			b = I * (1 + 2 * S - 3 * S * (H - 2)) / 3;
 		}
-		if (H >= 1 && H <= 2) {
-			float r = I * (1 - S) / 3;
-			float g = I * (1 + 2 * S - 3 * S * (H - 1)) / 3;
-			float b = I * (1 - S + 3 * S * (H - 1)) / 3;
-			return new RGB(r, g, b);
-		}
-		float r = I * (1 - S + 3 * S * (H - 2)) / 3;
-		float g = I * (1 - S) / 3;
-		float b = I * (1 + 2 * S - 3 * S * (H - 2)) / 3;
 		return new RGB(r, g, b);
+	}
+
+	static public RGB RGB (ITP ITP) {
+		float I = ITP.I, Ct = ITP.Ct, Cp = ITP.Cp;
+		float L = ITPUtil.PQ_EOTF(I + 0.00860514f * Ct + 0.11103f * Cp); // PQ to linear.
+		float M = ITPUtil.PQ_EOTF(I + -0.00860514f * Ct + -0.11103f * Cp);
+		float S = ITPUtil.PQ_EOTF(I + 0.56003125f * Ct + -0.32062717f * Cp);
+		float r2020 = 3.4366088f * L + -2.5064522f * M + 0.0698454f * S; // To BT.2020 RGB
+		float g2020 = -0.7913296f * L + 1.9836005f * M + -0.1922709f * S;
+		float b2020 = -0.0259499f * L + -0.0989138f * M + 1.1248637f * S;
+		float r = 1.6604910f * r2020 + -0.5876411f * g2020 + -0.0728499f * b2020; // BT.2020 to linear sRGB.
+		float g = -0.1245505f * r2020 + 1.1328999f * g2020 + -0.0083494f * b2020;
+		float b = -0.0181508f * r2020 + -0.1005789f * g2020 + 1.1187297f * b2020;
+		return new RGB(sRGB(r), sRGB(g), sRGB(b));
 	}
 
 	/** Uses the CIE 2-degree D65 tristimulus. */
@@ -683,26 +740,6 @@ public class Colors {
 	/** @param tristimulus See {@link Illuminant}. */
 	static public RGB RGB (Lab Lab, XYZ tristimulus) {
 		return RGB(XYZ(Lab, tristimulus));
-	}
-
-	/** @return NaN if invalid. */
-	static public RGB RGB (Luv luv) {
-		return RGB(luv, Illuminant.CIE2.D65);
-	}
-
-	/** @param tristimulus See {@link Illuminant}.
-	 * @return NaN if invalid. */
-	static public RGB RGB (Luv luv, XYZ tristimulus) {
-		return RGB(XYZ(luv, tristimulus));
-	}
-
-	/** @return NaN if invalid. */
-	static public RGB RGB (HSLuv hsluv) {
-		float H = hsluv.H(), S = hsluv.S(), L = hsluv.L();
-		if (L > 99.99999f) return new RGB(1, 1, 1);
-		if (L < 0.00001f) return new RGB(0, 0, 0);
-		float C = Util.HSLuv.maxChromaForLH(L, H) * S / 100;
-		return RGB(Luv(new LCHuv(L, C, H)));
 	}
 
 	/** Uses the CIE 2-degree D65 tristimulus. */
@@ -719,8 +756,19 @@ public class Colors {
 		return RGB(XYZ(LMS, matrix));
 	}
 
+	/** @return NaN if invalid. */
+	static public RGB RGB (Luv luv) {
+		return RGB(luv, Illuminant.CIE2.D65);
+	}
+
+	/** @param tristimulus See {@link Illuminant}.
+	 * @return NaN if invalid. */
+	static public RGB RGB (Luv luv, XYZ tristimulus) {
+		return RGB(XYZ(luv, tristimulus));
+	}
+
 	static public RGB RGB (Oklab Oklab) {
-		float L = Oklab.L(), a = Oklab.a(), b = Oklab.b();
+		float L = Oklab.L, a = Oklab.a, b = Oklab.b;
 		float l = L + 0.3963377774f * a + 0.2158037573f * b;
 		float m = L - 0.1055613458f * a - 0.0638541728f * b;
 		float s = L - 0.0894841775f * a - 1.2914855480f * b;
@@ -737,102 +785,123 @@ public class Colors {
 		return RGB(Oklab(Oklch));
 	}
 
-	static public RGB RGB (Okhsl hsl) {
-		float l = hsl.l();
-		if (l >= 0.9999999f) return new RGB(1, 1, 1); // White.
-		if (l <= 0.0000001f) return new RGB(0, 0, 0); // Black.
-		float s = hsl.s();
-		if (s == 0.0f) return RGB(new Oklab(Util.Okhsv.toeInv(l), 0, 0)); // Gray.
-		float h = hsl.h() * degRad;
-		float L = Util.Okhsv.toeInv(l);
+	static public RGB RGB (Okhsl Okhsl) {
+		float l = Okhsl.l, s = Okhsl.s, L = OkhsvUtil.toeInv(l), h = Okhsl.h * degRad;
+		if (l >= 1 - EPSILON) return new RGB(1, 1, 1); // White.
+		if (l <= EPSILON) return new RGB(0, 0, 0); // Black.
+		if (s < EPSILON) return RGB(new Oklab(L, 0, 0)); // Gray.
 		float a_ = (float)Math.cos(h), b_ = (float)Math.sin(h);
-		float[] Cs = Util.Okhsv.Cs(L, a_, b_);
+		float[] Cs = OkhsvUtil.Cs(L, a_, b_);
 		float C_0 = Cs[0], C_mid = Cs[1], C_max = Cs[2], C;
 		if (s < 0.8f) {
-			float t = 1.25f * s;
-			float k_1 = 0.8f * C_0;
-			float k_2 = (1 - k_1 / C_mid);
+			float t = 1.25f * s, k_1 = 0.8f * C_0, k_2 = (1 - k_1 / C_mid);
 			C = t * k_1 / (1 - k_2 * t);
 		} else {
 			float t = 5 * (s - 0.8f);
-			float k_0 = C_mid;
-			float k_1 = 0.2f * C_mid * C_mid * 1.25f * 1.25f / C_0;
-			float k_2 = 1 - (k_1) / (C_max - C_mid);
+			float k_0 = C_mid, k_1 = 0.2f * C_mid * C_mid * 1.25f * 1.25f / C_0, k_2 = 1 - (k_1) / (C_max - C_mid);
 			C = k_0 + t * k_1 / (1 - k_2 * t);
 		}
 		return RGB(new Oklab(L, C * a_, C * b_));
 	}
 
-	static public RGB RGB (Okhsv hsv) {
-		float v = hsv.v();
-		if (v == 0) return new RGB(0, 0, 0); // Black.
-		float s = hsv.s();
-		if (s == 0) return RGB(new Oklab(v, 0, 0)); // Gray.
-		float h = hsv.h() * degRad;
+	static public RGB RGB (Okhsv Okhsv) {
+		float v = Okhsv.v, s = Okhsv.s, h = Okhsv.h * degRad;
+		if (v < EPSILON) return new RGB(0, 0, 0); // Black.
+		if (s < EPSILON) return RGB(new Oklab(v, 0, 0)); // Gray.
 		float a_ = (float)Math.cos(h), b_ = (float)Math.sin(h);
-		float[] ST_max = Util.Okhsv.cuspST(a_, b_);
+		float[] ST_max = OkhsvUtil.cuspST(a_, b_);
 		float S_max = ST_max[0], T_max = ST_max[1], S_0 = 0.5f;
 		float k = 1 - S_0 / S_max;
 		float L_v = 1 - s * S_0 / (S_0 + T_max - T_max * k * s);
 		float C_v = s * T_max * S_0 / (S_0 + T_max - T_max * k * s);
 		float L = v * L_v, C = v * C_v;
-		float L_vt = Util.Okhsv.toeInv(L_v);
+		float L_vt = OkhsvUtil.toeInv(L_v);
 		float C_vt = C_v * L_vt / L_v;
-		float L_new = Util.Okhsv.toeInv(L);
+		float L_new = OkhsvUtil.toeInv(L);
 		C = C * L_new / L;
 		L = L_new;
 		var l_r = LinearRGB(new Oklab(L_vt, a_ * C_vt, b_ * C_vt));
-		float scale = (float)Math.cbrt(1 / Math.max(Math.max(l_r.r(), l_r.g()), Math.max(l_r.b(), 0)));
+		float scale = (float)Math.cbrt(1 / Math.max(0, max(l_r.r, l_r.g, l_r.b)));
 		L = L * scale;
 		C = C * scale;
 		return RGB(new Oklab(L, C * a_, C * b_));
 	}
 
-	static public RGB RGB (uv uv) {
-		xy xy = xy(uv);
-		XYZ xyz = XYZ(new xyY(xy.x(), xy.y(), 100));
-		RGB rgb = RGB(xyz);
-		float max = Math.max(rgb.r(), Math.max(rgb.g(), rgb.b()));
-		if (max > 1) rgb = new RGB(rgb.r() / max, rgb.g() / max, rgb.b() / max);
-		return new RGB(Math.max(0, rgb.r()), Math.max(0, rgb.g()), Math.max(0, rgb.b()));
+	static public RGB RGB (rg rg, float luminance) {
+		return new RGB(rg.r * luminance, rg.g * luminance, rg.b * luminance);
 	}
 
-	/** @return NaN if invalid. */
-	static public RGB RGB (xy xy, Gamut gamut) {
-		xy = gamut.clamp(xy);
-		if (xy.y() < 1e-10f) return new RGB(Float.NaN, Float.NaN, Float.NaN);
-		float X = xy.x() / xy.y();
-		float Y = 1.0f;
-		float Z = (1 - xy.x() - xy.y()) / xy.y();
-		float[][] xyzToRGB = gamut.XYZ_RGB;
-		float r = xyzToRGB[0][0] * X + xyzToRGB[0][1] * Y + xyzToRGB[0][2] * Z;
-		float g = xyzToRGB[1][0] * X + xyzToRGB[1][1] * Y + xyzToRGB[1][2] * Z;
-		float b = xyzToRGB[2][0] * X + xyzToRGB[2][1] * Y + xyzToRGB[2][2] * Z;
-		float max = Math.max(r, Math.max(g, b));
+	static public RGB RGB (TSL TSL) {
+		float L = TSL.L, S = TSL.S, T = TSL.T;
+		if (L < EPSILON) return new RGB(0, 0, 0); // Black.
+		if (S < EPSILON) return new RGB(L, L, L); // Gray.
+		float a = T * 360 * degRad, r1, g1;
+		if (Math.abs(T) < EPSILON) {
+			r1 = g1 = (float)Math.sqrt(5 * S * S / 18);
+			if (Float.floatToIntBits(T) == 0x80000000) r1 = g1 = -r1; // -0f preserves the sign.
+		} else {
+			float tan = (float)Math.tan(a), x = (1 - 2 * tan) / (1 + tan);
+			g1 = (float)Math.sqrt(5 / 9f * S * S / (x * x + 1));
+			if (a >= PI) g1 = -g1;
+			r1 = x * g1;
+		}
+		float k = L / (0.185f * r1 + 0.473f * g1 + 1 / 3f);
+		float r = k * (r1 + 1 / 3f);
+		float g = k * (g1 + 1 / 3f);
+		float b = k - r - g;
+		return new RGB(clamp(r), clamp(g), clamp(b));
+	}
+
+	/** Uses Y=1. */
+	static public RGB RGB (uv uv) {
+		xy xy = xy(uv);
+		XYZ XYZ = XYZ(new xyY(xy.x, xy.y, 1));
+		RGB rgb = RGB(XYZ);
+		float r = rgb.r, g = rgb.g, b = rgb.b;
+		float max = max(r, g, b);
 		if (max > 1) {
 			r /= max;
 			g /= max;
 			b /= max;
 		}
-		r = sRGB(Math.max(0, r));
-		g = sRGB(Math.max(0, g));
-		b = sRGB(Math.max(0, b));
-		return new RGB(r, g, b);
+		return new RGB(clamp(r), clamp(g), clamp(b));
+	}
+
+	/** Uses Y=1 and {@link Gamut#sRGB}.
+	 * @return NaN if invalid. */
+	static public RGB RGB (xy xy) {
+		return RGB(xy, 1, Gamut.sRGB);
+	}
+
+	/** @return NaN if invalid. */
+	static public RGB RGB (xy xy, float Y, Gamut gamut) {
+		xy = gamut.clamp(xy);
+		if (xy.y < EPSILON) return new RGB(Float.NaN, Float.NaN, Float.NaN);
+		float X = xy.x / xy.y;
+		float Z = (1 - xy.x - xy.y) / xy.y;
+		float[][] xyzToRGB = gamut.XYZ_RGB;
+		float r = xyzToRGB[0][0] * X + xyzToRGB[0][1] * Y + xyzToRGB[0][2] * Z;
+		float g = xyzToRGB[1][0] * X + xyzToRGB[1][1] * Y + xyzToRGB[1][2] * Z;
+		float b = xyzToRGB[2][0] * X + xyzToRGB[2][1] * Y + xyzToRGB[2][2] * Z;
+		float max = max(r, g, b);
+		if (max > 1) {
+			r /= max;
+			g /= max;
+			b /= max;
+		}
+		return new RGB(sRGB(Math.max(0, r)), sRGB(Math.max(0, g)), sRGB(Math.max(0, b)));
 	}
 
 	static public RGB RGB (XYZ XYZ) {
-		float X = XYZ.X() / 100, Y = XYZ.Y() / 100, Z = XYZ.Z() / 100;
+		float X = XYZ.X / 100, Y = XYZ.Y / 100, Z = XYZ.Z / 100;
 		float r = 3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z;
 		float g = -0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z;
 		float b = 0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z;
-		r = sRGB(clamp(r));
-		g = sRGB(clamp(g));
-		b = sRGB(clamp(b));
-		return new RGB(r, g, b);
+		return new RGB(sRGB(clamp(r)), sRGB(clamp(g)), sRGB(clamp(b)));
 	}
 
 	static public RGB RGB (YCbCr YCbCr, YCbCrColorSpace colorSpace) {
-		float Y = YCbCr.Y(), Cb = YCbCr.Cb(), Cr = YCbCr.Cr();
+		float Y = YCbCr.Y, Cb = YCbCr.Cb, Cr = YCbCr.Cr;
 		float r, g, b;
 		if (colorSpace == YCbCrColorSpace.ITU_BT_601) {
 			r = Y + 0.00000000f * Cb + 1.40200000f * Cr;
@@ -847,18 +916,15 @@ public class Colors {
 	}
 
 	static public RGB RGB (YCC YCC) {
-		float Y = YCC.Y(), C1 = YCC.C1(), C2 = YCC.C2();
+		float Y = YCC.Y, C1 = YCC.C1, C2 = YCC.C2;
 		float r = 1.402525f * Y + 0.002952f * (C1 - 0.612f) + 1.881096f * (C2 - 0.537f);
 		float g = 1.402525f * Y - 0.444393f * (C1 - 0.612f) - 0.956979f * (C2 - 0.537f);
 		float b = 1.402525f * Y + 2.291013f * (C1 - 0.612f) + 0.003713f * (C2 - 0.537f);
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
-	/** Y pseudo luminance, or intensity.<br>
-	 * Co orange chrominance.<br>
-	 * Cg green chrominance. */
 	static public RGB RGB (YCoCg YCoCg) {
-		float Y = YCoCg.Y(), Co = YCoCg.Co(), Cg = YCoCg.Cg();
+		float Y = YCoCg.Y, Co = YCoCg.Co, Cg = YCoCg.Cg;
 		float r = Y + Co - Cg;
 		float g = Y + Cg;
 		float b = Y - Co - Cg;
@@ -866,7 +932,7 @@ public class Colors {
 	}
 
 	static public RGB RGB (YES YES) {
-		float Y = YES.Y(), E = YES.E(), S = YES.S();
+		float Y = YES.Y, E = YES.E, S = YES.S;
 		float r = Y + E * 1.431f + S * 0.126f;
 		float g = Y + E * -0.569f + S * 0.126f;
 		float b = Y + E * 0.431f + S * -1.874f;
@@ -874,15 +940,15 @@ public class Colors {
 	}
 
 	static public RGB RGB (YIQ YIQ) {
-		float Y = YIQ.Y(), I = YIQ.I(), Q = YIQ.Q();
-		float r = clamp(1 * Y + 0.95629572f * I + 0.62102442f * Q);
-		float g = clamp(1 * Y - 0.27212210f * I - 0.64738060f * Q);
-		float b = clamp(1 * Y - 1.10698902f * I + 1.70461500f * Q);
-		return new RGB(r, g, b);
+		float Y = YIQ.Y, I = YIQ.I, Q = YIQ.Q;
+		float r = 1 * Y + 0.95629572f * I + 0.62102442f * Q;
+		float g = 1 * Y - 0.27212210f * I - 0.64738060f * Q;
+		float b = 1 * Y - 1.10698902f * I + 1.70461500f * Q;
+		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
 	static public RGB RGB (YUV YUV) {
-		float Y = YUV.Y(), U = YUV.U(), V = YUV.V();
+		float Y = YUV.Y, U = YUV.U, V = YUV.V;
 		float r = Y - 0.00000055f * U + 1.13988360f * V;
 		float g = Y - 0.39464236f * U - 0.58062209f * V;
 		float b = Y + 2.03206343f * U - 0.00000025f * V;
@@ -891,18 +957,18 @@ public class Colors {
 
 	/** Convert RGB to RGBW using one calibrated white LED color. Brightness of {@code rgb} paramter is preserved.
 	 * @param rgb Target color, including brightness.
-	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux */
+	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr *= wlux / rlux */
 	static public RGBW RGBW (RGB rgb, RGB w) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		// How much of each channel the white LED can provide.
-		float ratioR = r / w.r(), ratioG = g / w.g(), ratioB = b / w.b();
+		float ratioR = r / w.r, ratioG = g / w.g, ratioB = b / w.b;
 		// The white level is limited by the channel that needs the least white contribution.
-		float W = Math.min(ratioR, Math.min(ratioG, ratioB));
+		float W = min(ratioR, ratioG, ratioB);
 		W = Math.min(W, 1);
 		// Subtract the white contribution from each channel.
-		r = Math.max(0, r - W * w.r());
-		g = Math.max(0, g - W * w.g());
-		b = Math.max(0, b - W * w.b());
+		r = Math.max(0, r - W * w.r);
+		g = Math.max(0, g - W * w.g);
+		b = Math.max(0, b - W * w.b);
 		return new RGBW(r, g, b, W);
 	}
 
@@ -914,9 +980,9 @@ public class Colors {
 	static public RGBW RGBW (float CCT, float brightness, RGB w) {
 		RGB target = RGB(CCT, 0);
 		float W = 1;
-		float r = Math.max(0, target.r() - W * w.r());
-		float g = Math.max(0, target.g() - W * w.g());
-		float b = Math.max(0, target.b() - W * w.b());
+		float r = Math.max(0, target.r - W * w.r);
+		float g = Math.max(0, target.g - W * w.g);
+		float b = Math.max(0, target.b - W * w.b);
 		float total = r + g + b + W;
 		if (total > brightness) {
 			float excess = total - brightness;
@@ -950,23 +1016,23 @@ public class Colors {
 	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
 	 * @param w2 Second white LED color. */
 	static public RGBWW RGBWW (RGB rgb, RGB w1, RGB w2) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		// How much of each channel the white LED can provide.
-		float ratioR1 = r / w1.r(), ratioG1 = g / w1.g(), ratioB1 = b / w1.b();
-		float ratioR2 = r / w2.r(), ratioG2 = g / w2.g(), ratioB2 = b / w2.b();
+		float ratioR1 = r / w1.r, ratioG1 = g / w1.g, ratioB1 = b / w1.b;
+		float ratioR2 = r / w2.r, ratioG2 = g / w2.g, ratioB2 = b / w2.b;
 		// The white level is limited by the channel that needs the least white contribution.
-		float W1 = Math.min(ratioR1, Math.min(ratioG1, ratioB1));
-		float W2 = Math.min(ratioR2, Math.min(ratioG2, ratioB2));
+		float W1 = min(ratioR1, ratioG1, ratioB1);
+		float W2 = min(ratioR2, ratioG2, ratioB2);
 		// Subtract the white contribution from each channel.
 		if (W1 > W2) {
-			r = Math.max(0, r - W1 * w1.r());
-			g = Math.max(0, g - W1 * w1.g());
-			b = Math.max(0, b - W1 * w1.b());
+			r = Math.max(0, r - W1 * w1.r);
+			g = Math.max(0, g - W1 * w1.g);
+			b = Math.max(0, b - W1 * w1.b);
 			return new RGBWW(r, g, b, W1, 0);
 		}
-		r = Math.max(0, r - W2 * w2.r());
-		g = Math.max(0, g - W2 * w2.g());
-		b = Math.max(0, b - W2 * w2.b());
+		r = Math.max(0, r - W2 * w2.r);
+		g = Math.max(0, g - W2 * w2.g);
+		b = Math.max(0, b - W2 * w2.b);
 		return new RGBWW(r, g, b, 0, W2);
 	}
 
@@ -980,23 +1046,23 @@ public class Colors {
 		float cct1 = CCT(uv(w1));
 		float cct2 = CCT(uv(w2));
 		float W1, W2;
-		if (Math.abs(cct2 - cct1) < 1e-10f) // Both whites have same CCT.
+		if (Math.abs(cct2 - cct1) < EPSILON) // Both whites have same CCT.
 			W1 = W2 = 0.5f;
 		else {
-			float ratio = Math.max(0, Math.min(1, (CCT - cct1) / (cct2 - cct1)));
+			float ratio = clamp((CCT - cct1) / (cct2 - cct1));
 			W1 = 1 - ratio;
 			W2 = ratio;
 		}
 		RGB target = RGB(CCT, 0);
-		float r = Math.max(0, target.r() - (W1 * w1.r() + W2 * w2.r()));
-		float g = Math.max(0, target.g() - (W1 * w1.g() + W2 * w2.g()));
-		float b = Math.max(0, target.b() - (W1 * w1.b() + W2 * w2.b()));
+		float r = Math.max(0, target.r - (W1 * w1.r + W2 * w2.r));
+		float g = Math.max(0, target.g - (W1 * w1.g + W2 * w2.g));
+		float b = Math.max(0, target.b - (W1 * w1.b + W2 * w2.b));
 		float total = r + g + b + W1 + W2;
 		if (total > brightness) {
 			float excess = total - brightness;
 			// Reduce RGB proportionally.
 			float sum = r + g + b;
-			if (sum > 0 && excess <= sum) {
+			if (sum > 0 && excess <= sum) { // Achieve target by only reducing RGB.
 				float scale = (sum - excess) / sum;
 				r *= scale;
 				g *= scale;
@@ -1023,98 +1089,50 @@ public class Colors {
 		return new RGBWW(r, g, b, W1, W2);
 	}
 
-	/** Returns the complementary color (opposite on color wheel). */
-	static public RGB complementary (RGB base) {
-		HSL hsl = HSL(base);
-		float h = hsl.H() + 180;
-		if (h >= 360) h -= 360;
-		return RGB(new HSL(h, hsl.S(), hsl.L()));
-	}
-
-	/** Returns a triadic color scheme (3 colors evenly spaced on color wheel). */
-	static public RGB[] triadic (RGB base) {
-		HSL hsl = HSL(base);
-		float h1 = hsl.H() + 120;
-		float h2 = hsl.H() + 240;
-		if (h1 >= 360) h1 -= 360;
-		if (h2 >= 360) h2 -= 360;
-		return new RGB[] {base, RGB(new HSL(h1, hsl.S(), hsl.L())), RGB(new HSL(h2, hsl.S(), hsl.L()))};
-	}
-
-	/** Returns an analogous color scheme (colors adjacent on color wheel).
-	 * @param angle [0..360] */
-	static public RGB[] analogous (RGB base, float angle) {
-		HSL hsl = HSL(base);
-		float h1 = hsl.H() + angle;
-		float h2 = hsl.H() - angle;
-		if (h1 >= 360) h1 -= 360;
-		if (h2 < 0) h2 += 360;
-		return new RGB[] {RGB(new HSL(h2, hsl.S(), hsl.L())), base, RGB(new HSL(h1, hsl.S(), hsl.L()))};
-	}
-
-	/** Returns a split-complementary color scheme. */
-	static public RGB[] splitComplementary (RGB base) {
-		HSL hsl = HSL(base);
-		float h1 = hsl.H() + 150;
-		float h2 = hsl.H() + 210;
-		if (h1 >= 360) h1 -= 360;
-		if (h2 >= 360) h2 -= 360;
-		return new RGB[] {base, RGB(new HSL(h1, hsl.S(), hsl.L())), RGB(new HSL(h2, hsl.S(), hsl.L()))};
-	}
-
-	/** Returns the WCAG contrast ratio between foreground and background colors.
-	 * @return Contrast ratio, 1:1 to 21:1. */
-	static public float contrastRatio (RGB foreground, RGB background) {
-		float fgLum = XYZ(foreground).Y() / 100;
-		float bgLum = XYZ(background).Y() / 100;
-		float L1 = Math.max(fgLum, bgLum);
-		float L2 = Math.min(fgLum, bgLum);
-		return (L1 + 0.05f) / (L2 + 0.05f);
-	}
-
-	/** Returns true if the colors meet the WCAG AA contrast accessibility standard.
-	 * @param largeText true for 18pt+ normal or 14pt+ bold text */
-	static public boolean WCAG_AA (RGB fg, RGB bg, boolean largeText) {
-		return contrastRatio(fg, bg) >= (largeText ? 3 : 4.5f);
-	}
-
-	/** Returns true if the colors meet the WCAG AAA contrast accessibility standard.
-	 * @param largeText true for 18pt+ normal or 14pt+ bold text */
-	static public boolean WCAG_AAA (RGB fg, RGB bg, boolean largeText) {
-		return contrastRatio(fg, bg) >= (largeText ? 4.5f : 7);
-	}
-
-	/** Rg-Chromaticity space, illumination and pose invariant.
-	 * @return RGChromaticity normalized or NaN if invalid. */
-	static public RGChromaticity rgChromaticity (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+	/** @return NaN if invalid. */
+	static public rg rg (RGB rgb) {
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float sum = r + g + b;
-		if (sum < 1e-10f) return new RGChromaticity(Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
+		if (sum < EPSILON) return new rg(Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
 		float rNorm = r / sum, gNorm = g / sum, bNorm = 1 - rNorm - gNorm;
 		float rS = rNorm - 0.333f, gS = gNorm - 0.333f;
-		float saturation = (float)Math.sqrt(rS * rS + gS * gS);
-		float hue = ((float)Math.atan2(rS, gS) * radDeg + 360) % 360;
-		return new RGChromaticity(rNorm, gNorm, bNorm, saturation, hue);
+		float s = (float)Math.sqrt(rS * rS + gS * gS);
+		float h = s < EPSILON ? Float.NaN : ((float)Math.atan2(rS, gS) * radDeg + 360) % 360;
+		return new rg(rNorm, gNorm, bNorm, s, h);
+	}
+
+	static public TSL TSL (RGB rgb) {
+		float r = rgb.r, g = rgb.g, b = rgb.b, sum = r + g + b;
+		if (sum < EPSILON) return new TSL(0, 0, 0); // Black
+		float L = 0.299f * r + 0.587f * g + 0.114f * b;
+		float r1 = r / sum - 1 / 3f, g1 = g / sum - 1 / 3f;
+		float S = (float)Math.sqrt(9 / 5f * (r1 * r1 + g1 * g1));
+		float T = 0;
+		if (Math.abs(g1 - r1) > EPSILON || Math.abs(2 * g1 + r1) > EPSILON) {
+			T = (float)Math.atan2(g1 - r1, 2 * g1 + r1) * radDeg;
+			if (T < 0) T += 360;
+			T = T / 360;
+		}
+		return new TSL(T, S, L);
 	}
 
 	/** @return NaN if invalid. */
 	static public uv uv (RGB rgb) {
-		XYZ xyz = XYZ(rgb);
-		xyY xyY = xyY(xyz);
-		return uv(new xy(xyY.x(), xyY.y()));
+		xyY xyY = xyY(XYZ(rgb));
+		return uv(new xy(xyY.x, xyY.y));
 	}
 
 	static public uv uv (uv1960 uv) {
-		return new uv(uv.u(), 1.5f * uv.v());
+		return new uv(uv.u, 1.5f * uv.v);
 	}
 
 	/** @return NaN if invalid. */
 	static public uv uv (xy xy) {
-		float x = xy.x(), y = xy.y();
-		float denominator = -2 * x + 12 * y + 3;
-		if (Math.abs(denominator) < 1e-10f) return new uv(Float.NaN, Float.NaN);
-		float u = 4 * x / denominator;
-		float v = 9 * y / denominator;
+		float x = xy.x, y = xy.y;
+		float denom = -2 * x + 12 * y + 3;
+		if (Math.abs(denom) < EPSILON) return new uv(Float.NaN, Float.NaN);
+		float u = 4 * x / denom;
+		float v = 9 * y / denom;
 		return new uv(u, v);
 	}
 
@@ -1126,7 +1144,7 @@ public class Colors {
 		xy bb1 = xy(Math.max(1667, cct - delta));
 		xy bb2 = xy(Math.min(25000, cct + delta));
 		uv1960 uv1 = uv1960(bb1), uv2 = uv1960(bb2);
-		float du = uv2.u() - uv1.u(), dv = uv2.v() - uv1.v();
+		float du = uv2.u - uv1.u, dv = uv2.v - uv1.v;
 		float length = (float)Math.sqrt(du * du + dv * dv);
 		if (length > 0) {
 			du /= length;
@@ -1134,15 +1152,15 @@ public class Colors {
 		}
 		float perpU = -dv, perpV = du;
 		uv1960 uvbb = uv1960(xy(cct));
-		du = uv.u() - uvbb.u();
-		dv = uv.v() - uvbb.v();
+		du = uv.u - uvbb.u;
+		dv = uv.v - uvbb.v;
 		return du * perpU + dv * perpV;
 	}
 
 	/** @return NaN if invalid. */
 	static public float MacAdamSteps (xy color1, xy color2) {
 		uv1960 uv1 = uv1960(color1), uv2 = uv1960(color2);
-		float du = uv1.u() - uv2.u(), dv = uv1.v() - uv2.v();
+		float du = uv1.u - uv2.u, dv = uv1.v - uv2.v;
 		return (float)Math.sqrt(du * du + dv * dv) / 0.0011f;
 	}
 
@@ -1160,27 +1178,27 @@ public class Colors {
 		uv1960 uv = uv1960(CCT);
 		uv1960 uvNext = uv1960(CCT + 10); // Small temperature change for derivative.
 		// Perpendicular vector (rotate 90 degrees).
-		float perpU = uv.v() - uvNext.v();
-		float perpV = uvNext.u() - uv.u();
+		float perpU = uv.v - uvNext.v;
+		float perpV = uvNext.u - uv.u;
 		// Normalize the perpendicular vector.
 		float length = (float)Math.sqrt(perpU * perpU + perpV * perpV);
-		if (length < 1e-10f) return new uv1960(Float.NaN, Float.NaN); // Cannot determine perpendicular.
+		if (length < EPSILON) return new uv1960(Float.NaN, Float.NaN); // Cannot determine perpendicular.
 		perpU /= length;
 		perpV /= length;
-		return new uv1960(uv.u() + perpU * Duv, uv.v() + perpV * Duv);
+		return new uv1960(uv.u + perpU * Duv, uv.v + perpV * Duv);
 	}
 
 	static public uv1960 uv1960 (uv uv) {
-		return new uv1960(uv.u(), uv.v() / 1.5f);
+		return new uv1960(uv.u, uv.v / 1.5f);
 	}
 
 	/** @return NaN if invalid. */
 	static public uv1960 uv1960 (xy xy) {
-		float x = xy.x(), y = xy.y();
-		float denominator = -2 * x + 12 * y + 3;
-		if (Math.abs(denominator) < 1e-10f) return new uv1960(Float.NaN, Float.NaN);
-		float u = 4 * x / denominator;
-		float v = 6 * y / denominator;
+		float x = xy.x, y = xy.y;
+		float denom = -2 * x + 12 * y + 3;
+		if (Math.abs(denom) < EPSILON) return new uv1960(Float.NaN, Float.NaN);
+		float u = 4 * x / denom;
+		float v = 6 * y / denom;
 		return new uv1960(u, v);
 	}
 
@@ -1188,13 +1206,11 @@ public class Colors {
 	 * @return xy chromaticity, or NaN if CCT is outside valid range. */
 	static public xy xy (float CCT) {
 		if (CCT < 1667 || CCT > 25000) return new xy(Float.NaN, Float.NaN);
-
 		float x;
 		if (CCT >= 1667 && CCT <= 4000)
 			x = -0.2661239f * 1e9f / (CCT * CCT * CCT) - 0.2343589f * 1e6f / (CCT * CCT) + 0.8776956f * 1e3f / CCT + 0.179910f;
 		else // CCT > 4000 && CCT <= 25000
 			x = -3.0258469f * 1e9f / (CCT * CCT * CCT) + 2.1070379f * 1e6f / (CCT * CCT) + 0.2226347f * 1e3f / CCT + 0.240390f;
-
 		float y;
 		if (CCT >= 1667 && CCT <= 2222)
 			y = -1.1063814f * x * x * x - 1.34811020f * x * x + 2.18555832f * x - 0.20219683f;
@@ -1202,26 +1218,25 @@ public class Colors {
 			y = -0.9549476f * x * x * x - 1.37418593f * x * x + 2.09137015f * x - 0.16748867f;
 		else // CCT > 4000 && CCT <= 25000
 			y = 3.0817580f * x * x * x - 5.87338670f * x * x + 3.75112997f * x - 0.37001483f;
-
 		return new xy(x, y);
 	}
 
 	/** @return NaN if invalid. */
 	static public xy xy (uv uv) {
-		float u = uv.u(), v = uv.v();
-		float denominator = 6 * u - 16 * v + 12;
-		if (Math.abs(denominator) < 1e-10f) return new xy(Float.NaN, Float.NaN);
-		float x = 9 * u / denominator;
-		float y = 4 * v / denominator;
+		float u = uv.u, v = uv.v;
+		float denom = 6 * u - 16 * v + 12;
+		if (Math.abs(denom) < EPSILON) return new xy(Float.NaN, Float.NaN);
+		float x = 9 * u / denom;
+		float y = 4 * v / denom;
 		return new xy(x, y);
 	}
 
 	/** @return NaN if invalid. */
 	static public xy xy (uv1960 uv) {
-		float u = uv.u(), v = uv.v();
-		float denominator = 2 + u - 4 * v;
-		if (Math.abs(denominator) < 1e-10f) return new xy(Float.NaN, Float.NaN);
-		float D = 6 / denominator;
+		float u = uv.u, v = uv.v;
+		float denom = 2 + u - 4 * v;
+		if (Math.abs(denom) < EPSILON) return new xy(Float.NaN, Float.NaN);
+		float D = 6 / denom;
 		float x = u * D / 4;
 		float y = v * D / 6;
 		return new xy(x, y);
@@ -1229,37 +1244,63 @@ public class Colors {
 
 	/** @return NaN if invalid. */
 	static public xy xy (XYZ xyz) {
-		float sum = xyz.X() + xyz.Y() + xyz.Z();
-		if (sum < 1e-10f) return new xy(Float.NaN, Float.NaN);
-		return new xy(xyz.X() / sum, xyz.Y() / sum);
+		float sum = xyz.X + xyz.Y + xyz.Z;
+		if (sum < EPSILON) return new xy(Float.NaN, Float.NaN);
+		return new xy(xyz.X / sum, xyz.Y / sum);
 	}
 
-	/** @param rgb sRGB. */
+	/** Uses {@link Gamut#sRGB}.
+	 * @return NaN if invalid. */
 	static public xy xy (RGB rgb) {
 		return xy(rgb, Gamut.sRGB);
 	}
 
 	/** @return NaN if invalid. */
 	static public xy xy (RGB rgb, Gamut gamut) {
-		float r = linear(rgb.r()), g = linear(rgb.g()), b = linear(rgb.b());
+		float r = linear(rgb.r), g = linear(rgb.g), b = linear(rgb.b);
 		float[][] rgbToXYZ = gamut.RGB_XYZ;
 		float X = rgbToXYZ[0][0] * r + rgbToXYZ[0][1] * g + rgbToXYZ[0][2] * b;
 		float Y = rgbToXYZ[1][0] * r + rgbToXYZ[1][1] * g + rgbToXYZ[1][2] * b;
 		float Z = rgbToXYZ[2][0] * r + rgbToXYZ[2][1] * g + rgbToXYZ[2][2] * b;
 		float sum = X + Y + Z;
-		if (Math.abs(sum) < 1e-10f) return new xy(Float.NaN, Float.NaN);
+		if (Math.abs(sum) < EPSILON) return new xy(Float.NaN, Float.NaN);
 		return new xy(X / sum, Y / sum);
 	}
 
 	/** @return NaN if invalid. */
 	static public xyY xyY (XYZ xyz) {
-		float sum = xyz.X() + xyz.Y() + xyz.Z();
-		if (sum < 1e-10f) return new xyY(Float.NaN, Float.NaN, Float.NaN);
-		return new xyY(xyz.X() / sum, xyz.Y() / sum, xyz.Y());
+		float sum = xyz.X + xyz.Y + xyz.Z;
+		if (sum < EPSILON) return new xyY(Float.NaN, Float.NaN, Float.NaN);
+		return new xyY(xyz.X / sum, xyz.Y / sum, xyz.Y);
+	}
+
+	static public XYZ XYZ (CAM16 cam16, CAM16.VC vc) { // Based on Copyright 2021 Google LLC (Apache 2.0).
+		float J = cam16.J, C = cam16.C, h = cam16.h * degRad;
+		float alpha = (C == 0 || J == 0) ? 0 : C / (float)Math.sqrt(J / 100);
+		float t = (float)Math.pow(alpha / Math.pow(1.64 - Math.pow(0.29, vc.n), 0.73), 1 / 0.9);
+		float ac = vc.Aw * (float)Math.pow(J / 100.0, 1.0 / vc.c / vc.z);
+		float p1 = 0.25f * ((float)Math.cos(h + 2.0) + 3.8f) * (50000 / 13f) * vc.Nc * vc.Ncb, p2 = (ac / vc.Nbb);
+		float hSin = (float)Math.sin(h), hCos = (float)Math.cos(h);
+		float gamma = 23 * (p2 + 0.305f) * t / (23 * p1 + 11 * t * hCos + 108 * t * hSin);
+		float a = gamma * hCos, b = gamma * hSin;
+		float rA = (460 * p2 + 451 * a + 288 * b) / 1403;
+		float gA = (460 * p2 - 891 * a - 261 * b) / 1403;
+		float bA = (460 * p2 - 220 * a - 6300 * b) / 1403;
+		float rCBase = Math.max(0, (27.13f * Math.abs(rA)) / (400 - Math.abs(rA)));
+		float gCBase = Math.max(0, (27.13f * Math.abs(gA)) / (400 - Math.abs(gA)));
+		float bCBase = Math.max(0, (27.13f * Math.abs(bA)) / (400 - Math.abs(bA)));
+		float rC = Math.signum(rA) * (100 / vc.FL) * (float)Math.pow(rCBase, 1.0 / 0.42);
+		float gC = Math.signum(gA) * (100 / vc.FL) * (float)Math.pow(gCBase, 1.0 / 0.42);
+		float bC = Math.signum(bA) * (100 / vc.FL) * (float)Math.pow(bCBase, 1.0 / 0.42);
+		float rF = rC / vc.rgbD[0], gF = gC / vc.rgbD[1], bF = bC / vc.rgbD[2];
+		float X = (rF * 1.8620678f) + (gF * -1.0112547f) + (bF * 0.14918678f);
+		float Y = (rF * 0.38752654f) + (gF * 0.62144744f) + (bF * -0.00897398f);
+		float Z = (rF * -0.01584150f) + (gF * -0.03412294f) + (bF * 1.0499644f);
+		return new XYZ(X, Y, Z);
 	}
 
 	static public XYZ XYZ (HunterLab lab) {
-		float L = lab.L(), a = lab.a(), b = lab.b();
+		float L = lab.L, a = lab.a, b = lab.b;
 		float tempY = L / 10;
 		float tempX = a / 17.5f * L / 10;
 		float tempZ = b / 7 * L / 10;
@@ -1271,25 +1312,44 @@ public class Colors {
 
 	/** @param tristimulus See {@link Illuminant}. */
 	static public XYZ XYZ (Lab lab, XYZ tristimulus) {
-		float L = lab.L(), a = lab.a(), b = lab.b();
+		float L = lab.L, a = lab.a, b = lab.b;
 		float Y = (L + 16) / 116;
 		float X = a / 500 + Y;
 		float Z = Y - b / 200;
 		float X3 = X * X * X;
-		if (X3 > e)
-			X = X3;
-		else
-			X = (116 * X - 16) / k;
-		if (L > 8)
-			Y = (float)Math.pow((L + 16) / 116, 3);
-		else
-			Y = L / k;
+		X = X3 > LabUtil.e ? X3 : (116 * X - 16) / LabUtil.k;
+		Y = LabUtil.LstarToYn(L);
 		float Z3 = Z * Z * Z;
-		if (Z3 > e)
-			Z = Z3;
-		else
-			Z = (116 * Z - 16) / k;
-		return new XYZ(X * tristimulus.X(), Y * tristimulus.Y(), Z * tristimulus.Z());
+		Z = Z3 > LabUtil.e ? Z3 : (116 * Z - 16) / LabUtil.k;
+		return new XYZ(X * tristimulus.X, Y * tristimulus.Y, Z * tristimulus.Z);
+	}
+
+	static public XYZ XYZ (LinearRGB rgb) {
+		float r = rgb.r, g = rgb.g, b = rgb.b;
+		return new XYZ( //
+			(0.4124564f * r + 0.3575761f * g + 0.1804375f * b) * 100, //
+			(0.2126729f * r + 0.7151522f * g + 0.0721750f * b) * 100, //
+			(0.0193339f * r + 0.1191920f * g + 0.9503041f * b) * 100);
+	}
+
+	static public XYZ XYZ (LinearRGB rgb, Gamut gamut) {
+		float r = rgb.r, g = rgb.g, b = rgb.b;
+		float[][] rgbToXYZ = gamut.RGB_XYZ;
+		float X = rgbToXYZ[0][0] * r + rgbToXYZ[0][1] * g + rgbToXYZ[0][2] * b;
+		float Y = rgbToXYZ[1][0] * r + rgbToXYZ[1][1] * g + rgbToXYZ[1][2] * b;
+		float Z = rgbToXYZ[2][0] * r + rgbToXYZ[2][1] * g + rgbToXYZ[2][2] * b;
+		return new XYZ(X * 100, Y * 100, Z * 100);
+	}
+
+	static public XYZ XYZ (LMS lms, CAT matrix) {
+		float[] xyz = matrixMultiply(lms.L, lms.M, lms.S, switch (matrix) {
+		case HPE -> LMSUtil.HPE_backward;
+		case Bradford -> LMSUtil.Bradford_backward;
+		case VonKries -> LMSUtil.vonKries_backward;
+		case CAT97 -> LMSUtil.CAT97_backward;
+		default -> LMSUtil.CAT02_backward;
+		});
+		return new XYZ(xyz[0], xyz[1], xyz[2]);
 	}
 
 	/** Uses the CIE 2-degree D65 tristimulus.
@@ -1301,81 +1361,32 @@ public class Colors {
 	/** @param tristimulus See {@link Illuminant}.
 	 * @return NaN if invalid. */
 	static public XYZ XYZ (Luv luv, XYZ tristimulus) {
-		float L = luv.L(), u = luv.u(), v = luv.v();
-		float Xn = tristimulus.X(), Yn = tristimulus.Y(), Zn = tristimulus.Z();
-		float Y;
-		if (L > 8)
-			Y = (float)Math.pow((L + 16) / 116, 3) * Yn;
-		else
-			Y = L / k * Yn;
-		if (L < 1e-10f) return new XYZ(0, 0, 0);
+		float L = luv.L, u = luv.u, v = luv.v;
+		if (L < EPSILON) return new XYZ(0, 0, 0);
+		float Xn = tristimulus.X, Yn = tristimulus.Y, Zn = tristimulus.Z;
 		float divisorN = Xn + 15 * Yn + 3 * Zn;
-		if (divisorN < 1e-10f) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		if (divisorN < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		float un_prime = 4 * Xn / divisorN;
 		float vn_prime = 9 * Yn / divisorN;
 		float u_prime = u / (13 * L) + un_prime;
 		float v_prime = v / (13 * L) + vn_prime;
-		if (v_prime < 1e-10f) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		if (v_prime < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		float Y = LabUtil.LstarToYn(L) * Yn;
 		float X = Y * 9 * u_prime / (4 * v_prime);
 		float Z = Y * (12 - 3 * u_prime - 20 * v_prime) / (4 * v_prime);
 		return new XYZ(X, Y, Z);
 	}
 
-	static public XYZ XYZ (LinearRGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+	static public XYZ XYZ (RGB rgb) {
+		float r = linear(rgb.r), g = linear(rgb.g), b = linear(rgb.b);
 		return new XYZ( //
 			(0.4124564f * r + 0.3575761f * g + 0.1804375f * b) * 100, //
 			(0.2126729f * r + 0.7151522f * g + 0.0721750f * b) * 100, //
 			(0.0193339f * r + 0.1191920f * g + 0.9503041f * b) * 100);
 	}
 
-	static public XYZ XYZ (LinearRGB rgb, Gamut gamut) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
-		float[][] rgbToXYZ = gamut.RGB_XYZ;
-		float X = rgbToXYZ[0][0] * r + rgbToXYZ[0][1] * g + rgbToXYZ[0][2] * b;
-		float Y = rgbToXYZ[1][0] * r + rgbToXYZ[1][1] * g + rgbToXYZ[1][2] * b;
-		float Z = rgbToXYZ[2][0] * r + rgbToXYZ[2][1] * g + rgbToXYZ[2][2] * b;
-		return new XYZ(X * 100, Y * 100, Z * 100);
-	}
-
-	static public XYZ XYZ (LMS lms, CAT matrix) {
-		float[] array = {lms.L(), lms.M(), lms.S()};
-		float[] xyz = Util.matrixMultiply(array, switch (matrix) {
-		case HPE -> HPE_backward;
-		case Bradford -> Bradford_backward;
-		case VonKries -> vonKries_backward;
-		case CAT97 -> cat97_backward;
-		default -> CAT02_backward;
-		});
-		return new XYZ(xyz[0], xyz[1], xyz[2]);
-	}
-
-	/** @param rgb sRGB. */
-	static public XYZ XYZ (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
-		if (r > 0.04045f)
-			r = (float)Math.pow((r + 0.055f) / 1.055f, 2.4f);
-		else
-			r /= 12.92f;
-		if (g > 0.04045f)
-			g = (float)Math.pow((g + 0.055f) / 1.055f, 2.4f);
-		else
-			g /= 12.92f;
-		if (b > 0.04045f)
-			b = (float)Math.pow((b + 0.055f) / 1.055f, 2.4f);
-		else
-			b /= 12.92f;
-		r *= 100;
-		g *= 100;
-		b *= 100;
-		float X = 0.4124564f * r + 0.3575761f * g + 0.1804375f * b;
-		float Y = 0.2126729f * r + 0.7151522f * g + 0.0721750f * b;
-		float Z = 0.0193339f * r + 0.1191920f * g + 0.9503041f * b;
-		return new XYZ(X, Y, Z);
-	}
-
 	static public XYZ XYZ (RGB rgb, Gamut gamut) {
-		float r = linear(rgb.r()), g = linear(rgb.g()), b = linear(rgb.b());
+		float r = linear(rgb.r), g = linear(rgb.g), b = linear(rgb.b);
 		float[][] rgbToXYZ = gamut.RGB_XYZ;
 		float X = rgbToXYZ[0][0] * r + rgbToXYZ[0][1] * g + rgbToXYZ[0][2] * b;
 		float Y = rgbToXYZ[1][0] * r + rgbToXYZ[1][1] * g + rgbToXYZ[1][2] * b;
@@ -1383,25 +1394,26 @@ public class Colors {
 		return new XYZ(X * 100, Y * 100, Z * 100);
 	}
 
+	/** Uses Y=1. */
 	static public XYZ XYZ (uv uv) {
 		return XYZ(xy(uv));
 	}
 
-	/** Convert using Y-100. */
+	/** Uses Y=1. */
 	static public XYZ XYZ (xy xy) {
-		return XYZ(new xyY(xy.x(), xy.y(), 100));
+		return XYZ(new xyY(xy.x, xy.y, 1));
 	}
 
 	/** @return NaN X and Z if y is 0. */
 	static public XYZ XYZ (xyY xyY) {
-		if (xyY.y() < 1e-10f) return new XYZ(Float.NaN, xyY.Y(), Float.NaN);
-		float X = xyY.x() * xyY.Y() / xyY.y();
-		float Z = (1 - xyY.x() - xyY.y()) * xyY.Y() / xyY.y();
-		return new XYZ(X, xyY.Y(), Z);
+		if (xyY.y < EPSILON) return new XYZ(Float.NaN, xyY.Y, Float.NaN);
+		float X = xyY.x * xyY.Y / xyY.y;
+		float Z = (1 - xyY.x - xyY.y) * xyY.Y / xyY.y;
+		return new XYZ(X, xyY.Y, Z);
 	}
 
 	static public YCbCr YCbCr (RGB rgb, YCbCrColorSpace colorSpace) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float Y, Cb, Cr;
 		if (colorSpace == YCbCrColorSpace.ITU_BT_601) {
 			Y = 0.299f * r + 0.587f * g + 0.114f * b;
@@ -1416,7 +1428,7 @@ public class Colors {
 	}
 
 	static public YCC YCC (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float Y = 0.213f * r + 0.419f * g + 0.081f * b;
 		float C1 = -0.131f * r - 0.256f * g + 0.387f * b + 0.612f;
 		float C2 = 0.373f * r - 0.312f * g - 0.061f * b + 0.537f;
@@ -1424,7 +1436,7 @@ public class Colors {
 	}
 
 	static public YCoCg YCoCg (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float Y = r / 4 + g / 2 + b / 4;
 		float Co = r / 2 - b / 2;
 		float Cg = -r / 4 + g / 2 - b / 4;
@@ -1432,7 +1444,7 @@ public class Colors {
 	}
 
 	static public YES YES (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float Y = r * 0.253f + g * 0.684f + b * 0.063f;
 		float E = r * 0.500f + g * -0.500f;
 		float S = r * 0.250f + g * 0.250f + b * -0.5f;
@@ -1440,7 +1452,7 @@ public class Colors {
 	}
 
 	static public YIQ YIQ (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float Y = 0.299f * r + 0.587f * g + 0.114f * b;
 		float I = 0.595716f * r - 0.274453f * g - 0.321263f * b;
 		float Q = 0.211456f * r - 0.522591f * g + 0.311135f * b;
@@ -1448,16 +1460,28 @@ public class Colors {
 	}
 
 	static public YUV YUV (RGB rgb) {
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
+		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float Y = 0.299f * r + 0.587f * g + 0.114f * b;
 		float U = -0.147141f * r - 0.288869f * g + 0.436010f * b;
 		float V = 0.614975f * r - 0.514965f * g - 0.100010f * b;
 		return new YUV(Y, U, V);
 	}
 
+	static public float max (float a, float b, float c) {
+		return Math.max(a, Math.max(b, c));
+	}
+
+	static public float min (float a, float b, float c) {
+		return Math.min(a, Math.min(b, c));
+	}
+
 	/** @return [0..1]. */
 	static public float clamp (float value) {
 		return Math.max(0, Math.min(1, value));
+	}
+
+	static public float lerp (float start, float stop, float percent) {
+		return start + (stop - start) * percent;
 	}
 
 	/** @param linear [0..1]. */
@@ -1476,36 +1500,39 @@ public class Colors {
 	/** Linear to sRGB gamma correction. */
 	static public float sRGB (float linear) {
 		if (linear <= 0.0031308f) return 12.92f * linear;
-		return 1.055f * (float)Math.pow(linear, 1 / 2.4f) - 0.055f;
+		return (float)(1.055f * Math.pow(linear, 1 / 2.4) - 0.055);
 	}
 
 	/** sRGB to linear inverse gamma correction. */
 	static public float linear (float srgb) {
-		if (srgb <= 0.04045f) return srgb / 12.92f;
-		return (float)Math.pow((srgb + 0.055f) / 1.055f, 2.4f);
+		if (srgb <= 0.040449936f) return srgb / 12.92f;
+		return (float)Math.pow((srgb + 0.055) / 1.055, 2.4);
 	}
 
-	/** @return [0-255] */
+	/** @return [0..255] */
 	static public int dmx8 (float value) {
-		return (int)(value * 255);
+		return Math.round(value * 255);
 	}
 
-	/** @return [0-65535] */
+	/** @return [0..65535] */
 	static public int dmx16 (float value) {
 		return (int)(value * 65535);
 	}
 
-	static public float[] array (Record record) {
+	static public float[] floats (Record record) {
 		RecordComponent[] components = record.getClass().getRecordComponents();
 		float[] values = new float[components.length];
-		for (int i = 0; i < components.length; i++) {
-			try {
+		try {
+			for (int i = 0; i < components.length; i++)
 				values[i] = (float)components[i].getAccessor().invoke(record);
-			} catch (Exception ex) {
-				throw new RuntimeException("Error accessing field", ex);
-			}
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
 		}
 		return values;
+	}
+
+	static public String hex (Record record) {
+		return hex(floats(record));
 	}
 
 	static public String hex (float... values) {
@@ -1518,10 +1545,28 @@ public class Colors {
 		return buffer.toString();
 	}
 
+	static public String toString (Record record) {
+		return toString(floats(record));
+	}
+
+	static public String toString (float... values) {
+		StringBuilder buffer = new StringBuilder(values.length * 5);
+		for (float value : values) {
+			buffer.append(value);
+			buffer.append(", ");
+		}
+		buffer.setLength(buffer.length() - 2);
+		return buffer.toString();
+	}
+
+	static public String toString255 (Record record) {
+		return toString255(floats(record));
+	}
+
 	static public String toString255 (float... values) {
 		StringBuilder buffer = new StringBuilder(values.length * 5);
 		for (float value : values) {
-			buffer.append((int)(value * 255));
+			buffer.append(Math.round(value * 255));
 			buffer.append(", ");
 		}
 		buffer.setLength(buffer.length() - 2);
@@ -1546,21 +1591,8 @@ public class Colors {
 		CAT02
 	}
 
-	/** Tristimulus values using the scale 0-100. */
+	/** Tristimulus values [0..100]. */
 	static public class Illuminant {
-		/** 10-degree Observer (CIE 1964) */
-		static public class CIE10 {
-			static public final XYZ A = new XYZ(111.144f, 100, 35.200f); // Incandescent.
-			static public final XYZ C = new XYZ(97.285f, 100, 116.145f);
-			static public final XYZ D50 = new XYZ(96.720f, 100, 81.427f);
-			static public final XYZ D55 = new XYZ(95.799f, 100, 90.926f);
-			static public final XYZ D65 = new XYZ(94.811f, 100, 107.304f); // Daylight.
-			static public final XYZ D75 = new XYZ(94.416f, 100, 120.641f);
-			static public final XYZ F2 = new XYZ(103.280f, 100, 69.026f); // Fluorescent.
-			static public final XYZ F7 = new XYZ(95.792f, 100, 107.687f);
-			static public final XYZ F11 = new XYZ(103.866f, 100, 65.627f);
-		}
-
 		/** 2-degree Observer (CIE 1931) */
 		static public class CIE2 {
 			static public final XYZ A = new XYZ(109.850f, 100, 35.585f); // Incandescent.
@@ -1573,229 +1605,458 @@ public class Colors {
 			static public final XYZ F7 = new XYZ(95.044f, 100, 108.755f);
 			static public final XYZ F11 = new XYZ(100.966f, 100, 64.370f);
 		}
+
+		/** 10-degree Observer (CIE 1964) */
+		static public class CIE10 {
+			static public final XYZ A = new XYZ(111.144f, 100, 35.200f); // Incandescent.
+			static public final XYZ C = new XYZ(97.285f, 100, 116.145f);
+			static public final XYZ D50 = new XYZ(96.720f, 100, 81.427f);
+			static public final XYZ D55 = new XYZ(95.799f, 100, 90.926f);
+			static public final XYZ D65 = new XYZ(94.811f, 100, 107.304f); // Daylight.
+			static public final XYZ D75 = new XYZ(94.416f, 100, 120.641f);
+			static public final XYZ F2 = new XYZ(103.280f, 100, 69.026f); // Fluorescent.
+			static public final XYZ F7 = new XYZ(95.792f, 100, 107.687f);
+			static public final XYZ F11 = new XYZ(103.866f, 100, 65.627f);
+		}
 	}
 
-	/** C1C2C3, 3 channel opponent color space (achromatic/intensity, red-blue, green vs red+blue) */
-	public record C1C2C3 (float C1, float C2, float C3) {}
+	/** Academy Color Encoding System ACES2065-1 archival format (linear, AP0 primaries). */
+	public record ACES2065_1 (
+		/** Red [0..1]. */
+		float r,
+		/** Green [0..1]. */
+		float g,
+		/** Blue [0..1]. */
+		float b) {}
 
-	/** CMYK */
-	public record CMYK (float C, float M, float Y, float K) {}
+	/** Academy Color Encoding System working space for CGI (linear, AP1 primaries). */
+	public record ACEScg (
+		/** Red [0..1]. */
+		float r,
+		/** Green [0..1]. */
+		float g,
+		/** Blue [0..1]. */
+		float b) {}
 
-	/** HSI (Hue, Saturation, Intensity) */
+	/** Academy Color Encoding System for color grading (logarithmic, AP1 primaries). */
+	public record ACEScc (
+		/** Red [0..1]. */
+		float r,
+		/** Green [0..1]. */
+		float g,
+		/** Blue [0..1]. */
+		float b) {}
+
+	/** Opponent 3 color space. */
+	public record C1C2C3 (
+		/** Achromatic channel [0..pi/2]. */
+		float C1,
+		/** Red-cyan opponent [0..pi/2]. */
+		float C2,
+		/** Yellow-violet opponent [0..pi/2]. */
+		float C3) {}
+
+	/** Color Appearance Model 2016. Predicts color appearance under viewing conditions. */
+	public record CAM16 (
+		/** Lightness [0..100]. */
+		float J,
+		/** Chroma [0+]. */
+		float C,
+		/** Hue angle [0..360]. */
+		float h,
+		/** Brightness [0+]. */
+		float Q,
+		/** Colorfulness [0+]. */
+		float M,
+		/** Saturation [0+]. */
+		float s) {
+
+		/** {@link CAM16} viewing conditions. */
+		public record VC (
+			float Aw,
+			float Nbb,
+			float Ncb,
+			float c,
+			float Nc,
+			float n,
+			float[] rgbD,
+			float FL,
+			float FLRoot,
+			float z) {
+
+			/** @param La Adapting luminance in cd/m², typically 20% of white luminance.
+			 * @param bgL Background L* value (typically 50).
+			 * @param surround Surround factor, typically: 0=dark (0% surround), 1=dim (0-20% surround), 2=average (>20% surround).
+			 * @param discounting True when the eye is assumed to be fully adapted. False for most applications (incomplete chromatic
+			 *           adaptation). */
+			static public VC with (XYZ wp, float La, float bgL, float surround, boolean discounting) {
+				// Based on Copyright 2021 Google LLC (Apache 2.0).
+				bgL = Math.max(0.1f, bgL); // Avoid non-physical black infinities.
+				float rW = (wp.X * 0.401288f) + (wp.Y * 0.650173f) + (wp.Z * -0.051461f); // To cone/RGB responses.
+				float gW = (wp.X * -0.250268f) + (wp.Y * 1.204414f) + (wp.Z * 0.045854f);
+				float bW = (wp.X * -0.002079f) + (wp.Y * 0.048952f) + (wp.Z * 0.953127f);
+				float f = 0.8f + (surround / 10);
+				float c = (f >= 0.9f) ? lerp(0.59f, 0.69f, ((f - 0.9f) * 10)) : lerp(0.525f, 0.59f, ((f - 0.8f) * 10));
+				float d = clamp(discounting ? 1 : f * (1 - ((1 / 3.6f) * (float)Math.exp((-La - 42) / 92))));
+				float[] rgbD = new float[] {d * (100 / rW) + 1 - d, d * (100 / gW) + 1 - d, d * (100 / bW) + 1 - d};
+				float k = 1 / (5 * La + 1), k4 = k * k * k * k, k4F = 1 - k4;
+				float fl = (k4 * La) + (0.1f * k4F * k4F * (float)Math.cbrt(5 * La));
+				float n = LabUtil.LstarToY(bgL) / wp.Y, z = 1.48f + (float)Math.sqrt(n), nbb = 0.725f / (float)Math.pow(n, 0.2);
+				float rAF = (float)Math.pow(fl * rgbD[0] * rW / 100, 0.42);
+				float gAF = (float)Math.pow(fl * rgbD[1] * gW / 100, 0.42);
+				float bAF = (float)Math.pow(fl * rgbD[2] * bW / 100, 0.42);
+				float rA = (400 * rAF) / (rAF + 27.13f);
+				float gA = (400 * gAF) / (gAF + 27.13f);
+				float bA = (400 * bAF) / (bAF + 27.13f);
+				float aw = ((2 * rA) + gA + 0.05f * bA) * nbb;
+				return new VC(aw, nbb, nbb, c, f, n, rgbD, fl, (float)Math.pow(fl, 0.25), z);
+			}
+
+			static public final VC sRGB = VC.with(Illuminant.CIE2.D65, 200 / PI * LabUtil.LstarToYn(50), 50, 2, false);
+		}
+	}
+
+	/** Uniform Color Space based on CAM16. For color difference calculations. */
+	public record CAM16UCS (
+		/** Lightness (J*) [0..100]. */
+		float J,
+		/** Red-green component (a*) [-50..50]. */
+		float a,
+		/** Yellow-blue component (b*) [-50..50]. */
+		float b) {
+
+		/** Perceptual color difference. */
+		public float distance (CAM16UCS other) {
+			float dJ = this.J - other.J, da = this.a - other.a, db = this.b - other.b;
+			return 1.41f * (float)Math.pow(Math.sqrt(dJ * dJ + da * da + db * db), 0.63);
+		}
+	}
+
+	/** Subtractive color model for printing. */
+	public record CMYK (
+		/** Cyan [0..1]. */
+		float C,
+		/** Magenta [0..1]. */
+		float M,
+		/** Yellow [0..1]. */
+		float Y,
+		/** Key (black) [0..1]. */
+		float K) {}
+
+	/** Material color system. {@link CAM16} hue/chroma with {@link Lab} L* tone. */
+	public record HCT (
+		/** Hue angle [0..360]. */
+		float h,
+		/** Chroma [0+]. */
+		float C,
+		/** Tone (L*) [0..100]. */
+		float T) {}
+
+	/** Hue, Saturation, Intensity. */
 	public record HSI (
-		/** [0..360] */
+		/** Hue [0..360] or NaN if achromatic. */
 		float H,
+		/** Saturation [0..1]. */
 		float S,
+		/** Intensity [0..1]. */
 		float I) {}
 
-	/** HSL (Hue, Saturation, Lightness) */
+	/** Hue, Saturation, Lightness. Cylindrical RGB. */
 	public record HSL (
-		/** [0..360] */
+		/** Hue [0..360] or NaN if achromatic. */
 		float H,
+		/** Saturation [0..1]. */
 		float S,
+		/** Lightness [0..1]. */
 		float L) {}
 
-	/** HSLuv (Human-friendly HSL) */
+	/** Human-friendly {@link HSL}. Perceptually uniform saturation and lightness. */
 	public record HSLuv (
-		/** [0..360] */
+		/** Hue [0..360] or NaN if achromatic. */
 		float H,
-		/** [0..100] */
+		/** Saturation [0..100]. */
 		float S,
-		/** [0..100] */
+		/** Lightness [0..100]. */
 		float L) {}
 
-	/** HSV (Hue, Saturation, Value) */
+	/** Hue, Saturation, Value. Also known as HSB. */
 	public record HSV (
-		/** [0-359] */
+		/** Hue [0..360] or NaN if achromatic. */
 		float H,
+		/** Saturation [0..1]. */
 		float S,
+		/** Value/Brightness [0..1]. */
 		float V) {}
 
-	/** Hunter Lab */
+	/** Predecessor to CIELAB. More perceptually uniform than XYZ. */
 	public record HunterLab (
-		/** [0..100] */
+		/** Lightness [0..100]. */
 		float L,
+		/** Red-green axis [-100..100]. */
 		float a,
+		/** Yellow-blue axis [-100..100]. */
 		float b) {}
 
-	/** IHS (Intensity, Hue, Saturation) */
+	/** Intensity, Hue, Saturation. Alternative to HSI with different hue calculation. */
 	public record IHS (
+		/** Intensity [0..1]. */
 		float I,
-		/** [0..360] */
+		/** Hue [0..3] RGB sector or NaN if achromatic. */
 		float H,
+		/** Saturation [0..1]. */
 		float S) {}
 
-	/** CIE Lab */
+	/** ITU-R BT.2100 for HDR and wide color gamut. Also known as ICtCp. */
+	public record ITP (
+		/** Intensity [0..1]. */
+		float I,
+		/** Blue-yellow axis [-0.5..0.5]. */
+		float Ct,
+		/** Red-green axis [-0.5..0.5]. */
+		float Cp) {}
+
+	/** CIELAB perceptually uniform color space. */
 	public record Lab (
-		/** [0..100] */
+		/** Lightness (L*) [0..100]. */
 		float L,
+		/** Red-green axis (a*) [-100..100]. */
 		float a,
+		/** Yellow-blue axis (b*) [-100..100]. */
 		float b) {}
 
-	/** CIE LCh (cylindrical Lab) */
+	/** Cylindrical CIELAB. */
 	public record LCh (
-		/** [0..100] */
+		/** Lightness (L*) [0..100]. */
 		float L,
+		/** Chroma (C*) [0+]. */
 		float C,
-		/** [0..360] */
+		/** Hue [0..360] or NaN if achromatic. */
 		float h) {}
 
-	/** CIE Luv */
-	public record Luv (
-		/** [0..100] */
-		float L,
-		float u,
-		float v) {}
-
-	/** CIE LCHuv (cylindrical Luv) */
+	/** Cylindrical CIELUV. */
 	public record LCHuv (
-		/** [0..100] */
+		/** Lightness (L*) [0..100]. */
 		float L,
+		/** Chroma (C*) [0+]. */
 		float C,
-		/** [0..360] */
+		/** Hue [0..360] or NaN if achromatic. */
 		float H) {}
 
-	/** Linear RGB (no gamma correction) */
-	public record LinearRGB (float r, float g, float b) {
-		public RGB encode () {
-			return new RGB(sRGB(r), sRGB(g), sRGB(b));
-		}
-
-		public String hex () {
-			return Colors.hex(r(), g(), b());
-		}
-
-		public String toString255 () {
-			return Colors.toString255(r(), g(), b());
-		}
-	}
-
-	/** LMS cone response */
-	public record LMS (float L, float M, float S) {}
-
-	/** O1O2, 2 channel opponent colors */
-	public record O1O2 (float O1, float O2) {}
-
-	/** Oklab perceptual color space */
-	public record Oklab (float L, float a, float b) {}
-
-	/** Oklch (cylindrical Oklab) */
-	public record Oklch (
-		float L,
-		float C,
-		/** [0..360] */
-		float h) {}
-
-	/** Okhsl (Oklab-based HSL) */
-	public record Okhsl (
-		/** [0..360] */
-		float h,
-		float s,
-		float l) {}
-
-	/** Okhsv (Oklab-based HSV) */
-	public record Okhsv (
-		/** [0..360] */
-		float h,
-		float s,
-		float v) {}
-
-	/** sRGB */
-	public record RGB (float r, float g, float b) {
-		public LinearRGB decode () {
-			return new LinearRGB(linear(r), linear(g), linear(b));
-		}
-
-		public String hex () {
-			return Colors.hex(r(), g(), b());
-		}
-
-		public String toString255 () {
-			return Colors.toString255(r(), g(), b());
-		}
-	}
-
-	public record RGBW (float r, float g, float b, float w) {
-		public String hex () {
-			return Colors.hex(r(), g(), b(), w());
-		}
-
-		public String toString255 () {
-			return Colors.toString255(r(), g(), b(), w());
-		}
-	}
-
-	public record RGBWW (float r, float g, float b, float w1, float w2) {
-		public String hex () {
-			return Colors.hex(r(), g(), b(), w1(), w2());
-		}
-
-		public String toString255 () {
-			return Colors.toString255(r(), g(), b(), w1(), w2());
-		}
-	}
-
-	/** RG Chromaticity */
-	public record RGChromaticity (
+	/** RGB without gamma correction. */
+	public record LinearRGB (
+		/** Red [0..1]. */
 		float r,
+		/** Green [0..1]. */
 		float g,
-		float b,
-		float saturation,
-		/** [0..360] */
-		float hue) {}
+		/** Blue [0..1]. */
+		float b) {}
 
-	/** CIE 1976 u'v' */
-	public record uv (float u, float v) {}
-
-	/** CIE 1960 uv */
-	public record uv1960 (float u, float v) {}
-
-	/** Chromaticity xy coordinates */
-	public record xy (float x, float y) {}
-
-	/** CIE xyY */
-	public record xyY (float x, float y, float Y) {}
-
-	/** YCbCr */
-	public record YCbCr (float Y, float Cb, float Cr) {}
-
-	/** YCC (PhotoYCC) */
-	public record YCC (float Y, float C1, float C2) {}
-
-	/** YCoCg */
-	public record YCoCg (float Y, float Co, float Cg) {}
-
-	/** YES */
-	public record YES (
-		/** Luminance [0..1] */
-		float Y,
-		/** Chrominance factor, red and green difference [-0.5..0.5] */
-		float E,
-		/** Chrominance factor, yellow and blue difference [-0.5..0.5] */
+	/** Human cone cell responses. */
+	public record LMS (
+		/** Long wavelength (red) cone response [0+]. */
+		float L,
+		/** Medium wavelength (green) cone response [0+]. */
+		float M,
+		/** Short wavelength (blue) cone response [0+]. */
 		float S) {}
 
-	/** YIQ */
-	public record YIQ (
+	/** CIELUV perceptually uniform color space. */
+	public record Luv (
+		/** Lightness (L*) [0..100]. */
+		float L,
+		/** Red-green chromaticity (u*) [-100..100]. */
+		float u,
+		/** Yellow-blue chromaticity (v*) [-100..100]. */
+		float v) {}
+
+	/** Opponent 2 color channels for image processing. */
+	public record O1O2 (
+		/** Yellow-blue opponent [-1..1]. */
+		float O1,
+		/** Red-green opponent [-1..1]. */
+		float O2) {}
+
+	/** Perceptually uniform color space. Based on CAM16 and IPT. */
+	public record Oklab (
+		/** Lightness [0..1]. */
+		float L,
+		/** Red-green axis [-0.5..0.5]. */
+		float a,
+		/** Yellow-blue axis [-0.5..0.5]. */
+		float b) {}
+
+	/** Cylindrical Oklab. */
+	public record Oklch (
+		/** Lightness [0..1]. */
+		float L,
+		/** Chroma [0+]. */
+		float C,
+		/** Hue [0..360] or NaN if achromatic. */
+		float h) {}
+
+	/** Oklab-based {@link HSL}. More perceptually uniform than HSL. */
+	public record Okhsl (
+		/** Hue [0..360] or NaN if achromatic. */
+		float h,
+		/** Saturation [0..1]. */
+		float s,
+		/** Lightness [0..1]. */
+		float l) {}
+
+	/** Oklab-based {@link HSV}. More perceptually uniform than HSV. */
+	public record Okhsv (
+		/** Hue [0..360] or NaN if achromatic. */
+		float h,
+		/** Saturation [0..1]. */
+		float s,
+		/** Value [0..1]. */
+		float v) {}
+
+	/** Standard RGB with sRGB gamma encoding. */
+	public record RGB (
+		/** Red [0..1]. */
+		float r,
+		/** Green [0..1]. */
+		float g,
+		/** Blue [0..1]. */
+		float b) {}
+
+	/** RGB with 1 white channel for LEDs. */
+	public record RGBW (
+		/** Red [0..1]. */
+		float r,
+		/** Green [0..1]. */
+		float g,
+		/** Blue [0..1]. */
+		float b,
+		/** White [0..1]. */
+		float w) {}
+
+	/** RGB with 2 white channels for LEDs. */
+	public record RGBWW (
+		/** Red [0..1]. */
+		float r,
+		/** Green [0..1]. */
+		float g,
+		/** Blue [0..1]. */
+		float b,
+		/** White 1 [0..1]. */
+		float w1,
+		/** White 2 [0..1]. */
+		float w2) {}
+
+	/** Normalized red-green color space. */
+	public record rg (
+		/** Red chromaticity [0..1]. */
+		float r,
+		/** Green chromaticity [0..1]. */
+		float g,
+		/** Blue chromaticity [0..1]. */
+		float b,
+		/** Saturation [0..1]. */
+		float s,
+		/** Hue [0..360] or NaN if achromatic. */
+		float h) {}
+
+	/** Tint, Saturation, Lightness. For skin tone detection and analysis. */
+	public record TSL (
+		/** Tint [0..1]. */
+		float T,
+		/** Saturation [0..1]. */
+		float S,
+		/** Lightness [0..1]. */
+		float L) {}
+
+	/** CIE 1976 u'v' chromaticity coordinates. */
+	public record uv (
+		/** u' chromaticity [0..1]. */
+		float u,
+		/** v' chromaticity [0..1]. */
+		float v) {}
+
+	/** CIE 1960 UCS chromaticity coordinates. */
+	public record uv1960 (
+		/** u chromaticity [0..1]. */
+		float u,
+		/** v chromaticity [0..1]. */
+		float v) {}
+
+	/** CIE 1931 chromaticity coordinates. */
+	public record xy (
+		/** x chromaticity [0..1]. */
+		float x,
+		/** y chromaticity [0..1]. */
+		float y) {}
+
+	/** CIE xyY combining chromaticity with luminance. */
+	public record xyY (
+		/** x chromaticity [0..1]. */
+		float x,
+		/** y chromaticity [0..1]. */
+		float y,
+		/** Luminance Y [0+]. */
+		float Y) {}
+
+	/** Digital video color encoding. */
+	public record YCbCr (
+		/** Luma (Y') [0..1]. */
 		float Y,
-		/** In-phase [-0.5..0.5] */
+		/** Blue chroma [-0.5..0.5]. */
+		float Cb,
+		/** Red chroma [-0.5..0.5]. */
+		float Cr) {}
+
+	/** Photo YCC for Kodak PhotoCD. */
+	public record YCC (
+		/** Luma [0..1]. */
+		float Y,
+		/** Chroma 1 [-0.5..0.5]. */
+		float C1,
+		/** Chroma 2 [-0.5..0.5]. */
+		float C2) {}
+
+	/** Luma with orange and green chroma. Simple reversible transform. */
+	public record YCoCg (
+		/** Luma [0..1]. */
+		float Y,
+		/** Orange chroma [-0.5..0.5]. */
+		float Co,
+		/** Green chroma [-0.5..0.5]. */
+		float Cg) {}
+
+	/** Xerox YES color space. */
+	public record YES (
+		/** Luminance [0..1]. */
+		float Y,
+		/** Red-green chrominance [-0.5..0.5]. */
+		float E,
+		/** Yellow-blue chrominance [-0.5..0.5]. */
+		float S) {}
+
+	/** NTSC analog TV color encoding. */
+	public record YIQ (
+		/** Luma (Y') [0..1]. */
+		float Y,
+		/** In-phase (orange-blue) [-0.5..0.5]. */
 		float I,
-		/** Quadrature [-0.5..0.5] */
+		/** Quadrature (purple-green) [-0.5..0.5]. */
 		float Q) {}
 
-	/** YUV */
+	/** PAL analog TV color encoding. */
 	public record YUV (
+		/** Luma (Y') [0..1]. */
 		float Y,
-		/** Chrominance [-0.5..0.5] */
+		/** Blue chrominance [-0.5..0.5]. */
 		float U,
-		/** Chrominance [-0.5..0.5] */
+		/** Red chrominance [-0.5..0.5]. */
 		float V) {}
 
-	/** CIE XYZ */
+	/** CIE 1931 tristimulus values. Foundation of colorimetry. */
 	public record XYZ (
-		/** [0..100] */
+		/** X tristimulus [0+]. */
 		float X,
-		/** [0..100] */
+		/** Y tristimulus (luminance) [0+]. */
 		float Y,
-		/** [0..100] */
+		/** Z tristimulus [0+]. */
 		float Z) {}
 }

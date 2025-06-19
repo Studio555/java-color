@@ -2,12 +2,15 @@
 
 This Java library provides color space conversions and other color related utilities.
 
-- **Color space conversions** 30+, bidirectional
+- **Color space conversions** 40+, bidirectional
 - **Gamut management** for multiple display standards
 - **RGBW/RGBWW mixing** for LED systems
 - **Industry standard color spaces** video, broadcasting, printing
 - **Color difference** Delta E 2000, MacAdam steps, WCAG contrast
 - **Color utilities** CCT/Duv, gamma, harmony, formatting
+- **Extensive tests**
+
+The code uses floats and is straightforward, without dependencies, making it easy to port if needed.
 
 ## Color Space Conversions
 
@@ -24,8 +27,8 @@ This Java library provides color space conversions and other color related utili
 #### CIE Color Spaces
 - Lab (CIELAB)
 - Luv (CIELUV)
-- LCh (Lab-based cylindrical)
-- LCHuv (Luv-based cylindrical)
+- LCh - Lab-based cylindrical
+- LCHuv - Luv-based cylindrical
 - uv (CIE 1960 UCS)
 - u'v' (CIE 1976 UCS)
 - XYZ (CIE 1931 XYZ)
@@ -33,27 +36,37 @@ This Java library provides color space conversions and other color related utili
 - xyY (CIE 1931 xyY)
 
 #### Perceptually Uniform Spaces
-- Oklab (Modern perceptually uniform color space)
-- Oklch (Cylindrical version of Oklab)
-- Okhsv (Oklab-based HSV)
-- Okhsl (Oklab-based HSL)
-- HSLuv (Human-friendly perceptual HSL)
+- Oklab - Modern perceptually uniform color space
+- Oklch - Cylindrical version of Oklab
+- Okhsv - Oklab-based HSV
+- Okhsl - Oklab-based HSL
+- HSLuv - Human-friendly perceptual HSL
 
 #### Video & Broadcasting
-- YCbCr (Digital video, supports ITU BT.601 and BT.709)
-- YUV
-- YIQ (NTSC)
-- YCoCg
-- YCC (Kodak Photo CD)
-- YES (Xerox YES)
+- YCbCr - Digital video, supports ITU BT.601 and BT.709
+- YUV - PAL television
+- YIQ - NTSC television
+- YCoCg - Lossless color transform
+- YCC - Kodak Photo YCC
+- YES - Xerox YES television
 
 #### Printing & Other Spaces
-- CMYK (Cyan, Magenta, Yellow, Key/Black)
-- Hunter Lab
-- LMS (Long, Medium, Short cone response)
-- C1C2C3
-- O1O2
-- RG Chromaticity
+- CMYK (Cyan, Magenta, Yellow, Key/Black) - Subtractive colors for printing
+- LMS (Long, Medium, Short) - Human cone response
+- TSL (Tint, Saturation, Lightness) - Face detection
+- rg - Normalized chromaticity
+- Hunter Lab - Precursor to CIELAB
+- C1C2C3 (3 opponent color channels) - Image processing
+- O1O2 (2 opponent color channels) - Image processing
+
+#### Advanced Color Spaces
+- CAM16 - Color appearance model with viewing conditions
+- CAM16UCS - Uniform color space based on CAM16
+- HCT (Hue, Chroma, Tone) - Google Material You
+- ACES2065-1 - Academy Color Encoding System, AP0 primaries
+- ACEScg - Working space for CGI, AP1 primaries
+- ACEScc - Logarithmic for color grading, AP1 primaries
+- ITP (ICtCp/ITU-R BT.2100) - HDR and wide color gamut
 
 ### Example Usage
 It is convenient to omit `Colors.` using a static import:
@@ -132,11 +145,6 @@ This library breaks from Java naming conventions to use capitalization that matc
   ```
 
 #### Video & Broadcasting
-- **YCbCr** - Digital video color space
-  ```java
-  YCbCr ycbcr = YCbCr(rgb, YCbCrColorSpace.ITU_BT_709_HDTV);
-  RGB rgb = RGB(ycbcr, YCbCrColorSpace.ITU_BT_709_HDTV);
-  ```
 
 #### Printing & Other Spaces
 - **CMYK** - Cyan, Magenta, Yellow, Key (Black)
@@ -145,13 +153,34 @@ This library breaks from Java naming conventions to use capitalization that matc
   RGB rgb = RGB(cmyk);
   ```
 
+- **LMS** - Cone Response Space
+  ```java
+  LMS lms = LMS(xyz, CAT.Bradford);
+  XYZ xyz = XYZ(lms, CAT.Bradford);
+  ```
+
+- **O1O2** - Opponent Color Space (Forward only)
+  ```java
+  O1O2 o1o2 = O1O2(rgb);
+  // O1: Yellow-blue opponent [-1..1]
+  // O2: Red-green opponent [-0.5..0.5]
+  ```
+
+- **C1C2C3** - 3-Channel Opponent Space (Forward only)
+  ```java
+  C1C2C3 c1c2c3 = C1C2C3(rgb);
+  // C1, C2, C3: Achromatic channels [0..pi/2]
+  ```
+
 ### Chromaticity Coordinates
-- **xy** (CIE 1931), **uv** (CIE 1960), **u'v'** (CIE 1976)
+- **xy** (CIE 1931), **uv** (CIE 1976), **uv1960** (CIE 1960)
   ```java
   xy chromaticity = xy(rgb, gamut);
-  uv1960 uv1960 = uv1960(chromaticity);
+  uv1960 uv60 = uv1960(chromaticity);
+  RGB rgb = RGB(chromaticity);  // Uses sRGB gamut
   RGB rgb = RGB(chromaticity, gamut);
-  uv uv1976 = uv(rgb);
+  uv uv76 = uv(rgb);
+  XYZ xyz = XYZ(chromaticity, 50);  // Y=50
   ```
 
 ## Color Temperature & Lighting
@@ -169,7 +198,7 @@ float temperature = CCT(rgb);
 float duv = Duv(chromaticity);
 ```
 
-### RGB + White LED Control
+### RGB + White LEDs
 ```java
 // RGBW (single white channel)
 RGBW rgbw = RGBW(rgb, whitePoint);
@@ -186,8 +215,14 @@ RGBWW rgbw = RGBWW(3000, 0.8f, warmWhite, coolWhite);
 
 ### Color Difference
 ```java
+import static com.esotericsoftware.colors.Util.LabUtil.*;
+
 // Delta E 2000 - Industry standard color difference
 float deltaE = deltaE2000(rgb1, rgb2);
+float deltaE = deltaE2000(lab1, lab2);
+
+// With custom weights for L*, C*, H*
+float deltaE = deltaE2000(lab1, lab2, 2.0f, 1.0f, 1.0f);
 
 // MacAdam steps - Perceptual color difference
 float steps = MacAdamSteps(xy1, xy2);
@@ -195,7 +230,9 @@ float steps = MacAdamSteps(xy1, xy2);
 
 ### Accessibility & Contrast
 ```java
-// WCAG contrast ratio
+import static com.esotericsoftware.colors.Util.RGBUtil.*;
+
+// WCAG contrast ratio (1:1 to 21:1)
 float ratio = contrastRatio(foreground, background);
 
 // Check WCAG compliance
@@ -203,14 +240,25 @@ boolean meetsAA = WCAG_AA(fg, bg, largeText);
 boolean meetsAAA = WCAG_AAA(fg, bg, largeText);
 ```
 
-### Color Manipulation
+### Color Analysis
 ```java
-// Convert to grayscale
+// Convert to grayscale (perceptual luminance)
 float gray = grayscale(rgb);
+
+// Check if color is achromatic
+boolean isGray = achromatic(rgb);
+
+// Get Y (luminance) from L* (perceptual lightness)
+float Y = LabUtil.LstarToY(50);  // L*=50 -> Y=~18.4
+float Yn = LabUtil.LstarToYn(50);  // Normalized [0,1]
+
+// Get L* from Y
+float Lstar = LabUtil.YtoLstar(18.4);
 ```
 
 ### Color Harmonies
 ```java
+import static com.esotericsoftware.colors.Util.RGBUtil.*;
 RGB complementary = complementary(baseColor);
 RGB[] triadic = triadic(baseColor);
 RGB[] analogous = analogous(baseColor, 30.0f);  // 30° angle
@@ -220,8 +268,85 @@ RGB[] splitComp = splitComplementary(baseColor);
 ### Interpolation
 ```java
 // Perceptually uniform interpolation in Oklab space
-Oklab blended = lerp(oklab1, oklab2, 0.6f);  // 60% blend
+Oklab blended = OklabUtil.lerp(oklab1, oklab2, 0.6f);  // 60% blend
 ```
+
+#### Video & Broadcasting Examples
+- **YCbCr** - Digital video color space
+  ```java
+  YCbCr ycbcr = YCbCr(rgb, YCbCrColorSpace.ITU_BT_709_HDTV);
+  RGB rgb = RGB(ycbcr, YCbCrColorSpace.ITU_BT_709_HDTV);
+  ```
+
+- **YUV/YIQ/YCoCg** - Television and lossless formats
+  ```java
+  YUV yuv = YUV(rgb);      // PAL television
+  YIQ yiq = YIQ(rgb);      // NTSC television
+  YCoCg ycocg = YCoCg(rgb); // Lossless transform
+  YCC ycc = YCC(rgb);      // Kodak Photo YCC
+  YES yes = YES(rgb);      // Xerox YES
+  ```
+
+#### Advanced Color Spaces
+
+- **TSL** (Tint, Saturation, Lightness) - Face Detection
+  ```java
+  TSL tsl = TSL(rgb);
+  RGB rgb = RGB(tsl);
+  // Optimized for skin tone analysis in computer vision
+  // Note: When T=0, the inverse uses "negative zero" to distinguish between 
+  // two possible solutions, as the reverse mapping is not unique
+  ```
+
+- **ITP** (ICtCp/HDR Color Space)
+  ```java
+  ITP itp = ITP(rgb);
+  RGB rgb = RGB(itp);
+  // Supports HDR content and wide color gamut (ITU-R BT.2100)
+  // Full round-trip accuracy BT.2020 conversion
+  ```
+
+- **HCT** (Hue, Chroma, Tone) - Google Material You
+  ```java
+  HCT hct = HCT(rgb);
+  RGB rgb = RGB(hct);
+  // Perceptually accurate color system used in Material Design
+  ```
+
+- **CAM16** (Color Appearance Model)
+  ```java
+  // Using default viewing conditions
+  CAM16 cam = CAM16(rgb);
+  
+  // With custom viewing conditions
+  CAM16.VC vc = CAM16.VC.create(
+    Illuminant.CIE2.D50,  // White point
+    40,                   // Adapting luminance (cd/m²)
+    50,                   // Background L* value
+    2,                    // Surround (0=dark, 1=dim, 2=average)
+    false                 // Discounting illuminant
+  );
+  CAM16 cam = CAM16(rgb, vc);
+  
+  // Convert to/from uniform color space
+  CAM16UCS ucs = CAM16UCS(cam, vc);
+  CAM16 cam2 = CAM16(ucs, vc);
+  ```
+
+- **ACES** (Academy Color Encoding System)
+  ```java
+  // ACES2065-1 (archival format, AP0 primaries)
+  ACES2065_1 aces2065 = ACES2065_1(rgb);
+  RGB rgb = RGB(aces2065);
+  
+  // ACEScg (CGI working space, AP1 primaries)
+  ACEScg acesCg = ACEScg(rgb);
+  RGB rgb = RGB(acesCg);
+  
+  // ACEScc (logarithmic color grading, AP1 primaries)
+  ACEScc acesCc = ACEScc(rgb);
+  RGB rgb = RGB(acesCc);
+  ```
 
 ## Gamut Management
 
@@ -263,33 +388,38 @@ float encoded = gammaEncode(linear, 2.2f);
 float decoded = gammaDecode(encoded, 2.2f);
 ```
 
-### Data Conversion
-- `array(Record record)` - Convert color record to float array
+### Float arrays
+- `floats(Record record)` - Convert color record to float array
 
 ```java
 // Convert any color record to float array
-float[] rgbArray = array(rgb);  // [r, g, b]
-float[] hsvArray = array(hsv);  // [h, s, v]
-float[] labArray = array(lab);  // [L, a, b]
+float[] rgbArray = floats(rgb);  // [r, g, b]
+float[] hsvArray = floats(hsv);  // [H, S, V]
+float[] labArray = floats(lab);  // [L, a, b]
 ```
 
 ### Output Formatting
-- `hex(float... values)` - Convert to hex color string
-- `toString255(float... values)` - Convert to RGB string (0-255 format)
+- `hex(Record)` or `hex(float... values)` - Convert to hex color string
+- `toString(Record)` or `toString(float... values)` - Convert to string (float values)
+- `toString255(Record)` or `toString255(float... values)` - Convert to string (0-255 values)
 - `dmx8(float value)` - Convert to 8-bit DMX value (0-255)
 - `dmx16(float value)` - Convert to 16-bit DMX value (0-65535)
 
 ```java
 // Hex color string
-String hex1 = new RGB(r, g, b).hex();  // "7F7F7F"
-String hex2 = hex(r, g, b);            // "7F7F7F"
+String hex1 = hex(new RGB(r, g, b));  // "7F7F7F"
+String hex2 = hex(r, g, b);           // "7F7F7F"
 
-// RGB string (0-255 format)
-String str1 = new RGB(r, g, b).toString255();  // "7F7F7F"
-String str2 = toString255(r, g, b);            // "127, 127, 127"
+// RGB string (float values)
+String str1 = toString(new RGB(r, g, b));  // "0.5, 0.5, 0.5"
+String str2 = toString(r, g, b);           // "0.5, 0.5, 0.5"
+
+// RGB string (0-255 values)
+String str1 = toString255(new RGB(r, g, b));  // "128, 128, 128"
+String str2 = toString255(r, g, b);           // "128, 128, 128"
 
 // DMX control
-int dmx8bit = dmx8(0.5f);    // 127
+int dmx8bit = dmx8(0.5f);    // 128
 int dmx16bit = dmx16(0.5f);  // 32767
 ```
 
@@ -311,10 +441,15 @@ Available illuminants: A, C, D50, D55, D65, D75, F2, F7, F11
 ## Chromatic Adaptation Transforms
 
 ```java
-// Different CAT methods
-LMS lms = LMS(rgb, CAT.Bradford);
-LMS lms = LMS(rgb, CAT.VonKries);
-LMS lms = LMS(rgb, CAT.HPE);
+// Various CAT methods for cone response
+LMS lms = LMS(xyz, CAT.Bradford);
+LMS lms = LMS(xyz, CAT.vonKries);
+LMS lms = LMS(xyz, CAT.CAT02);
+LMS lms = LMS(xyz, CAT.CAT97);
+LMS lms = LMS(xyz, CAT.HPE);
+
+// Convert back
+XYZ xyz = XYZ(lms, CAT.Bradford);
 ```
 
 ## Usage Examples

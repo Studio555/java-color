@@ -2,6 +2,7 @@
 package com.esotericsoftware.colors;
 
 import static com.esotericsoftware.colors.Colors.Illuminant.CIE2.*;
+import static com.esotericsoftware.colors.Util.*;
 
 import com.esotericsoftware.colors.Colors.RGB;
 import com.esotericsoftware.colors.Colors.xy;
@@ -108,7 +109,7 @@ public class Gamut {
 
 	static private boolean isBelow (xy xy, xy a, xy b) {
 		float xDiff = a.x() - b.x();
-		if (xDiff < 1e-10f) return true;
+		if (xDiff < EPSILON) return true;
 		float slope = (a.y() - b.y()) / xDiff;
 		float intercept = a.y() - slope * a.x();
 		float maxY = xy.x() * slope + intercept;
@@ -117,7 +118,7 @@ public class Gamut {
 
 	static private boolean isAbove (xy xy, xy a, xy b) {
 		float xDiff = a.x() - b.x();
-		if (xDiff < 1e-10f) return true;
+		if (xDiff < EPSILON) return true;
 		float slope = (a.y() - b.y()) / xDiff;
 		float intercept = a.y() - slope * a.x();
 		float minY = xy.x() * slope + intercept;
