@@ -10,6 +10,7 @@ import com.esotericsoftware.colors.Colors.Oklab;
 import com.esotericsoftware.colors.Colors.RGB;
 import com.esotericsoftware.colors.Colors.XYZ;
 
+/** @author Nathan Sweet <misc@n4te.com> */
 public class Util {
 	static final public float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
 	static final float EPSILON = 1e-6f;

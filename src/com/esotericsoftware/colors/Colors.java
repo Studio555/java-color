@@ -858,14 +858,14 @@ public class Colors {
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
-	/** Uses Y=1. */
+	/** @return Normalized. */
 	static public RGB RGB (uv uv) {
 		xy xy = xy(uv);
 		XYZ XYZ = XYZ(new xyY(xy.x, xy.y, 1));
 		RGB rgb = RGB(XYZ);
 		float r = rgb.r, g = rgb.g, b = rgb.b;
 		float max = max(r, g, b);
-		if (max > 1) {
+		if (max > 0) {
 			r /= max;
 			g /= max;
 			b /= max;
@@ -873,10 +873,13 @@ public class Colors {
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
-	/** Uses Y=1 and {@link Gamut#sRGB}.
-	 * @return NaN if invalid. */
+	/** Uses {@link Gamut#sRGB}.
+	 * @return Normalized or NaN if invalid. */
 	static public RGB RGB (xy xy) {
-		return RGB(xy, 1, Gamut.sRGB);
+		RGB rgb = RGB(xy, 1, Gamut.sRGB);
+		float max = max(rgb.r, rgb.g, rgb.b);
+		if (max == 0) return rgb;
+		return new RGB(rgb.r / max, rgb.g / max, rgb.b / max);
 	}
 
 	/** @return NaN if invalid. */

@@ -21,6 +21,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
+/** @author Nathan Sweet <misc@n4te.com> */
 public class Gradients {
 	public Gradients (Table config) throws Throwable {
 		int imageWidth = config.labelWidth + (config.gradients.size() * config.cellWidth)
