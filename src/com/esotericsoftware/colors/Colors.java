@@ -1486,8 +1486,8 @@ public class Colors {
 		return Math.max(0, Math.min(1, value));
 	}
 
-	static public float lerp (float start, float stop, float percent) {
-		return start + (stop - start) * percent;
+	static public float lerp (float from, float to, float t) {
+		return from + (to - from) * t;
 	}
 
 	static public float lerpAngle (float from, float to, float t) {
