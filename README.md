@@ -3,12 +3,12 @@
 This Java library provides color space conversions and other color related utilities.
 
 - **Color space conversions** 40+, bidirectional
-- **RGBW/RGBWW mixing** for LED systems
 - **Spectral locus** wavelength conversion, dominant wavelength, purity
 - **Gamut management** for multiple display standards
-- **Industry standard color spaces** video, broadcasting, printing
+- **RGBW/RGBWW mixing** for LED systems
 - **Color difference** Delta E 2000, MacAdam steps, WCAG contrast
 - **Color utilities** CCT/Duv, gamma, harmony, formatting, lerp
+- **Industry standard color spaces** video, broadcasting, printing
 - **Extensive tests** 110+
 
 The code uses floats and is straightforward, without dependencies, making it easy to port if needed.
@@ -427,7 +427,7 @@ int dmx16bit = dmx16(0.5f);  // 32767
 
 Utilities are provided for working with spectral colors and the visible spectrum boundary.
 
-![](uv.png)
+![](uv.jpg)
 
 ### Wavelength to Chromaticity
 ```java
