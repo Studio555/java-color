@@ -701,9 +701,9 @@ public class ColorsTest {
 
 	@Test
 	public void testOtherMethods () {
-		RGB d65 = new RGB(0.95047f, 1.0f, 1.08883f); // D65 white point approximation
+		RGB d65 = new RGB(1, 1, 1);
 		float duvD65 = Duv(xy(d65));
-		assertTrue(Math.abs(duvD65) < 0.1f, "D65 should be close to Planckian locus");
+		assertTrue(Math.abs(duvD65) < 0.1f, "D65 should be close to Planckian locus: " + duvD65);
 
 		uv uvPoint = new uv(0.2105f, 0.4737f); // D65 in u'v'
 		float duvDirect = Duv(xy(uvPoint));

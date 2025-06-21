@@ -17,18 +17,18 @@ public class CCTTests {
 	@Test
 	public void testCCTConversions () {
 		// Test known CCT values
-		String actual = hex(RGB(2700, 0, 50));
-		assertTrue(actual.equals("fbaa58"), "Expected CCTRGB value != actual: ffe87a != " + actual);
+		String actual = hex(RGB(2700, 0));
+		assertTrue(actual.equals("ffad59"), "Expected CCT RGB value != actual: ffad59 != " + actual);
 
-		actual = hex(RGB(2700, 0.01f, 50));
-		assertTrue(actual.equals("ffa774"), "Expected CCTRGB with 0.01 Duv value != actual: ffe39f != " + actual);
+		actual = hex(RGB(2700, 0.01f));
+		assertTrue(actual.equals("ffb32b"), "Expected CCT RGB with 0.01 Duv value != actual: ffb32b != " + actual);
 
 		// Test many color temperatures
 		float[] ccts = new float[530];
 		for (int i = 0, cct = 1700; cct < 7000; cct += 10, i++)
 			ccts[i] = cct;
 		for (float cct : ccts) {
-			RGB rgb = RGB(cct, 0, 100);
+			RGB rgb = RGB(cct, 0);
 
 			// Verify the color is reasonable (all channels should be positive)
 			assertTrue(rgb.r() >= 0 && rgb.r() <= 1, "Red channel in range for CCT " + cct);
@@ -53,7 +53,7 @@ public class CCTTests {
 
 		// Test CCT to xy conversions
 		for (float cct : ccts) {
-			xy xy = xy(cct);
+			xy xy = xy(cct, 0);
 
 			// Verify xy values are reasonable
 			assertTrue(xy.x() > 0 && xy.x() < 1, "x chromaticity in range for CCT " + cct);
@@ -62,7 +62,7 @@ public class CCTTests {
 
 		// Test CCT to UV1960
 		for (float cct : ccts) {
-			uv1960 uv1960 = uv1960(cct);
+			uv1960 uv1960 = uv1960(cct, 0);
 
 			// Verify UV values are reasonable
 			assertTrue(uv1960.u() > 0 && uv1960.u() < 1, "u1960 in range for CCT " + cct);
@@ -71,7 +71,7 @@ public class CCTTests {
 
 		// Test DUV1960 offset calculation
 		for (float cct : ccts) {
-			uv1960 base = uv1960(cct);
+			uv1960 base = uv1960(cct, 0);
 			uv1960 offset = uv1960(cct, 0.01f);
 			offset = new uv1960(offset.u() - base.u(), offset.v() - base.v());
 
@@ -94,7 +94,7 @@ public class CCTTests {
 		// - Best accuracy (±5K) in 4000-8000K range
 		// - Lower accuracy (±50-200K) outside this range
 		for (float expectedCCT : ccts) {
-			xy xy = xy(expectedCCT);
+			xy xy = xy(expectedCCT, 0);
 			float calculatedCCT = CCT(xy);
 
 			// Check for invalid xy coordinates
@@ -162,10 +162,9 @@ public class CCTTests {
 
 		// After normalization in CCTRGB, the differences are subtle but b channel shows clear trend
 		// Warmer colors have higher b (yellow) values
-		if (warmLab.b() > neutralLab.b() && neutralLab.b() > coolLab.b()) {
-		} else {
-			throw new AssertionError("CCT to Oklab 'b' channel ordering incorrect");
-		}
+		assertTrue(warmLab.b() > neutralLab.b() && neutralLab.b() > coolLab.b(),
+			"CCT to Oklab 'b' channel ordering incorrect: warm=" + warmLab.b() + ", neutral=" + neutralLab.b() + ", cool="
+				+ coolLab.b());
 	}
 
 	@Test
@@ -177,17 +176,17 @@ public class CCTTests {
 
 		// Test with colors on the blackbody locus (should be ~0)
 		// 2700K on blackbody locus
-		xy cct2700 = xy(2700);
+		xy cct2700 = xy(2700, 0);
 		float duv2700 = Duv(cct2700);
 		assertClose(0, duv2700, "2700K on blackbody locus should have Duv ~0", 0.001);
 
 		// 4000K on blackbody locus
-		xy cct4000 = xy(4000);
+		xy cct4000 = xy(4000, 0);
 		float duv4000 = Duv(cct4000);
 		assertClose(0, duv4000, "4000K on blackbody locus should have Duv ~0", 0.001);
 
 		// 6500K on blackbody locus
-		xy cct6500 = xy(6500);
+		xy cct6500 = xy(6500, 0);
 		float duv6500 = Duv(cct6500);
 		assertClose(0, duv6500, "6500K on blackbody locus should have Duv ~0", 0.001);
 
@@ -208,13 +207,11 @@ public class CCTTests {
 		// Using the uv1960(CCT, Duv) function to create test points
 		float[] testCCTs = {2500, 3500, 5000, 7500};
 		float[] testDuvs = {-0.01f, -0.005f, 0.005f, 0.01f};
-
 		for (float cct : testCCTs) {
 			for (float expectedDuv : testDuvs) {
 				// Create a point with known Duv offset
 				uv1960 uvWithDuv = uv1960(cct, expectedDuv);
-				xy xyWithDuv = xy(uvWithDuv);
-				float calculatedDuv = Duv(xyWithDuv);
+				float calculatedDuv = Duv(xy(uvWithDuv));
 
 				// The calculated Duv should be close to the expected value
 				// Some error is expected due to conversions and approximations
@@ -224,32 +221,33 @@ public class CCTTests {
 
 		// Test edge cases
 		// Very low CCT
-		xy lowCCT = xy(1700);
+		xy lowCCT = xy(1700, 0);
 		float duvLow = Duv(lowCCT);
 		assertClose(0, duvLow, "Very low CCT on locus should have Duv ~0", 0.001);
 
 		// Very high CCT
-		xy highCCT = xy(20000);
+		xy highCCT = xy(20000, 0);
 		float duvHigh = Duv(highCCT);
 		assertClose(0, duvHigh, "Very high CCT on locus should have Duv ~0", 0.001);
 
 		// Test that Duv sign convention is correct
 		// Points above the locus (more green) should have positive Duv
 		// Points below the locus (more pink/magenta) should have negative Duv
-		xy testPoint = xy(4000); // Start on the locus
-		uv1960 uvTest = uv1960(testPoint);
 
-		// Move slightly perpendicular to the locus in the positive direction
-		xy aboveLocus = xy(new uv1960(uvTest.u(), uvTest.v() + 0.002f));
+		// Create points with known Duv offsets
+		xy aboveLocus = xy(4000, 0.002f); // Positive Duv - above the locus
 		float duvAbove = Duv(aboveLocus);
-		// Just verify the points have different Duv values
 
-		// Move slightly perpendicular to the locus in the negative direction
-		xy belowLocus = xy(new uv1960(uvTest.u(), uvTest.v() - 0.002f));
+		xy belowLocus = xy(4000, -0.002f); // Negative Duv - below the locus
 		float duvBelow = Duv(belowLocus);
 
+		// Verify the calculated Duv values match what we specified
+		assertClose(0.002f, duvAbove, "Duv above locus", 0.0001);
+		assertClose(-0.002f, duvBelow, "Duv below locus", 0.0001);
+
 		// The key is that points on opposite sides of the locus have opposite sign Duv
-		assertTrue(Math.abs(duvAbove - duvBelow) > 0.001, "Points on opposite sides of locus should have different Duv values");
+		assertTrue(Math.abs(duvAbove - duvBelow) > 0.001,
+			"Points on opposite sides of locus should have different Duv values: above=" + duvAbove + ", below=" + duvBelow);
 	}
 
 	@Test
@@ -302,10 +300,10 @@ public class CCTTests {
 			"Triangle inequality violated: " + stepsAC + " > " + stepsAB + " + " + stepsBC);
 
 		// Test with various color temperature white points
-		xy[] whitePoints = {xy(2700), // Warm white
-			xy(4000), // Neutral white
-			xy(6500), // Daylight
-			xy(9300) // Cool white
+		xy[] whitePoints = {xy(2700, 0), // Warm white
+			xy(4000, 0), // Neutral white
+			xy(6500, 0), // Daylight
+			xy(9300, 0) // Cool white
 		};
 
 		for (int i = 0; i < whitePoints.length - 1; i++) {

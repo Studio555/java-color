@@ -11,8 +11,7 @@ import com.esotericsoftware.colors.Colors.xy;
 /** @see Colors#XYZ(RGB, Gamut)
  * @see Colors#XYZ(LinearRGB, Gamut)
  * @see Colors#xy(RGB rgb, Gamut gamut)
- * @see Colors#RGB(xy, float, Gamut)
- * @see Colors#RGB(xy, float, Gamut)
+ * @see Colors#RGB(xy, Gamut)
  * @author Nathan Sweet <misc@n4te.com> */
 public class Gamut {
 	static public final Gamut //

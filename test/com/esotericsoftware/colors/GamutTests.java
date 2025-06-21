@@ -94,7 +94,7 @@ public class GamutTests {
 		xy wideGamutPoint = new xy(0.8f, 0.2f); // Likely outside sRGB
 
 		// Convert to RGB - should be clamped
-		RGB clamped = RGB(wideGamutPoint, 1, Gamut.sRGB);
+		RGB clamped = RGB(wideGamutPoint, Gamut.sRGB);
 
 		// All channels should be in [0, 1]
 		assertTrue(clamped.r() >= 0 && clamped.r() <= 1, "R should be in range");
@@ -218,7 +218,7 @@ public class GamutTests {
 				continue;
 			}
 
-			RGB recovered = RGB(intermediate, 1, Gamut.sRGB);
+			RGB recovered = RGB(intermediate, Gamut.sRGB);
 
 			// For colors at maximum saturation (primaries and white), we can expect good round-trip
 			if ((original.r() == 1 || original.r() == 0) && (original.g() == 1 || original.g() == 0)
@@ -248,7 +248,7 @@ public class GamutTests {
 	public void testXYToRGBConversion () {
 		// Test converting xy back to RGB
 		xy testPoint = new xy(0.3127f, 0.3290f); // D65 white point
-		RGB rgb = RGB(testPoint, 1, Gamut.sRGB);
+		RGB rgb = RGB(testPoint, Gamut.sRGB);
 
 		// D65 white point doesn't necessarily map to RGB(1,1,1) due to the gamut's
 		// specific transformation. Just check it's valid RGB values.
@@ -263,7 +263,7 @@ public class GamutTests {
 		// Test edge case: y = 0
 		// Note: the gamut will clamp this to a valid point, so it won't return NaN
 		xy zeroY = new xy(0.3f, 0.0f);
-		RGB clampedResult = RGB(zeroY, 1, Gamut.sRGB);
+		RGB clampedResult = RGB(zeroY);
 		assertFalse(Float.isNaN(clampedResult.r()), "Should not be NaN after clamping");
 		assertFalse(Float.isNaN(clampedResult.g()), "Should not be NaN after clamping");
 		assertFalse(Float.isNaN(clampedResult.b()), "Should not be NaN after clamping");

@@ -10,6 +10,7 @@ import com.esotericsoftware.colors.Colors.CAM16;
 import com.esotericsoftware.colors.Colors.HCT;
 import com.esotericsoftware.colors.Colors.Illuminant;
 import com.esotericsoftware.colors.Colors.RGB;
+import com.esotericsoftware.colors.Util.CAM16UCSUtil;
 
 public class HCTTests {
 	@Test
@@ -114,11 +115,11 @@ public class HCTTests {
 		RGB rgb2 = new RGB(0.3f, 0.5f, 0.8f);
 		var ucs1 = CAM16UCS(rgb1);
 		var ucs2 = CAM16UCS(rgb2);
-		float distance = (float)ucs1.distance(ucs2);
+		float distance = (float)CAM16UCSUtil.distance(ucs1, ucs2);
 		assertTrue(distance > 0, "Different colors have positive distance");
 
 		// Same color should have zero distance
-		float sameDistance = (float)ucs1.distance(ucs1);
+		float sameDistance = (float)CAM16UCSUtil.distance(ucs1, ucs1);
 		assertClose(0, sameDistance, "Same color has zero distance", 0.0001);
 
 		// Test 6: Gray colors in UCS

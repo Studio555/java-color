@@ -4,11 +4,14 @@ package com.esotericsoftware.colors;
 import static com.esotericsoftware.colors.Colors.*;
 
 import com.esotericsoftware.colors.Colors.CAM16;
+import com.esotericsoftware.colors.Colors.CAM16UCS;
 import com.esotericsoftware.colors.Colors.HSL;
 import com.esotericsoftware.colors.Colors.Lab;
 import com.esotericsoftware.colors.Colors.Oklab;
 import com.esotericsoftware.colors.Colors.RGB;
 import com.esotericsoftware.colors.Colors.XYZ;
+import com.esotericsoftware.colors.Colors.uv1960;
+import com.esotericsoftware.colors.Colors.xy;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Util {
@@ -34,6 +37,48 @@ public class Util {
 			if (encoded < -0.3014698893f) // (9.72 - 15) / 17.52
 				return (float)((Math.pow(2, encoded * 17.52f - 9.72f) - 0.00001525878906f) * 2);
 			return (float)Math.pow(2, encoded * 17.52f - 9.72f);
+		}
+	}
+
+	static class CAM16UCSUtil {
+		/** Perceptual color difference. */
+		static public float distance (CAM16UCS color1, CAM16UCS color2) {
+			float dJ = color1.J() - color2.J(), da = color1.a() - color2.a(), db = color1.b() - color2.b();
+			return 1.41f * (float)Math.pow(Math.sqrt(dJ * dJ + da * da + db * db), 0.63);
+		}
+	}
+
+	static class CCTUtil {
+		static uv1960 perpendicular (float CCT, xy xyPoint) {
+			float x = xyPoint.x(), y = xyPoint.y();
+			float dx_dT, dy_dx, t2 = CCT * CCT;
+			if (CCT <= 4000)
+				dx_dT = 0.2661239f * 3e9f / (t2 * t2) + 0.2343589f * 2e6f / t2 * CCT - 0.8776956f * 1e3f / t2;
+			else
+				dx_dT = 3.0258469f * 3e9f / (t2 * t2) - 2.1070379f * 2e6f / t2 * CCT - 0.2226347f * 1e3f / t2;
+			if (CCT <= 2222)
+				dy_dx = -3.3191442f * x * x - 2.69622040f * x + 2.18555832f;
+			else if (CCT <= 4000)
+				dy_dx = -2.8648428f * x * x - 2.74837186f * x + 2.09137015f;
+			else
+				dy_dx = 9.2452740f * x * x - 11.74677340f * x + 3.75112997f;
+			float dy_dT = dy_dx * dx_dT;
+			float denom2 = -2 * x + 12 * y + 3;
+			denom2 *= denom2;
+			float du_dx = 4 * (12 * y + 3) / denom2, du_dy = -4 * x * 12 / denom2;
+			float dv_dx = 6 * y * 2 / denom2, dv_dy = 6 * (-2 * x + 3) / denom2;
+			float du_dT = du_dx * dx_dT + du_dy * dy_dT, dv_dT = dv_dx * dx_dT + dv_dy * dy_dT;
+			float length = (float)Math.sqrt(du_dT * du_dT + dv_dT * dv_dT);
+			if (length < EPSILON) return new uv1960(0, 0);
+			// Ensure consistent orientation: positive Duv should increase v (towards green)
+			float perp_u = -dv_dT / length;
+			float perp_v = du_dT / length;
+			// If perp_v is negative, flip the vector to maintain consistent orientation
+			if (perp_v < 0) {
+				perp_u = -perp_u;
+				perp_v = -perp_v;
+			}
+			return new uv1960(perp_u, perp_v);
 		}
 	}
 

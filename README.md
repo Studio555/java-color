@@ -201,7 +201,7 @@ RGB daylight = RGB(6500, 0.003f);  // 6500K, Duv=0.003
 float temperature = CCT(rgb);
 
 // Duv - Distance from Planckian locus
-float duv = Duv(chromaticity);
+float duv = Duv(rgb);
 ```
 
 ### RGB + White LEDs

@@ -11,7 +11,7 @@ import com.esotericsoftware.colors.Colors.xy;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class SpectralLocus {
-	/** 64 wavelength, u', v' entries from CIE 1931 2 degree data at 1nm with colinear points in u'v' space removed. */
+	/** 64 wavelength, u', v' entries from CIE 1931 2 degree data at 1nm with colinear points in u'v' space removed, 380-700nm. */
 	static public final float[] points = {380, 0.2568657f, 0.016464427f, 394, 0.25605628f, 0.016393442f, 399, 0.25582084f,
 		0.015968513f, 404, 0.25540012f, 0.015835252f, 415, 0.2536536f, 0.016018247f, 422, 0.25127298f, 0.017623201f, 426,
 		0.24901703f, 0.019670222f, 434, 0.24221061f, 0.026608719f, 442, 0.23176162f, 0.03814886f, 454, 0.20605913f, 0.06581993f,
@@ -82,9 +82,8 @@ public class SpectralLocus {
 	static public float dominantWavelength (uv color, XYZ whitePoint) {
 		float cu = color.u(), cv = color.v();
 		uv wuv = Colors.uv(Colors.xy(whitePoint));
-		float wu = wuv.u(), wv = wuv.v();
-		if (Math.abs(cu - wu) < EPSILON && Math.abs(cv - wv) < EPSILON) return Float.NaN; // Achromatic (on white point).
-		float dx = cu - wu, dy = cv - wv;
+		float wu = wuv.u(), wv = wuv.v(), dx = cu - wu, dy = cv - wv;
+		if (Math.abs(dx) < EPSILON && Math.abs(dy) < EPSILON) return Float.NaN; // Achromatic (on white point).
 		// Spectral locus intersections.
 		float w1 = points[0], w2, bestWavelength = Float.NaN, bestDistance = Integer.MAX_VALUE;
 		float u1 = points[1], v1 = points[2], u2, v2;
@@ -92,8 +91,7 @@ public class SpectralLocus {
 			w2 = points[i];
 			u2 = points[i + 1];
 			v2 = points[i + 2];
-			float sx = u2 - u1, sy = v2 - v1;
-			float denom = dx * sy - dy * sx;
+			float sx = u2 - u1, sy = v2 - v1, denom = dx * sy - dy * sx;
 			if (Math.abs(denom) < EPSILON) continue; // Parallel lines
 			float distance = ((u1 - wu) * sy - (v1 - wv) * sx) / denom;
 			if (distance < 0) continue; // Intersection is in wrong direction.
@@ -109,11 +107,10 @@ public class SpectralLocus {
 		int lastIndex = points.length - 3; // Purple line connects violet (first point) to red (second-to-last point).
 		float violetU = points[1], violetV = points[2];
 		float redU = points[lastIndex - 2], redV = points[lastIndex - 1];
-		float px = redU - violetU, py = redV - violetV;
-		float purpleDenom = dx * py - dy * px;
-		if (Math.abs(purpleDenom) > EPSILON) {
-			float t = ((violetU - wu) * py - (violetV - wv) * px) / purpleDenom;
-			float s = ((violetU - wu) * dy - (violetV - wv) * dx) / purpleDenom;
+		float px = redU - violetU, py = redV - violetV, denom = dx * py - dy * px;
+		if (Math.abs(denom) > EPSILON) {
+			float t = ((violetU - wu) * py - (violetV - wv) * px) / denom;
+			float s = ((violetU - wu) * dy - (violetV - wv) * dx) / denom;
 			if (t > 0 && s >= 0 && s <= 1 && t < bestDistance) return -(380 + s * (700 - 380)); // Interpolate on the opposite side.
 		}
 		return bestWavelength;
@@ -130,8 +127,8 @@ public class SpectralLocus {
 	static public float excitationPurity (uv color, XYZ whitePoint) {
 		float cu = color.u(), cv = color.v();
 		uv wuv = Colors.uv(Colors.xy(whitePoint));
-		float wu = wuv.u(), wv = wuv.v();
-		float colorDist = (float)Math.sqrt((cu - wu) * (cu - wu) + (cv - wv) * (cv - wv)); // White point to color.
+		float wu = wuv.u(), wv = wuv.v(), dx = cu - wu, dy = cv - wv;
+		float colorDist = (float)Math.sqrt(dx * dx + dy * dy); // White point to color.
 		if (colorDist < EPSILON) return 0; // Achromatic (on white point).
 		float wavelength = dominantWavelength(color, whitePoint);
 		if (Float.isNaN(wavelength)) return Float.NaN;
@@ -139,20 +136,20 @@ public class SpectralLocus {
 		if (wavelength > 0)
 			locusPoint = uv(wavelength);
 		else { // Complementary wavelength.
-			locusPoint = purpleLineIntersection(cu - wu, cv - wv, wu, wv);
+			locusPoint = purpleLineIntersection(dx, dy, wu, wv);
 			if (Float.isNaN(locusPoint.u())) return Float.NaN;
 		}
-		float locusDist = (float)Math // White point to locus.
-			.sqrt((locusPoint.u() - wu) * (locusPoint.u() - wu) + (locusPoint.v() - wv) * (locusPoint.v() - wv));
+		dx = locusPoint.u() - wu;
+		dy = locusPoint.v() - wv;
+		float locusDist = (float)Math.sqrt(dx * dx + dy * dy); // White point to locus.
 		return Math.min(colorDist / locusDist, 1);
 	}
 
 	static private uv purpleLineIntersection (float dx, float dy, float wu, float wv) {
-		int lastIdx = points.length - 3;
+		int lastIndex = points.length - 3;
 		float u1 = points[1], v1 = points[2]; // Violet end.
-		float u2 = points[lastIdx - 2], v2 = points[lastIdx - 1]; // Red end.
-		float sx = u2 - u1, sy = v2 - v1;
-		float denom = dx * sy - dy * sx;
+		float u2 = points[lastIndex - 2], v2 = points[lastIndex - 1]; // Red end.
+		float sx = u2 - u1, sy = v2 - v1, denom = dx * sy - dy * sx;
 		if (Math.abs(denom) < EPSILON) return new uv(Float.NaN, Float.NaN); // Parallel lines.
 		float t = ((u1 - wu) * sy - (v1 - wv) * sx) / denom;
 		if (t < 0) return new uv(Float.NaN, Float.NaN); // Wrong direction.

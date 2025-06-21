@@ -5,8 +5,8 @@ import static com.esotericsoftware.colors.Util.*;
 
 import java.lang.reflect.RecordComponent;
 
-import com.esotericsoftware.colors.Colors.CAM16;
 import com.esotericsoftware.colors.Util.ACESccUtil;
+import com.esotericsoftware.colors.Util.CCTUtil;
 import com.esotericsoftware.colors.Util.HCTUtil;
 import com.esotericsoftware.colors.Util.HSLUtil;
 import com.esotericsoftware.colors.Util.HSLuvUtil;
@@ -138,15 +138,29 @@ public class Colors {
 		return CCT(xy(uv));
 	}
 
-	/** @return CCT [1667..25000K], or NaN if outside valid range. */
+	/** @return CCT [1667..25000K] or NaN if invalid. */
+	static public float CCT (uv1960 uv) {
+		return CCT(xy(uv));
+	}
+
+	/** <0.5K error, 0.021K average at <7000K. <1.1K error, 0.065K average at <14000K. <4.9K error, 0.3K average at <25000K.
+	 * @return CCT [1667..25000K] or NaN if outside valid range. */
 	static public float CCT (xy xy) {
 		float x = xy.x, y = xy.y;
 		if (x < 0.25f || x > 0.565f || y < 0.20f || y > 0.45f) return Float.NaN;
-		float d = 0.1858f - y;
-		if (Math.abs(d) < EPSILON) return Float.NaN;
-		float n = (x - 0.3320f) / d; // McCamy's approximation.
-		float CCT = 449 * n * n * n + 3525 * n * n + 6823.3f * n + 5520.33f;
+		float n = (x - 0.3320f) / (0.1858f - y);
+		float CCT = 449 * n * n * n + 3525 * n * n + 6823.3f * n + 5520.33f; // McCamy initial guess.
 		if (CCT < 1667 || CCT > 25000) return Float.NaN;
+		float adjust = CCT < 7000 ? 0.000489f : (CCT < 15000 ? 0.0024f : 0.00095f);
+		for (int i = 0; i < 3; i++) {
+			xy current = xy(CCT, 0);
+			float ex = x - current.x, ey = y - current.y;
+			if (ex * ex + ey * ey < 1e-10f) break;
+			float h = CCT * adjust;
+			xy next = xy(CCT + h, 0);
+			float tx = (next.x - current.x) / h, ty = (next.y - current.y) / h;
+			CCT += (ex * tx + ey * ty) / (tx * tx + ty * ty);
+		}
 		return CCT;
 	}
 
@@ -208,8 +222,7 @@ public class Colors {
 		if (L > 100 - EPSILON) return new HSLuv(H, 0, 100);
 		if (L < EPSILON) return new HSLuv(H, 0, 0);
 		float maxChroma = HSLuvUtil.maxChromaForLH(L, H);
-		float S = maxChroma < EPSILON ? 0 : Math.min(100, (C / maxChroma) * 100);
-		return new HSLuv(H, S, L);
+		return new HSLuv(H, maxChroma < EPSILON ? 0 : Math.min(100, (C / maxChroma) * 100), L);
 	}
 
 	static public HSV HSV (RGB rgb) {
@@ -224,8 +237,7 @@ public class Colors {
 			H = ((b - r) / delta + 2) * 60;
 		else if (max == b) //
 			H = ((r - g) / delta + 4) * 60;
-		float S = delta < EPSILON ? 0 : delta / max;
-		return new HSV(H, S, max);
+		return new HSV(H, delta < EPSILON ? 0 : delta / max, max);
 	}
 
 	/** @return NaN if invalid. */
@@ -238,9 +250,7 @@ public class Colors {
 		float X = xyz.X, Y = xyz.Y, Z = xyz.Z;
 		if (Y < EPSILON) return new HunterLab(0, 0, 0);
 		float sqrt = (float)Math.sqrt(Y);
-		float a = 17.5f * ((1.02f * X - Y) / sqrt);
-		float b = 7 * ((Y - 0.847f * Z) / sqrt);
-		return new HunterLab(10 * sqrt, a, b);
+		return new HunterLab(10 * sqrt, 17.5f * ((1.02f * X - Y) / sqrt), 7 * ((Y - 0.847f * Z) / sqrt));
 	}
 
 	/** @return IHS color space normalized or NaN if invalid. */
@@ -276,18 +286,16 @@ public class Colors {
 		float L = ITPUtil.PQ_EOTF_inverse((1688f / 4096f) * r2020 + (2146f / 4096f) * g2020 + (262f / 4096f) * b2020);
 		float M = ITPUtil.PQ_EOTF_inverse((683f / 4096f) * r2020 + (2951f / 4096f) * g2020 + (462f / 4096f) * b2020);
 		float S = ITPUtil.PQ_EOTF_inverse((99f / 4096f) * r2020 + (309f / 4096f) * g2020 + (3688f / 4096f) * b2020);
-		float I = 0.5f * L + 0.5f * M + 0f * S; // L'M'S' to ITP.
-		float Ct = 1.613769531f * L + -3.323486328f * M + 1.709716797f * S;
-		float Cp = 4.378173828f * L + -4.245605469f * M + -0.132568359f * S;
-		return new ITP(I, Ct, Cp);
+		return new ITP( //
+			0.5f * L + 0.5f * M + 0f * S, // L'M'S' to ITP.
+			1.613769531f * L + -3.323486328f * M + 1.709716797f * S, //
+			4.378173828f * L + -4.245605469f * M + -0.132568359f * S);
 	}
 
 	static public Lab Lab (LCh lch) {
 		float L = lch.L, C = lch.C, h = lch.h;
 		if (C < EPSILON || Float.isNaN(h)) return new Lab(L, 0, 0);
-		float a = C * (float)Math.cos(h * degRad);
-		float b = C * (float)Math.sin(h * degRad);
-		return new Lab(L, a, b);
+		return new Lab(L, C * (float)Math.cos(h * degRad), C * (float)Math.sin(h * degRad));
 	}
 
 	/** Uses {@link Illuminant.CIE2#D65}. */
@@ -311,10 +319,7 @@ public class Colors {
 		X = X > LabUtil.e ? (float)Math.pow(X, 1 / 3d) : (LabUtil.k * X + 16) / 116;
 		Y = Y > LabUtil.e ? (float)Math.pow(Y, 1 / 3d) : (LabUtil.k * Y + 16) / 116;
 		Z = Z > LabUtil.e ? (float)Math.pow(Z, 1 / 3d) : (LabUtil.k * Z + 16) / 116;
-		float L = 116 * Y - 16;
-		float a = 500 * (X - Y);
-		float b = 200 * (Y - Z);
-		return new Lab(L, a, b);
+		return new Lab(116 * Y - 16, 500 * (X - Y), 200 * (Y - Z));
 	}
 
 	/** Uses {@link Illuminant.CIE2#D65}.
@@ -343,26 +348,21 @@ public class Colors {
 		if (divisor < EPSILON || divisorN < EPSILON) return new Luv(L, Float.NaN, Float.NaN);
 		float u_prime = 4 * X / divisor, v_prime = 9 * Y / divisor;
 		float un_prime = 4 * Xn / divisorN, vn_prime = 9 * Yn / divisorN;
-		float u = 13 * L * (u_prime - un_prime);
-		float v = 13 * L * (v_prime - vn_prime);
-		return new Luv(L, u, v);
+		return new Luv(L, 13 * L * (u_prime - un_prime), 13 * L * (v_prime - vn_prime));
 	}
 
 	static public Luv Luv (LCHuv lch) {
 		float L = lch.L, C = lch.C, H = lch.H;
 		if (C < EPSILON || Float.isNaN(H)) return new Luv(L, 0, 0);
 		float rad = H * degRad;
-		float u = C * (float)Math.cos(rad);
-		float v = C * (float)Math.sin(rad);
-		return new Luv(L, u, v);
+		return new Luv(L, C * (float)Math.cos(rad), C * (float)Math.sin(rad));
 	}
 
 	static public LCHuv LCHuv (Luv luv) {
 		float L = luv.L, u = luv.u, v = luv.v;
 		float C = (float)Math.sqrt(u * u + v * v);
 		float H = C < EPSILON ? Float.NaN : (float)Math.atan2(v, u) * radDeg;
-		if (H < 0) H += 360;
-		return new LCHuv(L, C, H);
+		return new LCHuv(L, C, H < 0 ? H + 360 : H);
 	}
 
 	static public LCh LCh (Lab Lab) {
@@ -544,10 +544,10 @@ public class Colors {
 
 	static public RGB RGB (ACEScg aces) {
 		float r = aces.r, g = aces.g, b = aces.b;
-		float rLin = 1.70482663f * r + -0.62151743f * g + -0.08330920f * b; // From AP1.
-		float gLin = -0.13028185f * r + 1.14085365f * g + -0.01057180f * b;
-		float bLin = -0.02400720f * r + -0.12895973f * g + 1.15296693f * b;
-		return new RGB(sRGB(rLin), sRGB(gLin), sRGB(bLin));
+		float rLinear = 1.70482663f * r + -0.62151743f * g + -0.08330920f * b; // From AP1.
+		float gLinear = -0.13028185f * r + 1.14085365f * g + -0.01057180f * b;
+		float bLinear = -0.02400720f * r + -0.12895973f * g + 1.15296693f * b;
+		return new RGB(sRGB(rLinear), sRGB(gLinear), sRGB(bLinear));
 	}
 
 	/** Uses {@link CAM16.VC#sRGB}. */
@@ -568,26 +568,18 @@ public class Colors {
 		return RGB(CAM16(ucs, vc), vc);
 	}
 
-	/** CCT for Y=33.
-	 * @param CCT [1667..25000K] */
-	static public RGB RGB (float CCT, float Duv) {
-		return RGB(CCT, Duv, 33);
-	}
-
 	/** @param CCT [1667..25000K]
-	 * @param Y > 33 clips R.
 	 * @return NaN if invalid. */
-	static public RGB RGB (float CCT, float Duv, float Y) {
-		xy xy = Math.abs(Duv) < EPSILON ? xy(CCT) : xy(uv1960(CCT, Duv));
-		RGB rgb = RGB(XYZ(new xyY(xy.x, xy.y, Y)));
-		float max = max(rgb.r, rgb.g, rgb.b);
-		if (max > 1) rgb = new RGB(rgb.r / max, rgb.g / max, rgb.b / max);
-		return new RGB(Math.max(0, rgb.r), Math.max(0, rgb.g), Math.max(0, rgb.b));
+	static public RGB RGB (float CCT, float Duv) {
+		return RGB(xy(CCT, Duv));
 	}
 
 	static public RGB RGB (CMYK CMYK) {
 		float C = CMYK.C, M = CMYK.M, Y = CMYK.Y, K = CMYK.K;
-		return new RGB((1 - C) * (1 - K), (1 - M) * (1 - K), (1 - Y) * (1 - K));
+		return new RGB( //
+			(1 - C) * (1 - K), //
+			(1 - M) * (1 - K), //
+			(1 - Y) * (1 - K));
 	}
 
 	static public RGB RGB (HSI HSI) {
@@ -873,27 +865,29 @@ public class Colors {
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
+	/** @return NaN if invalid. */
+	static public RGB RGB (uv1960 uv1960) {
+		return RGB(xy(uv1960));
+	}
+
 	/** Uses {@link Gamut#sRGB}.
 	 * @return Normalized or NaN if invalid. */
 	static public RGB RGB (xy xy) {
-		RGB rgb = RGB(xy, 1, Gamut.sRGB);
-		float max = max(rgb.r, rgb.g, rgb.b);
-		if (max == 0) return rgb;
-		return new RGB(rgb.r / max, rgb.g / max, rgb.b / max);
+		return RGB(xy, Gamut.sRGB);
 	}
 
 	/** @return NaN if invalid. */
-	static public RGB RGB (xy xy, float Y, Gamut gamut) {
+	static public RGB RGB (xy xy, Gamut gamut) {
 		xy = gamut.clamp(xy);
 		if (xy.y < EPSILON) return new RGB(Float.NaN, Float.NaN, Float.NaN);
 		float X = xy.x / xy.y;
 		float Z = (1 - xy.x - xy.y) / xy.y;
 		float[][] xyzToRGB = gamut.XYZ_RGB;
-		float r = xyzToRGB[0][0] * X + xyzToRGB[0][1] * Y + xyzToRGB[0][2] * Z;
-		float g = xyzToRGB[1][0] * X + xyzToRGB[1][1] * Y + xyzToRGB[1][2] * Z;
-		float b = xyzToRGB[2][0] * X + xyzToRGB[2][1] * Y + xyzToRGB[2][2] * Z;
+		float r = xyzToRGB[0][0] * X + xyzToRGB[0][1] + xyzToRGB[0][2] * Z; // Y=1.
+		float g = xyzToRGB[1][0] * X + xyzToRGB[1][1] + xyzToRGB[1][2] * Z;
+		float b = xyzToRGB[2][0] * X + xyzToRGB[2][1] + xyzToRGB[2][2] * Z;
 		float max = max(r, g, b);
-		if (max > 1) {
+		if (max > 0) {
 			r /= max;
 			g /= max;
 			b /= max;
@@ -903,10 +897,9 @@ public class Colors {
 
 	static public RGB RGB (XYZ XYZ) {
 		float X = XYZ.X / 100, Y = XYZ.Y / 100, Z = XYZ.Z / 100;
-		float r = 3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z;
-		float g = -0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z;
-		float b = 0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z;
-		return new RGB(sRGB(clamp(r)), sRGB(clamp(g)), sRGB(clamp(b)));
+		return new RGB(sRGB(clamp(3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z)),
+			sRGB(clamp(-0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z)),
+			sRGB(clamp(0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z)));
 	}
 
 	static public RGB RGB (YCbCr YCbCr, YCbCrColorSpace colorSpace) {
@@ -1140,61 +1133,67 @@ public class Colors {
 		float x = xy.x, y = xy.y;
 		float denom = -2 * x + 12 * y + 3;
 		if (Math.abs(denom) < EPSILON) return new uv(Float.NaN, Float.NaN);
-		float u = 4 * x / denom;
-		float v = 9 * y / denom;
-		return new uv(u, v);
-	}
-
-	/** @return NaN if invalid. */
-	static public float Duv (xy color) {
-		uv1960 uv = uv1960(color);
-		float cct = CCT(uv(color));
-		float delta = Math.min(50, cct * 0.01f);
-		xy bb1 = xy(Math.max(1667, cct - delta));
-		xy bb2 = xy(Math.min(25000, cct + delta));
-		uv1960 uv1 = uv1960(bb1), uv2 = uv1960(bb2);
-		float du = uv2.u - uv1.u, dv = uv2.v - uv1.v;
-		float length = (float)Math.sqrt(du * du + dv * dv);
-		if (length > 0) {
-			du /= length;
-			dv /= length;
-		}
-		float perpU = -dv, perpV = du;
-		uv1960 uvbb = uv1960(xy(cct));
-		du = uv.u - uvbb.u;
-		dv = uv.v - uvbb.v;
-		return du * perpU + dv * perpV;
-	}
-
-	/** @return NaN if invalid. */
-	static public float MacAdamSteps (xy color1, xy color2) {
-		uv1960 uv1 = uv1960(color1), uv2 = uv1960(color2);
-		float du = uv1.u - uv2.u, dv = uv1.v - uv2.v;
-		return (float)Math.sqrt(du * du + dv * dv) / 0.0011f;
+		return new uv(4 * x / denom, 9 * y / denom);
 	}
 
 	/** @param CCT [1667..25000K]
 	 * @return NaN if invalid. */
-	static public uv1960 uv1960 (float CCT) {
-		return uv1960(xy(CCT));
+	static public uv uv (float CCT, float Duv) {
+		return uv(xy(CCT, Duv));
+	}
+
+	/** @return NaN if invalid. */
+	static public float MacAdamSteps (uv1960 uv1, uv1960 uv2) {
+		float du = uv1.u - uv2.u, dv = uv1.v - uv2.v;
+		return (float)Math.sqrt(du * du + dv * dv) / 0.0011f;
+	}
+
+	/** @return NaN if invalid. */
+	static public float MacAdamSteps (uv color1, uv color2) {
+		return MacAdamSteps(uv1960(color1), uv1960(color2));
+	}
+
+	/** @return NaN if invalid. */
+	static public float MacAdamSteps (xy color1, xy color2) {
+		return MacAdamSteps(uv1960(color1), uv1960(color2));
+	}
+
+	/** @return NaN if invalid. */
+	static public float MacAdamSteps (RGB color1, RGB color2) {
+		return MacAdamSteps(uv1960(color1), uv1960(color2));
+	}
+
+	/** @return NaN if invalid. */
+	static public float Duv (RGB rgb) {
+		return Duv(xy(rgb));
+	}
+
+	/** @return NaN if invalid. */
+	static public float Duv (uv uv) {
+		return Duv(xy(uv));
+	}
+
+	/** @return NaN if invalid. */
+	static public float Duv (uv1960 uv) {
+		return Duv(xy(uv));
+	}
+
+	/** @return NaN if invalid. */
+	static public float Duv (xy xy) {
+		float CCT = CCT(xy);
+		xy xyBB = xy(CCT, 0);
+		uv1960 perp = CCTUtil.perpendicular(CCT, xyBB), uvBB = uv1960(xyBB), uv = uv1960(xy);
+		return (uv.u - uvBB.u) * perp.u + (uv.v - uvBB.v) * perp.v;
 	}
 
 	/** @param CCT [1667..25000K]
 	 * @return NaN if invalid. */
 	static public uv1960 uv1960 (float CCT, float Duv) {
-		// The isothermal lines in CIE 1960 are approximately perpendicular to the locus.
-		// Find the slope of the locus at this CCT using forward difference to get the perpendicular.
-		uv1960 uv = uv1960(CCT);
-		uv1960 uvNext = uv1960(CCT + 10); // Small temperature change for derivative.
-		// Perpendicular vector (rotate 90 degrees).
-		float perpU = uv.v - uvNext.v;
-		float perpV = uvNext.u - uv.u;
-		// Normalize the perpendicular vector.
-		float length = (float)Math.sqrt(perpU * perpU + perpV * perpV);
-		if (length < EPSILON) return new uv1960(Float.NaN, Float.NaN); // Cannot determine perpendicular.
-		perpU /= length;
-		perpV /= length;
-		return new uv1960(uv.u + perpU * Duv, uv.v + perpV * Duv);
+		return uv1960(xy(CCT, Duv));
+	}
+
+	static public uv1960 uv1960 (RGB rgb) {
+		return uv1960(xy(rgb));
 	}
 
 	static public uv1960 uv1960 (uv uv) {
@@ -1206,27 +1205,30 @@ public class Colors {
 		float x = xy.x, y = xy.y;
 		float denom = -2 * x + 12 * y + 3;
 		if (Math.abs(denom) < EPSILON) return new uv1960(Float.NaN, Float.NaN);
-		float u = 4 * x / denom;
-		float v = 6 * y / denom;
-		return new uv1960(u, v);
+		return new uv1960(4 * x / denom, 6 * y / denom);
 	}
 
 	/** @param CCT [1667..25000K]
-	 * @return xy chromaticity, or NaN if CCT is outside valid range. */
-	static public xy xy (float CCT) {
+	 * @return NaN if invalid. */
+	static public xy xy (float CCT, float Duv) {
 		if (CCT < 1667 || CCT > 25000) return new xy(Float.NaN, Float.NaN);
-		float x;
+		float x, t2 = CCT * CCT; // Krystek's approximation.
 		if (CCT >= 1667 && CCT <= 4000)
-			x = -0.2661239f * 1e9f / (CCT * CCT * CCT) - 0.2343589f * 1e6f / (CCT * CCT) + 0.8776956f * 1e3f / CCT + 0.179910f;
+			x = -0.2661239f * 1e9f / (t2 * CCT) - 0.2343589f * 1e6f / t2 + 0.8776956f * 1e3f / CCT + 0.179910f;
 		else // CCT > 4000 && CCT <= 25000
-			x = -3.0258469f * 1e9f / (CCT * CCT * CCT) + 2.1070379f * 1e6f / (CCT * CCT) + 0.2226347f * 1e3f / CCT + 0.240390f;
-		float y;
+			x = -3.0258469f * 1e9f / (t2 * CCT) + 2.1070379f * 1e6f / t2 + 0.2226347f * 1e3f / CCT + 0.240390f;
+		float y, xx = x * x;
 		if (CCT >= 1667 && CCT <= 2222)
-			y = -1.1063814f * x * x * x - 1.34811020f * x * x + 2.18555832f * x - 0.20219683f;
+			y = -1.1063814f * xx * x - 1.34811020f * xx + 2.18555832f * x - 0.20219683f;
 		else if (CCT > 2222 && CCT <= 4000)
-			y = -0.9549476f * x * x * x - 1.37418593f * x * x + 2.09137015f * x - 0.16748867f;
+			y = -0.9549476f * xx * x - 1.37418593f * xx + 2.09137015f * x - 0.16748867f;
 		else // CCT > 4000 && CCT <= 25000
-			y = 3.0817580f * x * x * x - 5.87338670f * x * x + 3.75112997f * x - 0.37001483f;
+			y = 3.0817580f * xx * x - 5.87338670f * xx + 3.75112997f * x - 0.37001483f;
+		if (Duv != 0) {
+			xy xyBB = new xy(x, y);
+			uv1960 perp = CCTUtil.perpendicular(CCT, xyBB), uvBB = uv1960(xyBB);
+			return xy(new uv1960(uvBB.u + perp.u * Duv, uvBB.v + perp.v * Duv));
+		}
 		return new xy(x, y);
 	}
 
@@ -1235,9 +1237,7 @@ public class Colors {
 		float u = uv.u, v = uv.v;
 		float denom = 6 * u - 16 * v + 12;
 		if (Math.abs(denom) < EPSILON) return new xy(Float.NaN, Float.NaN);
-		float x = 9 * u / denom;
-		float y = 4 * v / denom;
-		return new xy(x, y);
+		return new xy(9 * u / denom, 4 * v / denom);
 	}
 
 	/** @return NaN if invalid. */
@@ -1245,10 +1245,7 @@ public class Colors {
 		float u = uv.u, v = uv.v;
 		float denom = 2 + u - 4 * v;
 		if (Math.abs(denom) < EPSILON) return new xy(Float.NaN, Float.NaN);
-		float D = 6 / denom;
-		float x = u * D / 4;
-		float y = v * D / 6;
-		return new xy(x, y);
+		return new xy(u * 1.5f / denom, v / denom);
 	}
 
 	/** @return NaN if invalid. */
@@ -1302,10 +1299,9 @@ public class Colors {
 		float gC = Math.signum(gA) * (100 / vc.FL) * (float)Math.pow(gCBase, 1.0 / 0.42);
 		float bC = Math.signum(bA) * (100 / vc.FL) * (float)Math.pow(bCBase, 1.0 / 0.42);
 		float rF = rC / vc.rgbD[0], gF = gC / vc.rgbD[1], bF = bC / vc.rgbD[2];
-		float X = (rF * 1.8620678f) + (gF * -1.0112547f) + (bF * 0.14918678f);
-		float Y = (rF * 0.38752654f) + (gF * 0.62144744f) + (bF * -0.00897398f);
-		float Z = (rF * -0.01584150f) + (gF * -0.03412294f) + (bF * 1.0499644f);
-		return new XYZ(X, Y, Z);
+		return new XYZ((rF * 1.8620678f) + (gF * -1.0112547f) + (bF * 0.14918678f),
+			(rF * 0.38752654f) + (gF * 0.62144744f) + (bF * -0.00897398f),
+			(rF * -0.01584150f) + (gF * -0.03412294f) + (bF * 1.0499644f));
 	}
 
 	static public XYZ XYZ (HunterLab lab) {
@@ -1314,9 +1310,7 @@ public class Colors {
 		float tempX = a / 17.5f * L / 10;
 		float tempZ = b / 7 * L / 10;
 		float Y = tempY * tempY;
-		float X = (tempX + Y) / 1.02f;
-		float Z = -(tempZ - Y) / 0.847f;
-		return new XYZ(X, Y, Z);
+		return new XYZ((tempX + Y) / 1.02f, Y, -(tempZ - Y) / 0.847f);
 	}
 
 	/** @param tristimulus See {@link Illuminant}. */
@@ -1416,9 +1410,10 @@ public class Colors {
 	/** @return NaN X and Z if y is 0. */
 	static public XYZ XYZ (xyY xyY) {
 		if (xyY.y < EPSILON) return new XYZ(Float.NaN, xyY.Y, Float.NaN);
-		float X = xyY.x * xyY.Y / xyY.y;
-		float Z = (1 - xyY.x - xyY.y) * xyY.Y / xyY.y;
-		return new XYZ(X, xyY.Y, Z);
+		return new XYZ( //
+			xyY.x * xyY.Y / xyY.y, //
+			xyY.Y, //
+			(1 - xyY.x - xyY.y) * xyY.Y / xyY.y);
 	}
 
 	static public YCbCr YCbCr (RGB rgb, YCbCrColorSpace colorSpace) {
@@ -1438,42 +1433,42 @@ public class Colors {
 
 	static public YCC YCC (RGB rgb) {
 		float r = rgb.r, g = rgb.g, b = rgb.b;
-		float Y = 0.213f * r + 0.419f * g + 0.081f * b;
-		float C1 = -0.131f * r - 0.256f * g + 0.387f * b + 0.612f;
-		float C2 = 0.373f * r - 0.312f * g - 0.061f * b + 0.537f;
-		return new YCC(Y, C1, C2);
+		return new YCC( //
+			0.213f * r + 0.419f * g + 0.081f * b, //
+			-0.131f * r - 0.256f * g + 0.387f * b + 0.612f, //
+			0.373f * r - 0.312f * g - 0.061f * b + 0.537f);
 	}
 
 	static public YCoCg YCoCg (RGB rgb) {
 		float r = rgb.r, g = rgb.g, b = rgb.b;
-		float Y = r / 4 + g / 2 + b / 4;
-		float Co = r / 2 - b / 2;
-		float Cg = -r / 4 + g / 2 - b / 4;
-		return new YCoCg(Y, Co, Cg);
+		return new YCoCg( //
+			r / 4 + g / 2 + b / 4, //
+			r / 2 - b / 2, //
+			-r / 4 + g / 2 - b / 4);
 	}
 
 	static public YES YES (RGB rgb) {
 		float r = rgb.r, g = rgb.g, b = rgb.b;
-		float Y = r * 0.253f + g * 0.684f + b * 0.063f;
-		float E = r * 0.500f + g * -0.500f;
-		float S = r * 0.250f + g * 0.250f + b * -0.5f;
-		return new YES(Y, E, S);
+		return new YES( //
+			r * 0.253f + g * 0.684f + b * 0.063f, //
+			r * 0.500f + g * -0.500f, //
+			r * 0.250f + g * 0.250f + b * -0.5f);
 	}
 
 	static public YIQ YIQ (RGB rgb) {
 		float r = rgb.r, g = rgb.g, b = rgb.b;
-		float Y = 0.299f * r + 0.587f * g + 0.114f * b;
-		float I = 0.595716f * r - 0.274453f * g - 0.321263f * b;
-		float Q = 0.211456f * r - 0.522591f * g + 0.311135f * b;
-		return new YIQ(Y, I, Q);
+		return new YIQ( //
+			0.299f * r + 0.587f * g + 0.114f * b, //
+			0.595716f * r - 0.274453f * g - 0.321263f * b, //
+			0.211456f * r - 0.522591f * g + 0.311135f * b);
 	}
 
 	static public YUV YUV (RGB rgb) {
 		float r = rgb.r, g = rgb.g, b = rgb.b;
-		float Y = 0.299f * r + 0.587f * g + 0.114f * b;
-		float U = -0.147141f * r - 0.288869f * g + 0.436010f * b;
-		float V = 0.614975f * r - 0.514965f * g - 0.100010f * b;
-		return new YUV(Y, U, V);
+		return new YUV( //
+			0.299f * r + 0.587f * g + 0.114f * b, //
+			-0.147141f * r - 0.288869f * g + 0.436010f * b, //
+			0.614975f * r - 0.514965f * g - 0.100010f * b);
 	}
 
 	static public float max (float a, float b, float c) {
@@ -1837,14 +1832,7 @@ public class Colors {
 		/** Red-green component (a*) [-50..50]. */
 		float a,
 		/** Yellow-blue component (b*) [-50..50]. */
-		float b) {
-
-		/** Perceptual color difference. */
-		public float distance (CAM16UCS other) {
-			float dJ = this.J - other.J, da = this.a - other.a, db = this.b - other.b;
-			return 1.41f * (float)Math.pow(Math.sqrt(dJ * dJ + da * da + db * db), 0.63);
-		}
-	}
+		float b) {}
 
 	/** Subtractive color model for printing. */
 	public record CMYK (
