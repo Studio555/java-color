@@ -422,9 +422,65 @@ int dmx8bit = dmx8(0.5f);    // 128
 int dmx16bit = dmx16(0.5f);  // 32767
 ```
 
+## Spectral Locus
+
+Utilities are provided for working with spectral colors and the visible spectrum boundary.
+
+![](uv.png)
+
+### Wavelength to Chromaticity
+```java
+// Convert wavelength (380-700nm) to CIE u'v' coordinates
+uv color550nm = SpectralLocus.uv(550);  // Green at 550nm
+xy color550nmXY = SpectralLocus.xy(550);  // Same in xy space
+
+// Get exact spectral colors
+uv red = SpectralLocus.uv(700);    // Deep red
+uv blue = SpectralLocus.uv(450);   // Blue
+uv green = SpectralLocus.uv(550);  // Green
+```
+
+### Spectrum Boundary Testing
+```java
+// Check if a color is within the visible spectrum
+uv testColor = uv(rgb);
+boolean visible = SpectralLocus.contains(testColor);
+
+// Colors outside the spectral locus are not physically realizable
+boolean impossible = SpectralLocus.contains(new uv(0.8f, 0.8f)); // false
+```
+
+### Dominant Wavelength
+```java
+// Find the dominant wavelength of any color
+uv color = uv(new RGB(0, 1, 0));  // Green RGB
+float wavelength = SpectralLocus.dominantWavelength(color);  // ~550nm
+
+// Purple/magenta colors return negative complementary wavelengths
+uv magenta = uv(new RGB(1, 0, 1));
+float purpleWave = SpectralLocus.dominantWavelength(magenta);  // Negative value
+
+// Use custom white point
+float wavelength2 = SpectralLocus.dominantWavelength(color, Illuminant.CIE2.A);
+```
+
+### Excitation Purity
+```java
+// Measure color saturation (0 = white, 1 = pure spectral color)
+float purity = SpectralLocus.excitationPurity(color);
+
+// Gray has low purity
+uv gray = uv(new RGB(0.5f, 0.5f, 0.5f));
+float grayPurity = SpectralLocus.excitationPurity(gray);  // < 0.1
+
+// Saturated colors have high purity
+uv saturated = uv(new RGB(1, 0, 0));
+float redPurity = SpectralLocus.excitationPurity(saturated);  // > 0.8
+```
+
 ## Standard Illuminants
 
-The library includes CIE standard illuminants for both 2° and 10° observers:
+CIE standard illuminants are included for both 2° and 10° observers:
 
 ```java
 // 2° observer

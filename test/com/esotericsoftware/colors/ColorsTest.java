@@ -902,7 +902,7 @@ public class ColorsTest {
 		String rgbStr = Colors.toString(rgb);
 		assertTrue(rgbStr.contains("0.5"), "toString contains R value");
 
-		String rgb255Str = Colors.toString255(rgb);
+		String rgb255Str = toString255(rgb);
 		assertTrue(rgb255Str.contains("128"), "toString255 contains R value scaled to 255");
 	}
 

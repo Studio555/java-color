@@ -11,7 +11,6 @@ import javax.imageio.ImageIO;
 import com.esotericsoftware.colors.Colors.CAM16;
 import com.esotericsoftware.colors.Colors.CAM16UCS;
 import com.esotericsoftware.colors.Colors.Lab;
-import com.esotericsoftware.colors.Colors.LinearRGB;
 import com.esotericsoftware.colors.Colors.Oklab;
 import com.esotericsoftware.colors.Colors.RGB;
 

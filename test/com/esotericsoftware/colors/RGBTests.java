@@ -22,6 +22,7 @@ import com.esotericsoftware.colors.Colors.Luv;
 import com.esotericsoftware.colors.Colors.RGB;
 import com.esotericsoftware.colors.Colors.RGBW;
 import com.esotericsoftware.colors.Colors.RGBWW;
+import com.esotericsoftware.colors.Colors.TSL;
 import com.esotericsoftware.colors.Colors.XYZ;
 import com.esotericsoftware.colors.Colors.xy;
 import com.esotericsoftware.colors.Colors.xyY;
@@ -72,8 +73,8 @@ public class RGBTests {
 
 		// Test the negative zero case
 		// When T = -0f, we should get a different result than T = 0f
-		var tsl1 = new Colors.TSL(0f, 0.5f, 0.5f);
-		var tsl2 = new Colors.TSL(-0f, 0.5f, 0.5f);
+		var tsl1 = new TSL(0f, 0.5f, 0.5f);
+		var tsl2 = new TSL(-0f, 0.5f, 0.5f);
 		RGB rgb1 = RGB(tsl1);
 		rgb2 = RGB(tsl2);
 		// The two results should be different due to the negative zero handling

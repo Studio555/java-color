@@ -290,7 +290,7 @@ public class Colors {
 		return new Lab(L, a, b);
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus. */
+	/** Uses {@link Illuminant.CIE2#D65}. */
 	static public Lab Lab (RGB rgb) {
 		return Lab(rgb, Illuminant.CIE2.D65);
 	}
@@ -300,7 +300,7 @@ public class Colors {
 		return Lab(XYZ(rgb), tristimulus);
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus. */
+	/** Uses {@link Illuminant.CIE2#D65}. */
 	static public Lab Lab (XYZ XYZ) {
 		return Lab(XYZ, Illuminant.CIE2.D65);
 	}
@@ -317,7 +317,7 @@ public class Colors {
 		return new Lab(L, a, b);
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus.
+	/** Uses {@link Illuminant.CIE2#D65}.
 	 * @return NaN if invalid. */
 	static public Luv Luv (RGB rgb) {
 		return Luv(XYZ(rgb), Illuminant.CIE2.D65);
@@ -328,7 +328,7 @@ public class Colors {
 		return Luv(XYZ(rgb), tristimulus);
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus.
+	/** Uses {@link Illuminant.CIE2#D65}.
 	 * @return NaN if invalid. */
 	static public Luv Luv (XYZ XYZ) {
 		return Luv(XYZ, Illuminant.CIE2.D65);
@@ -373,7 +373,7 @@ public class Colors {
 		return new LCh(L, C, h);
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus. */
+	/** Uses {@link Illuminant.CIE2#D65}. */
 	static public LCh LCh (RGB rgb) {
 		return LCh(rgb, Illuminant.CIE2.D65);
 	}
@@ -738,7 +738,7 @@ public class Colors {
 		return new RGB(sRGB(r), sRGB(g), sRGB(b));
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus. */
+	/** Uses {@link Illuminant.CIE2#D65}. */
 	static public RGB RGB (Lab Lab) {
 		return RGB(XYZ(Lab, Illuminant.CIE2.D65));
 	}
@@ -748,7 +748,7 @@ public class Colors {
 		return RGB(XYZ(Lab, tristimulus));
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus. */
+	/** Uses {@link Illuminant.CIE2#D65}. */
 	static public RGB RGB (LCh LCh) {
 		return RGB(Lab(LCh), Illuminant.CIE2.D65);
 	}
@@ -1361,7 +1361,7 @@ public class Colors {
 		return new XYZ(xyz[0], xyz[1], xyz[2]);
 	}
 
-	/** Uses the CIE 2-degree D65 tristimulus.
+	/** Uses {@link Illuminant.CIE2#D65}.
 	 * @return NaN if invalid. */
 	static public XYZ XYZ (Luv luv) {
 		return XYZ(luv, Illuminant.CIE2.D65);
@@ -1703,26 +1703,32 @@ public class Colors {
 	static public class Illuminant {
 		/** 2-degree Observer (CIE 1931) */
 		static public class CIE2 {
-			static public final XYZ A = new XYZ(109.850f, 100, 35.585f); // Incandescent.
+			/** Incandescent. */
+			static public final XYZ A = new XYZ(109.850f, 100, 35.585f);
 			static public final XYZ C = new XYZ(98.074f, 100, 118.232f);
 			static public final XYZ D50 = new XYZ(96.422f, 100, 82.521f);
 			static public final XYZ D55 = new XYZ(95.682f, 100, 92.149f);
-			static public final XYZ D65 = new XYZ(95.047f, 100, 108.883f); // Daylight.
+			/** Daylight. */
+			static public final XYZ D65 = new XYZ(95.047f, 100, 108.883f);
 			static public final XYZ D75 = new XYZ(94.972f, 100, 122.638f);
-			static public final XYZ F2 = new XYZ(99.187f, 100, 67.395f); // Fluorescent.
+			/** Fluorescent. */
+			static public final XYZ F2 = new XYZ(99.187f, 100, 67.395f);
 			static public final XYZ F7 = new XYZ(95.044f, 100, 108.755f);
 			static public final XYZ F11 = new XYZ(100.966f, 100, 64.370f);
 		}
 
 		/** 10-degree Observer (CIE 1964) */
 		static public class CIE10 {
-			static public final XYZ A = new XYZ(111.144f, 100, 35.200f); // Incandescent.
+			/** Incandescent. */
+			static public final XYZ A = new XYZ(111.144f, 100, 35.200f);
 			static public final XYZ C = new XYZ(97.285f, 100, 116.145f);
 			static public final XYZ D50 = new XYZ(96.720f, 100, 81.427f);
 			static public final XYZ D55 = new XYZ(95.799f, 100, 90.926f);
-			static public final XYZ D65 = new XYZ(94.811f, 100, 107.304f); // Daylight.
+			/** Daylight. */
+			static public final XYZ D65 = new XYZ(94.811f, 100, 107.304f);
 			static public final XYZ D75 = new XYZ(94.416f, 100, 120.641f);
-			static public final XYZ F2 = new XYZ(103.280f, 100, 69.026f); // Fluorescent.
+			/** Fluorescent. */
+			static public final XYZ F2 = new XYZ(103.280f, 100, 69.026f);
 			static public final XYZ F7 = new XYZ(95.792f, 100, 107.687f);
 			static public final XYZ F11 = new XYZ(103.866f, 100, 65.627f);
 		}
