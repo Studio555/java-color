@@ -153,12 +153,12 @@ public class RGBTests {
 			}
 		}
 
-		// Test xyXYZ with Y=1
+		// Test xyXYZ with Y=100
 		XYZ xyz = XYZ(new xy(0.3127f, 0.3290f)); // D65 white point
-		assertClose(1, xyz.Y(), "xyXYZ Y value", EPSILON_F);
+		assertClose(100, xyz.Y(), "xyXYZ Y value", EPSILON_F);
 
 		// Verify it produces the same ratios as XYZ
-		XYZ xyzFromxyY = XYZ(new xyY(0.3127f, 0.3290f, 1));
+		XYZ xyzFromxyY = XYZ(new xyY(0.3127f, 0.3290f, 100));
 		assertRecordClose(xyz, xyzFromxyY, "xyXYZ matches XYZ", EPSILON_F);
 	}
 

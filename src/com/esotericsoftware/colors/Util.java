@@ -356,66 +356,6 @@ public class Util {
 			float y = Y / 100;
 			return y > e ? 116 * (float)Math.pow(y, 1 / 3f) - 16 : k * y;
 		}
-
-		/** @return Color difference value (0 = identical colors, larger values = more different). */
-		static public float deltaE2000 (Lab lab1, Lab lab2) {
-			return deltaE2000(lab1, lab2, 1, 1, 1);
-		}
-
-		/** CIEDE2000 color difference.
-		 * @param kL Lightness weight.
-		 * @param kC Chroma weight.
-		 * @param kH Hue weight.
-		 * @return Color difference value (0 = identical colors, larger values = more different). */
-		static public float deltaE2000 (Lab lab1, Lab lab2, float kL, float kC, float kH) {
-			float L1 = lab1.L(), a1 = lab1.a(), b1 = lab1.b();
-			float L2 = lab2.L(), a2 = lab2.a(), b2 = lab2.b();
-			float C1 = (float)Math.sqrt(a1 * a1 + b1 * b1), C2 = (float)Math.sqrt(a2 * a2 + b2 * b2); // Chroma.
-			float Cab = (C1 + C2) / 2; // Average chroma.
-			float Cab7 = (float)Math.pow(Cab, 7);
-			float G = 0.5f * (1 - (float)Math.sqrt(Cab7 / (Cab7 + 6103515625f))); // 25^7
-			float a1p = (1 + G) * a1, a2p = (1 + G) * a2;
-			float C1p = (float)Math.sqrt(a1p * a1p + b1 * b1), C2p = (float)Math.sqrt(a2p * a2p + b2 * b2);
-			float h1p = (float)Math.atan2(b1, a1p) * radDeg, h2p = (float)Math.atan2(b2, a2p) * radDeg; // Hue angle.
-			if (h1p < 0) h1p += 360;
-			if (h2p < 0) h2p += 360;
-			float dLp = L2 - L1, dCp = C2p - C1p, dhp = h2p - h1p; // Delta L'C'h'
-			if (dhp > 180)
-				dhp -= 360;
-			else if (dhp < -180) //
-				dhp += 360;
-			float dHp = 2 * (float)Math.sqrt(C1p * C2p) * (float)Math.sin(dhp * degRad / 2);
-			float Lp = (L1 + L2) / 2, Cp = (C1p + C2p) / 2, hp = h1p + h2p; // Average.
-			if (Math.abs(h1p - h2p) > 180) hp += hp < 360 ? 360 : -360;
-			hp /= 2;
-			float hpRad = hp * degRad;
-			float T = 1 - 0.17f * (float)Math.cos(hpRad - 30 * degRad) + 0.24f * (float)Math.cos(2 * hpRad)
-				+ 0.32f * (float)Math.cos(3 * hpRad + 6 * degRad) - 0.20f * (float)Math.cos(4 * hpRad - 63 * degRad);
-			float SL = 1 + 0.015f * (Lp - 50) * (Lp - 50) / (float)Math.sqrt(20 + (Lp - 50) * (Lp - 50));
-			float SC = 1 + 0.045f * Cp;
-			float SH = 1 + 0.015f * Cp * T;
-			float dTheta = 30 * (float)Math.exp(-((hp - 275) / 25) * ((hp - 275) / 25));
-			float Cp7 = (float)Math.pow(Cp, 7);
-			float RC = 2 * (float)Math.sqrt(Cp7 / (Cp7 + 6103515625f)); // 25^7
-			float RT = -RC * (float)Math.sin(2 * dTheta * degRad);
-			float dLpKlSl = dLp / (kL * SL), dCpKcSc = dCp / (kC * SC), dHpKhSh = dHp / (kH * SH);
-			return (float)Math.sqrt(dLpKlSl * dLpKlSl + dCpKcSc * dCpKcSc + dHpKhSh * dHpKhSh + RT * dCpKcSc * dHpKhSh);
-		}
-
-		/** CIEDE2000 color difference using the CIE 2-degree D65 tristimulus.
-		 * @return Color difference value (0 = identical colors, larger values = more different) */
-		static public float deltaE2000 (RGB rgb1, RGB rgb2) {
-			return deltaE2000(Lab(rgb1), Lab(rgb2));
-		}
-
-		/** CIEDE2000 color difference using the CIE 2-degree D65 tristimulus.
-		 * @param kL Lightness weight.
-		 * @param kC Chroma weight.
-		 * @param kH Hue weight.
-		 * @return Color difference value (0 = identical colors, larger values = more different) */
-		static public float deltaE2000 (RGB rgb1, RGB rgb2, float kL, float kC, float kH) {
-			return deltaE2000(Lab(rgb1), Lab(rgb2), kL, kC, kH);
-		}
 	}
 
 	static class LMSUtil {

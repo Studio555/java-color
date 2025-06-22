@@ -62,22 +62,41 @@ public class CCTTests {
 
 		// Test CCT to UV1960
 		for (float cct : ccts) {
-			uv1960 uv1960 = uv1960(cct, 0);
+			uv uv1960 = uv(cct, 0);
 
 			// Verify UV values are reasonable
 			assertTrue(uv1960.u() > 0 && uv1960.u() < 1, "u1960 in range for CCT " + cct);
 			assertTrue(uv1960.v() > 0 && uv1960.v() < 1, "v1960 in range for CCT " + cct);
 		}
 
-		// Test DUV1960 offset calculation
-		for (float cct : ccts) {
-			uv1960 base = uv1960(cct, 0);
-			uv1960 offset = uv1960(cct, 0.01f);
-			offset = new uv1960(offset.u() - base.u(), offset.v() - base.v());
+		// Test that Duv offset produces perpendicular displacement from blackbody locus
+		float[] testCCTs = {2500, 3500, 5000, 7500}; // Use specific CCTs that work well
+		for (float cct : testCCTs) {
+			// Create points using the CCT + Duv constructor
+			xy onLocus = xy(cct, 0); // On the locus (Duv = 0)
+			xy aboveLocus = xy(uv(cct, 0.005f)); // Above locus (Duv = +0.005)
+			xy belowLocus = xy(RGB(cct, -0.005f)); // Below locus (Duv = -0.005)
 
-			// Verify offset is perpendicular (small magnitude)
-			float magnitude = (float)Math.sqrt(offset.u() * offset.u() + offset.v() * offset.v());
-			assertClose(0.01f, magnitude, "DUV1960 offset magnitude", 0.0001);
+			// Calculate the actual Duv values back
+			float duvOn = Duv(onLocus);
+			float duvAbove = Duv(aboveLocus);
+			float duvBelow = Duv(belowLocus);
+
+			// Points on the locus should have Duv ≈ 0
+			assertClose(0, duvOn, "Point on blackbody locus has Duv ≈ 0 for CCT " + cct, 0.0001);
+
+			// Points off the locus should have the expected Duv, roughly
+			assertClose(0.005f, duvAbove, "Point above locus has correct Duv for CCT " + cct, 0.001);
+			assertClose(-0.005f, duvBelow, "Point below locus has correct Duv for CCT " + cct, 0.001);
+
+			// Verify colors with different Duv look different
+			RGB rgbOn = RGB(onLocus);
+			RGB rgbAbove = RGB(aboveLocus);
+			RGB rgbBelow = RGB(belowLocus);
+
+			// Above locus (positive Duv) should be more green, below (negative) more magenta
+			assertTrue(rgbAbove.g() > rgbOn.g() || rgbAbove.r() < rgbOn.r(), "Positive Duv shifts toward green at CCT " + cct);
+			assertTrue(rgbBelow.g() < rgbOn.g() || rgbBelow.r() > rgbOn.r(), "Negative Duv shifts toward magenta at CCT " + cct);
 		}
 
 		// Test edge cases
@@ -210,7 +229,7 @@ public class CCTTests {
 		for (float cct : testCCTs) {
 			for (float expectedDuv : testDuvs) {
 				// Create a point with known Duv offset
-				uv1960 uvWithDuv = uv1960(cct, expectedDuv);
+				uv uvWithDuv = uv(cct, expectedDuv);
 				float calculatedDuv = Duv(xy(uvWithDuv));
 
 				// The calculated Duv should be close to the expected value

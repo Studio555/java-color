@@ -4,7 +4,6 @@ package com.esotericsoftware.colors;
 import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
 import static com.esotericsoftware.colors.Util.*;
-import static com.esotericsoftware.colors.Util.LabUtil.*;
 import static com.esotericsoftware.colors.Util.RGBUtil.*;
 
 import org.junit.jupiter.api.Assertions;
@@ -124,6 +123,7 @@ public class ColorsTest {
 			roundTripf(rgb, Colors::HSL, Colors::RGB, "HSL");
 			roundTripf(rgb, (RGB c) -> Lab(c), Colors::RGB, "Lab");
 			roundTripf(rgb, Colors::YCC, Colors::RGB, "YCC");
+			roundTripf(rgb, (RGB c) -> Oklab(c), Colors::RGB, "Oklab");
 			roundTripYCbCr(rgb, YCbCrColorSpace.ITU_BT_601, EPSILON_F);
 			roundTripYCbCr(rgb, YCbCrColorSpace.ITU_BT_709_HDTV, EPSILON_F);
 		}
@@ -974,6 +974,57 @@ public class ColorsTest {
 			assertTrue(lms.M() >= 0, "M >= 0");
 			assertTrue(lms.S() >= 0, "S >= 0");
 		}
+	}
+
+	@Test
+	public void testOklabXYZConversions () {
+		// Test Oklab <-> XYZ conversions
+		RGB[] testColors = {new RGB(0, 0, 0), // Black
+			new RGB(1, 1, 1), // White
+			new RGB(1, 0, 0), // Red
+			new RGB(0, 1, 0), // Green
+			new RGB(0, 0, 1), // Blue
+			new RGB(0.5f, 0.3f, 0.7f), // Arbitrary color
+			new RGB(0.18f, 0.18f, 0.18f), // 18% gray
+		};
+
+		for (RGB rgb : testColors) {
+			// Test RGB -> Oklab -> XYZ -> RGB round trip
+			Oklab oklab = Oklab(rgb);
+			XYZ xyz = XYZ(oklab);
+			RGB rgbBack = RGB(xyz);
+			assertRecordClose(rgb, rgbBack, "RGB -> Oklab -> XYZ -> RGB round trip", 0.001f);
+
+			// Test RGB -> XYZ -> Oklab -> RGB round trip
+			XYZ xyz2 = XYZ(rgb);
+			Oklab oklab2 = Oklab(xyz2);
+			RGB rgbBack2 = RGB(oklab2);
+			assertRecordClose(rgb, rgbBack2, "RGB -> XYZ -> Oklab -> RGB round trip", 0.001f);
+
+			// Test that Oklab values are reasonable
+			assertTrue(oklab.L() >= 0 && oklab.L() <= 1, "Oklab L in range [0,1]");
+			assertTrue(Math.abs(oklab.a()) < 0.5f, "Oklab a in reasonable range");
+			assertTrue(Math.abs(oklab.b()) < 0.5f, "Oklab b in reasonable range");
+
+			// Test that direct conversions match indirect ones
+			Oklab oklabDirect = Oklab(rgb);
+			Oklab oklabViaXYZ = Oklab(XYZ(rgb));
+			assertRecordClose(oklabDirect, oklabViaXYZ, "Direct vs XYZ path to Oklab", 0.001f);
+		}
+
+		// Test wide gamut preservation
+		// Create an XYZ color outside sRGB gamut
+		XYZ wideGamutXYZ = new XYZ(150, 100, 50); // Bright, outside sRGB
+		Oklab oklabWide = Oklab(wideGamutXYZ);
+		XYZ xyzBack = XYZ(oklabWide);
+		assertRecordClose(wideGamutXYZ, xyzBack, "Wide gamut XYZ -> Oklab -> XYZ preserves values", 0.1f);
+
+		// Test that Oklab(XYZ) handles edge cases
+		XYZ blackXYZ = new XYZ(0, 0, 0);
+		Oklab blackOklab = Oklab(blackXYZ);
+		assertClose(0, blackOklab.L(), "Black has L=0 in Oklab");
+		assertClose(0, blackOklab.a(), "Black has a=0 in Oklab");
+		assertClose(0, blackOklab.b(), "Black has b=0 in Oklab");
 	}
 
 	@Test

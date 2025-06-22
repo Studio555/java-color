@@ -194,7 +194,7 @@ This library breaks from Java naming conventions to use capitalization that matc
 ### Correlated Color Temperature (CCT)
 ```java
 // Create RGB from color temperature
-RGB warmWhite = RGB(2700, 0.0f);   // 2700K, Duv=0
+RGB warmWhite = RGB(2700, 0);   // 2700K, Duv=0
 RGB daylight = RGB(6500, 0.003f);  // 6500K, Duv=0.003
 
 // Calculate CCT from color
@@ -221,16 +221,14 @@ RGBWW rgbw = RGBWW(3000, 0.8f, warmWhite, coolWhite);
 
 ### Color Difference
 ```java
-import static com.esotericsoftware.colors.Util.LabUtil.*;
-
-// Delta E 2000 - Industry standard color difference
+// Delta E 2000 - Perceptual lightness, chromaticity, and hue difference
 float deltaE = deltaE2000(rgb1, rgb2);
 float deltaE = deltaE2000(lab1, lab2);
 
 // With custom weights for L*, C*, H*
-float deltaE = deltaE2000(lab1, lab2, 2.0f, 1.0f, 1.0f);
+float deltaE = deltaE2000(lab1, lab2, 2f, 1f, 1f);
 
-// MacAdam steps - Perceptual color difference
+// MacAdam steps - Perceptual chromaticity difference
 float steps = MacAdamSteps(xy1, xy2);
 ```
 
@@ -267,7 +265,7 @@ float Lstar = LabUtil.YtoLstar(18.4);
 import static com.esotericsoftware.colors.Util.RGBUtil.*;
 RGB complementary = complementary(baseColor);
 RGB[] triadic = triadic(baseColor);
-RGB[] analogous = analogous(baseColor, 30.0f);  // 30° angle
+RGB[] analogous = analogous(baseColor, 30f);  // 30° angle
 RGB[] splitComp = splitComplementary(baseColor);
 ```
 
@@ -560,7 +558,7 @@ for (float t = 0; t <= 1; t += 0.1f) {
 ### Color Temperature to RGB
 ```java
 // Create warm white (2700K)
-RGB warmWhite = RGB(2700, 0.0f);
+RGB warmWhite = RGB(2700, 0f);
 // Create daylight (6500K) with slight green tint
 RGB daylight = RGB(6500, -0.003f);
 ```
