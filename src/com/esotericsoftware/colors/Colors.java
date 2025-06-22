@@ -5,8 +5,6 @@ import static com.esotericsoftware.colors.Util.*;
 
 import java.lang.reflect.RecordComponent;
 
-import com.esotericsoftware.colors.Colors.CAM16;
-import com.esotericsoftware.colors.Colors.Illuminant;
 import com.esotericsoftware.colors.Util.ACESccUtil;
 import com.esotericsoftware.colors.Util.CCTUtil;
 import com.esotericsoftware.colors.Util.HCTUtil;
@@ -1208,10 +1206,15 @@ public class Colors {
 		return (float)Math.sqrt(dL * dL + da * da + db * db);
 	}
 
+	/** Euclidean distance in CIE 1976 (u',v') space. */
+	static public float distance (uv uv1, uv uv2) {
+		float du = uv1.u - uv2.u, dv = uv1.v - uv2.v;
+		return (float)Math.sqrt(du * du + dv * dv);
+	}
+
 	/** Compares perceptual chromaticity. */
 	static public float MacAdamSteps (uv color1, uv color2) {
-		float du = color1.u - color2.u, dv = color1.v - color2.v;
-		return (float)Math.sqrt(du * du + dv * dv) / 0.0011f;
+		return distance(color1, color2) / 0.0011f;
 	}
 
 	/** Compares perceptual chromaticity.
@@ -1652,6 +1655,10 @@ public class Colors {
 		return new RGB(clamp(lerp(a.r, b.r, t)), clamp(lerp(a.g, b.g, t)), clamp(lerp(a.b, b.b, t)));
 	}
 
+	static public uv lerp (uv a, uv b, float t) {
+		return new uv(lerp(a.u, b.u, t), lerp(a.v, b.v, t));
+	}
+
 	static public XYZ lerp (XYZ a, XYZ b, float t) {
 		return new XYZ(lerp(a.X, b.X, t), lerp(a.Y, b.Y, t), lerp(a.Z, b.Z, t));
 	}
@@ -2083,8 +2090,8 @@ public class Colors {
 		/** Value [0..1]. */
 		float v) {}
 
-	/** Standard RGB with sRGB gamma encoding. Values are clamped [0..1], use {@link XYZ} for interchange to preserve wide-gamut
-	 * colors. */
+	/** Standard RGB with sRGB gamma encoding. Values are clamped [0..1], use {@link LinearRGB} or {@link XYZ} for interchange to
+	 * preserve wide-gamut colors. */
 	public record RGB (
 		/** Red [0..1]. */
 		float r,
