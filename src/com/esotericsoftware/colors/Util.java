@@ -40,14 +40,6 @@ public class Util {
 		}
 	}
 
-	static class CAM16UCSUtil {
-		/** Perceptual color difference. */
-		static public float distance (CAM16UCS color1, CAM16UCS color2) {
-			float dJ = color1.J() - color2.J(), da = color1.a() - color2.a(), db = color1.b() - color2.b();
-			return 1.41f * (float)Math.pow(Math.sqrt(dJ * dJ + da * da + db * db), 0.63);
-		}
-	}
-
 	static class CCTUtil {
 		static uv1960 perpendicular (float CCT, xy xyPoint) {
 			float x = xyPoint.x(), y = xyPoint.y();

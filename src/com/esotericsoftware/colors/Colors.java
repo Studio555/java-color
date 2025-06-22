@@ -302,16 +302,6 @@ public class Colors {
 	}
 
 	/** Uses {@link Illuminant.CIE2#D65}. */
-	static public Lab Lab (uv uv) {
-		return Lab(uv, Illuminant.CIE2.D65);
-	}
-
-	/** @param tristimulus See {@link Illuminant}. */
-	static public Lab Lab (uv uv, XYZ tristimulus) {
-		return Lab(XYZ(uv), tristimulus);
-	}
-
-	/** Uses {@link Illuminant.CIE2#D65}. */
 	static public Lab Lab (RGB rgb) {
 		return Lab(rgb, Illuminant.CIE2.D65);
 	}
@@ -971,7 +961,7 @@ public class Colors {
 			((rgb & 0x0000ff)) / 255f);
 	}
 
-	/** Convert RGB to RGBW using one calibrated white LED color. Brightness of {@code rgb} paramter is preserved.
+	/** Convert RGB to RGBW using one calibrated white LED color. Brightness of {@code rgb} parameter is preserved.
 	 * @param rgb Target color, including brightness.
 	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr *= wlux / rlux */
 	static public RGBW RGBW (RGB rgb, RGB w) {
@@ -1024,7 +1014,7 @@ public class Colors {
 		return new RGBW(r, g, b, W);
 	}
 
-	/** Convert RGB to RGBWW using two calibrated white LED colors. Brightness of {@code rgb} paramter is preserved.
+	/** Convert RGB to RGBWW using two calibrated white LED colors. Brightness of {@code rgb} parameter is preserved.
 	 * @param rgb Target color, including brightness.
 	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
 	 * @param w2 Second white LED color. */
@@ -1150,10 +1140,10 @@ public class Colors {
 		return uv(xy(CCT, Duv));
 	}
 
-	/** CIEDE2000 color difference. Compares colors considering lightness, chromaticity, and/or hue.
-	 * @param kL Lightness weight.
-	 * @param kC Chroma weight.
-	 * @param kH Hue weight.
+	/** CIEDE2000 color difference, considering lightness, chromaticity, and hue.
+	 * @param kL Lightness scaling factor. The lightness component is divided by this value (>1 less impact).
+	 * @param kC Chroma scaling factor. The chroma component is divided by this value (>1 less impact).
+	 * @param kH Hue scaling factor. The hue component is divided by this value (>1 less impact).
 	 * @return <1: imperceptible to the human eye, 1..2 just noticeable difference (JND), 2..10 clearly visible difference, >50
 	 *         very different colors. */
 	static public float deltaE2000 (Lab lab1, Lab lab2, float kL, float kC, float kH) {
@@ -1204,6 +1194,18 @@ public class Colors {
 	/** {@link #deltaE2000(Lab, Lab, float, float, float)} with 1 for lightness, chroma, and hue. */
 	static public float deltaE2000 (uv uv1, uv uv2) {
 		return deltaE2000(Lab(XYZ(uv1)), Lab(XYZ(uv2)), 1, 1, 1);
+	}
+
+	/** Perceptual color difference. */
+	static public float deltaE (CAM16UCS color1, CAM16UCS color2) {
+		float dJ = color1.J() - color2.J(), da = color1.a() - color2.a(), db = color1.b() - color2.b();
+		return 1.41f * (float)Math.pow(Math.sqrt(dJ * dJ + da * da + db * db), 0.63);
+	}
+
+	/** CIE76 color difference (distance in Lab space). */
+	static public float deltaE76 (Lab lab1, Lab lab2) {
+		float dL = lab1.L() - lab2.L(), da = lab1.a() - lab2.a(), db = lab1.b() - lab2.b();
+		return (float)Math.sqrt(dL * dL + da * da + db * db);
 	}
 
 	/** Compares perceptual chromaticity. */
