@@ -80,8 +80,8 @@ public record RGB (
 			(float)Math.atan(b / Math.max(r, g)));
 	}
 
-	/** @return CCT [1667..25000K] or NaN if invalid. */
-	public float CCT () {
+	/** @return [1667..25000K] or NaN if invalid. */
+	public CCT CCT () {
 		return xy().CCT();
 	}
 

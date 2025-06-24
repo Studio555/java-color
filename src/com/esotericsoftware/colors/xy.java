@@ -14,30 +14,30 @@ public record xy (
 	float y) {
 
 	/** <0.5K error, 0.021K average at <7000K. <1.1K error, 0.065K average at <14000K. <4.9K error, 0.3K average at <25000K.
-	 * @return CCT [1667..25000K] or NaN if outside valid range. */
-	public float CCT () {
-		if (x < 0.25f || x > 0.565f || y < 0.20f || y > 0.45f) return Float.NaN;
+	 * @return CCT [1667..25000K] or NaN out of range. */
+	public CCT CCT () {
+		if (x < 0.25f || x > 0.565f || y < 0.20f || y > 0.45f) return new CCT(Float.NaN);
 		float n = (x - 0.3320f) / (0.1858f - y);
-		float CCT = 449 * n * n * n + 3525 * n * n + 6823.3f * n + 5520.33f; // McCamy initial guess.
-		if (CCT < 1667 || CCT > 25000) return Float.NaN;
-		float adjust = CCT < 7000 ? 0.000489f : (CCT < 15000 ? 0.0024f : 0.00095f);
+		float K = 449 * n * n * n + 3525 * n * n + 6823.3f * n + 5520.33f; // McCamy initial guess.
+		if (K < 1667 || K > 25000) return new CCT(Float.NaN);
+		float adjust = K < 7000 ? 0.000489f : (K < 15000 ? 0.0024f : 0.00095f);
 		for (int i = 0; i < 3; i++) {
-			xy current = xy(CCT, 0);
+			xy current = new CCT(K).xy();
 			float ex = x - current.x, ey = y - current.y;
 			if (ex * ex + ey * ey < 1e-10f) break;
-			float h = CCT * adjust;
-			xy next = xy(CCT + h, 0);
+			float h = K * adjust;
+			xy next = new CCT(K + h).xy();
 			float tx = (next.x - current.x) / h, ty = (next.y - current.y) / h;
-			CCT += (ex * tx + ey * ty) / (tx * tx + ty * ty);
+			K += (ex * tx + ey * ty) / (tx * tx + ty * ty);
 		}
-		return CCT;
+		return new CCT(K);
 	}
 
 	/** @return NaN if invalid. */
 	public float Duv () {
-		float CCT = CCT();
-		xy xyBB = xy(CCT, 0);
-		uv1960 perp = CCTUtil.perpendicular(CCT, xyBB), uvBB = xyBB.uv1960(), uv = uv1960();
+		CCT CCT = CCT();
+		xy xyBB = CCT.xy();
+		uv1960 perp = CCTUtil.perpendicular(CCT.K(), xyBB), uvBB = xyBB.uv1960(), uv = uv1960();
 		return (uv.u() - uvBB.u()) * perp.u() + (uv.v() - uvBB.v()) * perp.v();
 	}
 
@@ -93,5 +93,10 @@ public record xy (
 
 	public XYZ XYZ (float Y) {
 		return new xyY(x, y, Y).XYZ();
+	}
+
+	public float distance (xy other) {
+		float dx = x - other.x, dy = y - other.y;
+		return (float)Math.sqrt(dx * dx + dy * dy);
 	}
 }

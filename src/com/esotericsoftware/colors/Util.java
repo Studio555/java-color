@@ -5,8 +5,8 @@ import static com.esotericsoftware.colors.Colors.*;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Util {
-	static final public float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
-	static final float EPSILON = 1e-6f;
+	static public final float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
+	static public final float EPSILON = 1e-6f;
 
 	static public float[] matrixMultiply (float row0, float row1, float row2, float[][] matrix) {
 		return new float[] { //
@@ -31,16 +31,16 @@ public class Util {
 	}
 
 	static class CCTUtil {
-		static uv1960 perpendicular (float CCT, xy xyPoint) {
+		static uv1960 perpendicular (float K, xy xyPoint) {
 			float x = xyPoint.x(), y = xyPoint.y();
-			float dx_dT, dy_dx, t2 = CCT * CCT;
-			if (CCT <= 4000)
-				dx_dT = 0.2661239f * 3e9f / (t2 * t2) + 0.2343589f * 2e6f / t2 * CCT - 0.8776956f * 1e3f / t2;
+			float dx_dT, dy_dx, t2 = K * K;
+			if (K <= 4000)
+				dx_dT = 0.2661239f * 3e9f / (t2 * t2) + 0.2343589f * 2e6f / t2 * K - 0.8776956f * 1e3f / t2;
 			else
-				dx_dT = 3.0258469f * 3e9f / (t2 * t2) - 2.1070379f * 2e6f / t2 * CCT - 0.2226347f * 1e3f / t2;
-			if (CCT <= 2222)
+				dx_dT = 3.0258469f * 3e9f / (t2 * t2) - 2.1070379f * 2e6f / t2 * K - 0.2226347f * 1e3f / t2;
+			if (K <= 2222)
 				dy_dx = -3.3191442f * x * x - 2.69622040f * x + 2.18555832f;
-			else if (CCT <= 4000)
+			else if (K <= 4000)
 				dy_dx = -2.8648428f * x * x - 2.74837186f * x + 2.09137015f;
 			else
 				dy_dx = 9.2452740f * x * x - 11.74677340f * x + 3.75112997f;

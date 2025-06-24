@@ -11,8 +11,8 @@ public record uv (
 	/** v' chromaticity [0..1]. */
 	float v) {
 
-	/** @return CCT [1667..25000K] or NaN if invalid. */
-	public float CCT () {
+	/** @return [1667..25000K] or NaN if invalid. */
+	public CCT CCT () {
 		return xy().CCT();
 	}
 
@@ -51,9 +51,8 @@ public record uv (
 		return XYZ().Lab().deltaE2000(other.XYZ().Lab(), 1, 1, 1);
 	}
 
-	/** Euclidean distance in CIE 1976 (u',v') space. */
-	public float distance (uv uv) {
-		float du = u - uv.u, dv = v - uv.v;
+	public float distance (uv other) {
+		float du = u - other.u, dv = v - other.v;
 		return (float)Math.sqrt(du * du + dv * dv);
 	}
 

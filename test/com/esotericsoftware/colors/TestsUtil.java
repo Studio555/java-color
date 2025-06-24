@@ -1,5 +1,7 @@
 
-package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Colors.*;
+package com.esotericsoftware.colors;
+
+import static com.esotericsoftware.colors.Colors.*;
 
 import java.util.function.Function;
 

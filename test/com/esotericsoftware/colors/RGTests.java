@@ -3,8 +3,6 @@ package com.esotericsoftware.colors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.esotericsoftware.colors.Colors;
-
 import org.junit.jupiter.api.Test;
 
 public class RGTests {

@@ -3,8 +3,6 @@ package com.esotericsoftware.colors;
 
 import static com.esotericsoftware.colors.TestsUtil.*;
 
-import com.esotericsoftware.colors.Colors;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -517,8 +515,8 @@ public class RGBTests {
 		RGB scaledWhite = new RGB(1.8f, 1.6f, 1.0f); // Scaled warm white LED (~2700K)
 
 		// Test maximum brightness at full
-		RGB target4000 = Colors.RGB(4000, 0);
-		RGBW cctFull = Colors.RGBW(4000, 1.0f, scaledWhite);
+		RGB target4000 = new CCT(4000).RGB(0);
+		RGBW cctFull = new CCT(4000).RGBW(1.0f, scaledWhite);
 		// Verify full brightness produces expected result
 		Assertions.assertTrue(cctFull.r() >= 0 || cctFull.g() >= 0 || cctFull.b() >= 0 || cctFull.w() > 0,
 			"Full brightness CCT should produce non-zero output");
@@ -542,19 +540,19 @@ public class RGBTests {
 		}
 
 		// Test reduced brightness - should reduce total output
-		RGBW cctDim = Colors.RGBW(4000, 0.5f, scaledWhite);
+		RGBW cctDim = new CCT(4000).RGBW(0.5f, scaledWhite);
 		// At 50% brightness, total output should be lower
 		float dimTotal = cctDim.r() + cctDim.g() + cctDim.b() + cctDim.w();
 		float fullTotal = cctFull.r() + cctFull.g() + cctFull.b() + cctFull.w();
 		Assertions.assertTrue(dimTotal < fullTotal, "Dimmed CCT should have lower total output");
 
 		// Test low brightness - should have W only
-		RGBW cctLow = Colors.RGBW(3000, 0.2f, scaledWhite);
+		RGBW cctLow = new CCT(3000).RGBW(0.2f, scaledWhite);
 		assertTrue(cctLow.r() < 0.01f && cctLow.g() < 0.01f && cctLow.b() < 0.01f,
 			"Low brightness CCT should use mostly white channel");
 
 		// Test cool CCT requiring blue correction
-		RGBW cctCool = Colors.RGBW(6500, 0.8f, scaledWhite);
+		RGBW cctCool = new CCT(6500).RGBW(0.8f, scaledWhite);
 		// With a warm white LED, cool CCT might need blue correction at higher brightness
 		assertTrue(cctCool.w() > 0, "Should use white channel for CCT");
 	}
@@ -578,20 +576,20 @@ public class RGBTests {
 		// Test CCT to RGBWW conversion
 
 		// Test intermediate CCT - should blend whites
-		RGBWW cct4000 = Colors.RGBWW(4000, 1.0f, warmWhite, coolWhite);
+		RGBWW cct4000 = new CCT(4000).RGBWW(1.0f, warmWhite, coolWhite);
 		assertTrue(cct4000.w1() > 0 && cct4000.w2() > 0, "Mid CCT should blend both whites");
 
 		// Test warm CCT - should use mostly warm white
-		RGBWW cct2700 = Colors.RGBWW(2700, 0.8f, warmWhite, coolWhite);
+		RGBWW cct2700 = new CCT(2700).RGBWW(0.8f, warmWhite, coolWhite);
 		assertTrue(cct2700.w1() >= cct2700.w2(), "Warm CCT should favor warm white");
 
 		// Test cool CCT - should use mostly cool white
-		RGBWW cct6500 = Colors.RGBWW(6500, 0.8f, warmWhite, coolWhite);
+		RGBWW cct6500 = new CCT(6500).RGBWW(0.8f, warmWhite, coolWhite);
 		// Note: if CCT calculation fails for the LEDs, it might fall back to equal blend
 		assertTrue(cct6500.w1() + cct6500.w2() > 0.7f, "Should use white channels for CCT");
 
 		// Test low brightness - should still maintain white ratio
-		RGBWW cctLow = Colors.RGBWW(4500, 0.2f, warmWhite, coolWhite);
+		RGBWW cctLow = new CCT(4500).RGBWW(0.2f, warmWhite, coolWhite);
 		float totalWhite = cctLow.w1() + cctLow.w2();
 		assertTrue(totalWhite > 0.15f && totalWhite < 0.25f, "Low brightness should scale whites proportionally");
 
