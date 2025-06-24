@@ -7,6 +7,8 @@ import java.lang.reflect.RecordComponent;
 
 import com.esotericsoftware.colors.Util.ACESccUtil;
 import com.esotericsoftware.colors.Util.CCTUtil;
+import com.esotericsoftware.colors.Util.FloatIndexOperator;
+import com.esotericsoftware.colors.Util.FloatOperator;
 import com.esotericsoftware.colors.Util.HCTUtil;
 import com.esotericsoftware.colors.Util.HSLUtil;
 import com.esotericsoftware.colors.Util.HSLuvUtil;
@@ -14,6 +16,7 @@ import com.esotericsoftware.colors.Util.ITPUtil;
 import com.esotericsoftware.colors.Util.LMSUtil;
 import com.esotericsoftware.colors.Util.LabUtil;
 import com.esotericsoftware.colors.Util.OkhsvUtil;
+import com.esotericsoftware.colors.Util.XYZUtil;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Colors {
@@ -1254,6 +1257,25 @@ public class Colors {
 		return new uv1960(4 * x / denom, 6 * y / denom);
 	}
 
+	/** Computes CIE xy chromaticity coordinates from CCT using Planck's law. This is more accurate but slower than the polynomial
+	 * approximation in xy(CCT, Duv). Use this method for CCT values below 1667K where xy(CCT, Duv) is not supported.
+	 * @param CCT [100..100000K]
+	 * @return NaN if invalid. */
+	static public XYZ XYZ (float CCT) {
+		if (CCT < 100 || CCT > 100000) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		float X = 0, Y = 0, Z = 0;
+		for (int i = 0; i < 81; i++) {
+			float lambda = (380 + i * 5) * 1e-9f; // nm to meters.
+			float exponent = XYZUtil.c2 / (lambda * CCT);
+			float B = exponent > 80 ? 0
+				: XYZUtil.c1 / (lambda * lambda * lambda * lambda * lambda * ((float)Math.exp(exponent) - 1f));
+			X += B * XYZUtil.Xbar[i];
+			Y += B * XYZUtil.Ybar[i];
+			Z += B * XYZUtil.Zbar[i];
+		}
+		return new XYZ(X, Y, Z);
+	}
+
 	/** @param CCT [1667..25000K]
 	 * @return NaN if invalid. */
 	static public xy xy (float CCT, float Duv) {
@@ -1270,12 +1292,10 @@ public class Colors {
 			y = -0.9549476f * xx * x - 1.37418593f * xx + 2.09137015f * x - 0.16748867f;
 		else // CCT > 4000 && CCT <= 25000
 			y = 3.0817580f * xx * x - 5.87338670f * xx + 3.75112997f * x - 0.37001483f;
-		if (Duv != 0) {
-			xy xyBB = new xy(x, y);
-			uv1960 perp = CCTUtil.perpendicular(CCT, xyBB), uvBB = uv1960(xyBB);
-			return xy(new uv1960(uvBB.u + perp.u * Duv, uvBB.v + perp.v * Duv));
-		}
-		return new xy(x, y);
+		xy xy = new xy(x, y);
+		if (Duv == 0) return xy;
+		uv1960 perp = CCTUtil.perpendicular(CCT, xy), uvBB = uv1960(xy);
+		return xy(new uv1960(uvBB.u + perp.u * Duv, uvBB.v + perp.v * Duv));
 	}
 
 	/** @return NaN if invalid. */
@@ -2098,7 +2118,34 @@ public class Colors {
 		/** Green [0..1]. */
 		float g,
 		/** Blue [0..1]. */
-		float b) {}
+		float b) {
+
+		public RGB (RGB other) {
+			this(other.r(), other.g(), other.b());
+		}
+
+		public float get (int index) {
+			return switch (index) {
+			case 0 -> r;
+			case 1 -> g;
+			case 2 -> b;
+			default -> throw new IndexOutOfBoundsException(index);
+			};
+		}
+
+		public RGB set (FloatIndexOperator op) {
+			return new RGB(clamp(op.apply(0, r)), clamp(op.apply(1, g)), clamp(op.apply(2, b)));
+		}
+
+		public RGB set (int index, FloatOperator op) {
+			return switch (index) {
+			case 0 -> new RGB(clamp(op.apply(r)), g, b);
+			case 1 -> new RGB(r, clamp(op.apply(g)), b);
+			case 2 -> new RGB(r, g, clamp(op.apply(b)));
+			default -> throw new IndexOutOfBoundsException(index);
+			};
+		}
+	}
 
 	/** RGB with 1 white channel for LEDs. */
 	public record RGBW (
