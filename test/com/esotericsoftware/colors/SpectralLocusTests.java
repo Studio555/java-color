@@ -6,6 +6,12 @@ import static com.esotericsoftware.colors.TestsUtil.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.esotericsoftware.colors.Illuminant.CIE2;
+import com.esotericsoftware.colors.space.RGB;
+import com.esotericsoftware.colors.space.XYZ;
+import com.esotericsoftware.colors.space.uv;
+import com.esotericsoftware.colors.space.xy;
+
 public class SpectralLocusTests {
 	@Test
 	public void testWavelengthToUV () {
@@ -69,7 +75,7 @@ public class SpectralLocusTests {
 		assertTrue(SpectralLocus.contains(inside), "Point inside locus");
 
 		// Test white point (should be inside)
-		uv d65 = Illuminant.CIE2.D65.xy().uv();
+		uv d65 = CIE2.D65.xy().uv();
 		assertTrue(SpectralLocus.contains(d65), "D65 inside locus");
 
 		// Test points outside
@@ -87,7 +93,7 @@ public class SpectralLocusTests {
 
 	@Test
 	public void testDominantWavelength () {
-		XYZ d65 = Illuminant.CIE2.D65;
+		XYZ d65 = CIE2.D65;
 
 		// Test pure spectral colors
 		float wavelength = SpectralLocus.dominantWavelength(SpectralLocus.uv(500), d65);
@@ -123,7 +129,7 @@ public class SpectralLocusTests {
 
 	@Test
 	public void testDominantWavelengthRGB () {
-		XYZ d65 = Illuminant.CIE2.D65;
+		XYZ d65 = CIE2.D65;
 
 		// Test some RGB colors
 		RGB red = new RGB(1, 0, 0);
@@ -152,7 +158,7 @@ public class SpectralLocusTests {
 
 	@Test
 	public void testExcitationPurity () {
-		XYZ d65 = Illuminant.CIE2.D65;
+		XYZ d65 = CIE2.D65;
 		uv d65uv = d65.xy().uv();
 
 		// Test achromatic (white point)
@@ -183,7 +189,7 @@ public class SpectralLocusTests {
 
 	@Test
 	public void testExcitationPurityEdgeCases () {
-		XYZ d65 = Illuminant.CIE2.D65;
+		XYZ d65 = CIE2.D65;
 
 		// Test point outside spectral locus
 		uv outside = new uv(0.8f, 0.8f);
@@ -192,7 +198,7 @@ public class SpectralLocusTests {
 		assertTrue(purity >= 0, "Purity is non-negative");
 
 		// Test with different white points
-		XYZ a = Illuminant.CIE2.A; // Incandescent
+		XYZ a = CIE2.A; // Incandescent
 		RGB blue = new RGB(0, 0, 1);
 		uv blueUV = blue.XYZ().xy().uv();
 
@@ -205,7 +211,7 @@ public class SpectralLocusTests {
 
 	@Test
 	public void testPurpleLineColors () {
-		XYZ d65 = Illuminant.CIE2.D65;
+		XYZ d65 = CIE2.D65;
 
 		// Test various purple/magenta colors that should return negative wavelengths
 

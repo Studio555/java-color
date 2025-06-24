@@ -4,6 +4,10 @@ package com.esotericsoftware.colors;
 import static com.esotericsoftware.colors.Illuminant.CIE2.*;
 import static com.esotericsoftware.colors.Util.*;
 
+import com.esotericsoftware.colors.space.LinearRGB;
+import com.esotericsoftware.colors.space.RGB;
+import com.esotericsoftware.colors.space.xy;
+
 /** @see RGB#XYZ(Gamut)
  * @see LinearRGB#XYZ(Gamut)
  * @see RGB#xy(Gamut gamut)

@@ -1,6 +1,8 @@
 
 package com.esotericsoftware.colors;
 
+import com.esotericsoftware.colors.space.XYZ;
+
 /** Tristimulus values [0..100]. */
 public class Illuminant {
 	/** 2-degree Observer (CIE 1931) */

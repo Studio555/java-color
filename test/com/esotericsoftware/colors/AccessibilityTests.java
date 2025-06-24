@@ -2,9 +2,11 @@
 package com.esotericsoftware.colors;
 
 import static com.esotericsoftware.colors.TestsUtil.*;
-import static com.esotericsoftware.colors.Util.RGBUtil.*;
+import static com.esotericsoftware.colors.space.RGB.*;
 
 import org.junit.jupiter.api.Test;
+
+import com.esotericsoftware.colors.space.RGB;
 
 public class AccessibilityTests {
 	@Test

@@ -1,10 +1,15 @@
 
 package com.esotericsoftware.colors;
 
-import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
+import static com.esotericsoftware.colors.Util.*;
 
 import org.junit.jupiter.api.Test;
+
+import com.esotericsoftware.colors.Illuminant.CIE2;
+import com.esotericsoftware.colors.space.CAM16;
+import com.esotericsoftware.colors.space.HCT;
+import com.esotericsoftware.colors.space.RGB;
 
 public class HCTTests {
 	@Test
@@ -53,7 +58,7 @@ public class HCTTests {
 		assertTrue(Math.abs(blue.h() - 282) < 5, "Blue hue approximately 282°");
 
 		// Test 5: Custom viewing conditions
-		var vc = CAM16.VC.with(Illuminant.CIE2.D50, 30, 15, 1, false);
+		var vc = CAM16.VC.with(CIE2.D50, 30, 15, 1, false);
 		var cam2 = rgb.CAM16(vc);
 		assertTrue(Math.abs(cam.J() - cam2.J()) > 0.01, "Different viewing conditions produce different J");
 
@@ -122,7 +127,7 @@ public class HCTTests {
 		assertClose(0, grayUCS.b(), "Gray has b* near 0", 1.5);
 
 		// Test 7: Custom viewing conditions
-		var vc = CAM16.VC.with(Illuminant.CIE2.D50, 30, 15, 1, false);
+		var vc = CAM16.VC.with(CIE2.D50, 30, 15, 1, false);
 		var ucsCustom = rgb.CAM16UCS(vc);
 		RGB rgbBackCustom = ucsCustom.RGB(vc);
 		assertRecordClose(rgb, rgbBackCustom, "CAM16-UCS round trip with custom VC", 0.01f);
@@ -350,7 +355,7 @@ public class HCTTests {
 		assertRecordClose(rgb, rgbBack, name + " HCT round trip", 0.2f);
 
 		// Test with custom viewing conditions
-		var vc = CAM16.VC.with(Illuminant.CIE2.D50, 30, 15, 1, false);
+		var vc = CAM16.VC.with(CIE2.D50, 30, 15, 1, false);
 		HCT hctCustom = rgb.HCT(vc);
 		RGB rgbBackCustom = hctCustom.RGB(vc);
 		assertRecordClose(rgb, rgbBackCustom, name + " HCT round trip with custom VC", 0.64f);

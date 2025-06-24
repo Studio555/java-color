@@ -5,6 +5,12 @@ import static com.esotericsoftware.colors.TestsUtil.*;
 
 import org.junit.jupiter.api.Test;
 
+import com.esotericsoftware.colors.space.Okhsl;
+import com.esotericsoftware.colors.space.Okhsv;
+import com.esotericsoftware.colors.space.Oklab;
+import com.esotericsoftware.colors.space.Oklch;
+import com.esotericsoftware.colors.space.RGB;
+
 public class OklabTests {
 	@Test
 	public void testEdgeCases () {

@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import com.esotericsoftware.colors.space.RGB;
+import com.esotericsoftware.colors.space.rg;
+
 public class RGTests {
 	@Test
 	void testFromRGB () {

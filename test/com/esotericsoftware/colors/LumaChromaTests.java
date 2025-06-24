@@ -5,7 +5,12 @@ import static com.esotericsoftware.colors.TestsUtil.*;
 
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.colors.YCbCr.YCbCrColorSpace;
+import com.esotericsoftware.colors.space.RGB;
+import com.esotericsoftware.colors.space.YCC;
+import com.esotericsoftware.colors.space.YCbCr;
+import com.esotericsoftware.colors.space.YCbCr.YCbCrColorSpace;
+import com.esotericsoftware.colors.space.YIQ;
+import com.esotericsoftware.colors.space.YUV;
 
 public class LumaChromaTests {
 	@Test

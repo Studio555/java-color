@@ -5,6 +5,9 @@ import static com.esotericsoftware.colors.TestsUtil.*;
 
 import org.junit.jupiter.api.Test;
 
+import com.esotericsoftware.colors.space.HSLuv;
+import com.esotericsoftware.colors.space.RGB;
+
 public class HSLuvTests {
 
 	@Test

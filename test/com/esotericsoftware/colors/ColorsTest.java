@@ -1,15 +1,39 @@
 
 package com.esotericsoftware.colors;
 
-import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
 import static com.esotericsoftware.colors.Util.*;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.colors.LMS.CAT;
-import com.esotericsoftware.colors.YCbCr.YCbCrColorSpace;
+import com.esotericsoftware.colors.Illuminant.CIE2;
+import com.esotericsoftware.colors.space.C1C2C3;
+import com.esotericsoftware.colors.space.CMYK;
+import com.esotericsoftware.colors.space.HSL;
+import com.esotericsoftware.colors.space.HSV;
+import com.esotericsoftware.colors.space.HunterLab;
+import com.esotericsoftware.colors.space.IHS;
+import com.esotericsoftware.colors.space.LCh;
+import com.esotericsoftware.colors.space.LMS;
+import com.esotericsoftware.colors.space.LMS.CAT;
+import com.esotericsoftware.colors.space.Lab;
+import com.esotericsoftware.colors.space.O1O2;
+import com.esotericsoftware.colors.space.Oklab;
+import com.esotericsoftware.colors.space.RGB;
+import com.esotericsoftware.colors.space.XYZ;
+import com.esotericsoftware.colors.space.YCC;
+import com.esotericsoftware.colors.space.YCbCr;
+import com.esotericsoftware.colors.space.YCbCr.YCbCrColorSpace;
+import com.esotericsoftware.colors.space.YCoCg;
+import com.esotericsoftware.colors.space.YES;
+import com.esotericsoftware.colors.space.YIQ;
+import com.esotericsoftware.colors.space.YUV;
+import com.esotericsoftware.colors.space.rg;
+import com.esotericsoftware.colors.space.uv;
+import com.esotericsoftware.colors.space.uv1960;
+import com.esotericsoftware.colors.space.xy;
+import com.esotericsoftware.colors.space.xyY;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class ColorsTest {
@@ -369,10 +393,10 @@ public class ColorsTest {
 		assertRecordClose(rgb, rgbBack, "RGB-LCh round trip", EPSILON_F);
 
 		// Test RGB to LCh with custom illuminant
-		LCh lchFromRgbD50 = rgb.LCh(Illuminant.CIE2.D50);
+		LCh lchFromRgbD50 = rgb.LCh(CIE2.D50);
 		// Convert back through Lab with the same illuminant
 		Lab labFromLch = lchFromRgbD50.Lab();
-		RGB rgbBackD50 = labFromLch.RGB(Illuminant.CIE2.D50);
+		RGB rgbBackD50 = labFromLch.RGB(CIE2.D50);
 		assertRecordClose(rgb, rgbBackD50, "RGB-LCh round trip with D50 illuminant", EPSILON_F);
 	}
 
@@ -880,7 +904,7 @@ public class ColorsTest {
 		Assertions.assertNotNull(hexCmyk);
 
 		// Test toString methods
-		String rgbStr = Colors.toString(rgb);
+		String rgbStr = Util.toString(rgb);
 		assertTrue(rgbStr.contains("0.5"), "toString contains R value");
 
 		String rgb255Str = toString255(rgb);
@@ -932,7 +956,7 @@ public class ColorsTest {
 		// Test Lab with D50 illuminant
 		XYZ xyzD65 = testColor.XYZ();
 		Lab labD65 = xyzD65.Lab();
-		Lab labD50 = xyzD65.Lab(Illuminant.CIE2.D50);
+		Lab labD50 = xyzD65.Lab(CIE2.D50);
 
 		// Colors should be different under different illuminants
 		assertTrue(Math.abs(labD65.L() - labD50.L()) > 0.01 //

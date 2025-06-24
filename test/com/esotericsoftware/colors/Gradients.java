@@ -1,12 +1,19 @@
 
 package com.esotericsoftware.colors;
 
-import static com.esotericsoftware.colors.Colors.*;
+import static com.esotericsoftware.colors.Util.*;
 
 import java.io.File;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+
+import com.esotericsoftware.colors.space.CAM16;
+import com.esotericsoftware.colors.space.CAM16UCS;
+import com.esotericsoftware.colors.space.Lab;
+import com.esotericsoftware.colors.space.LinearRGB;
+import com.esotericsoftware.colors.space.Oklab;
+import com.esotericsoftware.colors.space.RGB;
 
 import java.awt.Color;
 import java.awt.Font;

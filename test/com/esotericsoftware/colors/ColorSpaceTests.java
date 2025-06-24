@@ -5,6 +5,14 @@ import static com.esotericsoftware.colors.TestsUtil.*;
 
 import org.junit.jupiter.api.Test;
 
+import com.esotericsoftware.colors.space.CAM16;
+import com.esotericsoftware.colors.space.HCT;
+import com.esotericsoftware.colors.space.HSL;
+import com.esotericsoftware.colors.space.HSV;
+import com.esotericsoftware.colors.space.Lab;
+import com.esotericsoftware.colors.space.Oklab;
+import com.esotericsoftware.colors.space.RGB;
+
 /** Comprehensive tests that systematically test color conversions across the entire color space. */
 public class ColorSpaceTests {
 	@Test

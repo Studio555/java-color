@@ -6,7 +6,28 @@ import static com.esotericsoftware.colors.TestsUtil.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.colors.LMS.CAT;
+import com.esotericsoftware.colors.space.CCT;
+import com.esotericsoftware.colors.space.CMYK;
+import com.esotericsoftware.colors.space.HSI;
+import com.esotericsoftware.colors.space.HSL;
+import com.esotericsoftware.colors.space.HSLuv;
+import com.esotericsoftware.colors.space.HSV;
+import com.esotericsoftware.colors.space.HunterLab;
+import com.esotericsoftware.colors.space.IHS;
+import com.esotericsoftware.colors.space.LCHuv;
+import com.esotericsoftware.colors.space.LCh;
+import com.esotericsoftware.colors.space.LMS;
+import com.esotericsoftware.colors.space.LMS.CAT;
+import com.esotericsoftware.colors.space.Lab;
+import com.esotericsoftware.colors.space.LinearRGB;
+import com.esotericsoftware.colors.space.Luv;
+import com.esotericsoftware.colors.space.RGB;
+import com.esotericsoftware.colors.space.RGBW;
+import com.esotericsoftware.colors.space.RGBWW;
+import com.esotericsoftware.colors.space.TSL;
+import com.esotericsoftware.colors.space.XYZ;
+import com.esotericsoftware.colors.space.xy;
+import com.esotericsoftware.colors.space.xyY;
 
 /** @author Nathan Sweet <misc@n4te.com> */
 public class RGBTests {
@@ -508,8 +529,8 @@ public class RGBTests {
 
 		// Test RGBW hex and toString255
 		RGBW hexTest = new RGBW(1, 0.5f, 0.25f, 0.75f);
-		assertEquals("ff8040bf", Colors.hex(hexTest), "RGBW hex");
-		assertEquals("255, 128, 64, 191", Colors.toString255(hexTest), "RGBW toString255");
+		assertEquals("ff8040bf", Util.hex(hexTest), "RGBW hex");
+		assertEquals("255, 128, 64, 191", Util.toString255(hexTest), "RGBW toString255");
 
 		// Test CCT to RGBW conversion
 		RGB scaledWhite = new RGB(1.8f, 1.6f, 1.0f); // Scaled warm white LED (~2700K)
@@ -595,8 +616,8 @@ public class RGBTests {
 
 		// Test RGBWW hex and toString255
 		RGBWW hexTest = new RGBWW(1, 0.5f, 0.25f, 0.1f, 0.75f);
-		assertEquals("ff80401abf", Colors.hex(hexTest), "RGBWW hex");
-		assertEquals("255, 128, 64, 26, 191", Colors.toString255(hexTest), "RGBWW toString255");
+		assertEquals("ff80401abf", Util.hex(hexTest), "RGBWW hex");
+		assertEquals("255, 128, 64, 26, 191", Util.toString255(hexTest), "RGBWW toString255");
 	}
 
 	@Test
