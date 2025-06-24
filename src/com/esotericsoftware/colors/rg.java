@@ -1,0 +1,22 @@
+
+package com.esotericsoftware.colors;
+
+import static com.esotericsoftware.colors.Colors.*;
+
+/** Normalized red-green color space. */
+public record rg (
+	/** Red chromaticity [0..1]. */
+	float r,
+	/** Green chromaticity [0..1]. */
+	float g,
+	/** Blue chromaticity [0..1]. */
+	float b,
+	/** Saturation [0..1]. */
+	float s,
+	/** Hue [0..360] or NaN if achromatic. */
+	float h) {
+
+	public RGB RGB (float luminance) {
+		return new RGB(clamp(r * luminance), clamp(g * luminance), clamp(b * luminance));
+	}
+}

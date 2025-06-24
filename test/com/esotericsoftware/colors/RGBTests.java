@@ -1,5 +1,5 @@
 
-package com.esotericsoftware.colors;
+package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
 
 import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
@@ -23,7 +23,6 @@ import com.esotericsoftware.colors.Colors.RGB;
 import com.esotericsoftware.colors.Colors.RGBW;
 import com.esotericsoftware.colors.Colors.RGBWW;
 import com.esotericsoftware.colors.Colors.TSL;
-import com.esotericsoftware.colors.Colors.XYZ;
 import com.esotericsoftware.colors.Colors.xy;
 import com.esotericsoftware.colors.Colors.xyY;
 

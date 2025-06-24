@@ -1,5 +1,5 @@
 
-package com.esotericsoftware.colors;
+package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
 
 import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
@@ -7,9 +7,7 @@ import static com.esotericsoftware.colors.TestsUtil.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.colors.Colors.Illuminant;
 import com.esotericsoftware.colors.Colors.RGB;
-import com.esotericsoftware.colors.Colors.XYZ;
 import com.esotericsoftware.colors.Colors.uv;
 import com.esotericsoftware.colors.Colors.xy;
 

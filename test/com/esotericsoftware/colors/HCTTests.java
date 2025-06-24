@@ -1,5 +1,5 @@
 
-package com.esotericsoftware.colors;
+package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
 
 import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.colors.Colors.CAM16;
 import com.esotericsoftware.colors.Colors.HCT;
-import com.esotericsoftware.colors.Colors.Illuminant;
 import com.esotericsoftware.colors.Colors.RGB;
 
 public class HCTTests {

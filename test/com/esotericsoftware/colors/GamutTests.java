@@ -1,5 +1,5 @@
 
-package com.esotericsoftware.colors;
+package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
 
 import static com.esotericsoftware.colors.Colors.*;
 import static org.junit.jupiter.api.Assertions.*;

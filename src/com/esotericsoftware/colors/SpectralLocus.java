@@ -4,11 +4,6 @@ package com.esotericsoftware.colors;
 import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.Util.*;
 
-import com.esotericsoftware.colors.Colors.Illuminant;
-import com.esotericsoftware.colors.Colors.XYZ;
-import com.esotericsoftware.colors.Colors.uv;
-import com.esotericsoftware.colors.Colors.xy;
-
 /** @author Nathan Sweet <misc@n4te.com> */
 public class SpectralLocus {
 	/** 64 wavelength, u', v' entries from CIE 1931 2 degree data at 1nm with colinear points in u'v' space removed, 380-700nm. */
@@ -52,7 +47,7 @@ public class SpectralLocus {
 	}
 
 	static public xy xy (float wavelength) {
-		return Colors.xy(uv(wavelength));
+		return uv(wavelength).xy();
 	}
 
 	static public boolean contains (uv uv) {
@@ -81,7 +76,7 @@ public class SpectralLocus {
 	 * @return [380..700] nm, or [-380..-700] for complementary colors (purples), or NaN if the color is achromatic. */
 	static public float dominantWavelength (uv color, XYZ whitePoint) {
 		float cu = color.u(), cv = color.v();
-		uv wuv = Colors.uv(Colors.xy(whitePoint));
+		uv wuv = whitePoint.xy().uv();
 		float wu = wuv.u(), wv = wuv.v(), dx = cu - wu, dy = cv - wv;
 		if (Math.abs(dx) < EPSILON && Math.abs(dy) < EPSILON) return Float.NaN; // Achromatic (on white point).
 		// Spectral locus intersections.
@@ -116,7 +111,7 @@ public class SpectralLocus {
 		return bestWavelength;
 	}
 
-	/** Uses {@link Colors.Illuminant.CIE2#D65}. */
+	/** Uses {@link Illuminant.CIE2#D65}. */
 	static public float dominantWavelength (uv color) {
 		return dominantWavelength(color, Illuminant.CIE2.D65);
 	}
@@ -126,7 +121,7 @@ public class SpectralLocus {
 	 * @return 0 (achromatic) to 1 (pure spectral color), or NaN if the color is outside the spectral locus or invalid. */
 	static public float excitationPurity (uv color, XYZ whitePoint) {
 		float cu = color.u(), cv = color.v();
-		uv wuv = Colors.uv(Colors.xy(whitePoint));
+		uv wuv = whitePoint.xy().uv();
 		float wu = wuv.u(), wv = wuv.v(), dx = cu - wu, dy = cv - wv;
 		float colorDist = (float)Math.sqrt(dx * dx + dy * dy); // White point to color.
 		if (colorDist < EPSILON) return 0; // Achromatic (on white point).

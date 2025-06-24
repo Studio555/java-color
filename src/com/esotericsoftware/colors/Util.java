@@ -3,14 +3,6 @@ package com.esotericsoftware.colors;
 
 import static com.esotericsoftware.colors.Colors.*;
 
-import com.esotericsoftware.colors.Colors.CAM16;
-import com.esotericsoftware.colors.Colors.HSL;
-import com.esotericsoftware.colors.Colors.Oklab;
-import com.esotericsoftware.colors.Colors.RGB;
-import com.esotericsoftware.colors.Colors.XYZ;
-import com.esotericsoftware.colors.Colors.uv1960;
-import com.esotericsoftware.colors.Colors.xy;
-
 /** @author Nathan Sweet <misc@n4te.com> */
 public class Util {
 	static final public float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
@@ -383,7 +375,7 @@ public class Util {
 
 		static float[] cuspST (float a, float b) {
 			float S_cusp = maxSaturation(a, b);
-			var rgb_at_max = LinearRGB(new Oklab(1, S_cusp * a, S_cusp * b));
+			LinearRGB rgb_at_max = new Oklab(1, S_cusp * a, S_cusp * b).LinearRGB();
 			float L = (float)Math.cbrt(1 / max(rgb_at_max.r(), rgb_at_max.g(), rgb_at_max.b()));
 			float C = L * S_cusp;
 			return new float[] {C / L, C / (1 - L)};
@@ -470,48 +462,48 @@ public class Util {
 
 		/** Returns colors opposite on color wheel. */
 		static public RGB complementary (RGB base) {
-			HSL hsl = HSL(base);
+			HSL hsl = base.HSL();
 			float h = hsl.H() + 180;
 			if (h >= 360) h -= 360;
-			return RGB(new HSL(h, hsl.S(), hsl.L()));
+			return new HSL(h, hsl.S(), hsl.L()).RGB();
 		}
 
 		/** Returns 3 colors evenly spaced on color wheel. */
 		static public RGB[] triadic (RGB base) {
-			HSL hsl = HSL(base);
+			HSL hsl = base.HSL();
 			float h1 = hsl.H() + 120;
 			float h2 = hsl.H() + 240;
 			if (h1 >= 360) h1 -= 360;
 			if (h2 >= 360) h2 -= 360;
-			return new RGB[] {base, RGB(new HSL(h1, hsl.S(), hsl.L())), RGB(new HSL(h2, hsl.S(), hsl.L()))};
+			return new RGB[] {base, new HSL(h1, hsl.S(), hsl.L()).RGB(), new HSL(h2, hsl.S(), hsl.L()).RGB()};
 		}
 
 		/** Returns 3 colors adjacent on color wheel.
 		 * @param angle [0..360] */
 		static public RGB[] analogous (RGB base, float angle) {
-			HSL hsl = HSL(base);
+			HSL hsl = base.HSL();
 			float h1 = hsl.H() + angle;
 			float h2 = hsl.H() - angle;
 			if (h1 >= 360) h1 -= 360;
 			if (h2 < 0) h2 += 360;
-			return new RGB[] {RGB(new HSL(h2, hsl.S(), hsl.L())), base, RGB(new HSL(h1, hsl.S(), hsl.L()))};
+			return new RGB[] {new HSL(h2, hsl.S(), hsl.L()).RGB(), base, new HSL(h1, hsl.S(), hsl.L()).RGB()};
 		}
 
 		/** Returns a split-complementary color scheme. */
 		static public RGB[] splitComplementary (RGB base) {
-			HSL hsl = HSL(base);
+			HSL hsl = base.HSL();
 			float h1 = hsl.H() + 150;
 			float h2 = hsl.H() + 210;
 			if (h1 >= 360) h1 -= 360;
 			if (h2 >= 360) h2 -= 360;
-			return new RGB[] {base, RGB(new HSL(h1, hsl.S(), hsl.L())), RGB(new HSL(h2, hsl.S(), hsl.L()))};
+			return new RGB[] {base, new HSL(h1, hsl.S(), hsl.L()).RGB(), new HSL(h2, hsl.S(), hsl.L()).RGB()};
 		}
 
 		/** Returns the WCAG contrast ratio between foreground and background colors.
 		 * @return Contrast ratio, 1:1 to 21:1. */
 		static public float contrastRatio (RGB fg, RGB bg) {
-			float fgLum = XYZ(fg).Y() / 100;
-			float bgLum = XYZ(bg).Y() / 100;
+			float fgLum = fg.Y() / 100;
+			float bgLum = bg.Y() / 100;
 			float L1 = Math.max(fgLum, bgLum);
 			float L2 = Math.min(fgLum, bgLum);
 			return (L1 + 0.05f) / (L2 + 0.05f);

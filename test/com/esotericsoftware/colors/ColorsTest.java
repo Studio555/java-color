@@ -1,5 +1,5 @@
 
-package com.esotericsoftware.colors;
+package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
 
 import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
@@ -14,14 +14,12 @@ import com.esotericsoftware.colors.Colors.CAT;
 import com.esotericsoftware.colors.Colors.HSL;
 import com.esotericsoftware.colors.Colors.HSV;
 import com.esotericsoftware.colors.Colors.HunterLab;
-import com.esotericsoftware.colors.Colors.Illuminant;
 import com.esotericsoftware.colors.Colors.LCh;
 import com.esotericsoftware.colors.Colors.LMS;
 import com.esotericsoftware.colors.Colors.Lab;
 import com.esotericsoftware.colors.Colors.O1O2;
 import com.esotericsoftware.colors.Colors.Oklab;
 import com.esotericsoftware.colors.Colors.RGB;
-import com.esotericsoftware.colors.Colors.XYZ;
 import com.esotericsoftware.colors.Colors.YCbCr;
 import com.esotericsoftware.colors.Colors.YCbCrColorSpace;
 import com.esotericsoftware.colors.Colors.rg;
