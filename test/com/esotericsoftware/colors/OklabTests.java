@@ -1,16 +1,10 @@
 
-package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
+package com.esotericsoftware.colors;
 
-import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
+import static com.esotericsoftware.colors.Util.*;
 
 import org.junit.jupiter.api.Test;
-
-import com.esotericsoftware.colors.Colors.Okhsl;
-import com.esotericsoftware.colors.Colors.Okhsv;
-import com.esotericsoftware.colors.Colors.Oklab;
-import com.esotericsoftware.colors.Colors.Oklch;
-import com.esotericsoftware.colors.Colors.RGB;
 
 public class OklabTests {
 	@Test
@@ -32,19 +26,19 @@ public class OklabTests {
 	@Test
 	public void testKnownOklabValues () {
 		// Test white
-		Oklab white = Oklab(new RGB(1, 1, 1));
+		Oklab white = new RGB(1, 1, 1).Oklab();
 		assertClose(white.L(), 1.0f, "White L");
 		assertClose(white.a(), 0.0f, "White a");
 		assertClose(white.b(), 0.0f, "White b");
 
 		// Test black
-		Oklab black = Oklab(new RGB(0, 0, 0));
+		Oklab black = new RGB(0, 0, 0).Oklab();
 		assertClose(black.L(), 0.0f, "Black L");
 		assertClose(black.a(), 0.0f, "Black a");
 		assertClose(black.b(), 0.0f, "Black b");
 
 		// Test gray (should have a=0, b=0)
-		Oklab gray = Oklab(new RGB(0.5f, 0.5f, 0.5f));
+		Oklab gray = new RGB(0.5f, 0.5f, 0.5f).Oklab();
 		assertClose(gray.a(), 0.0f, "Gray a");
 		assertClose(gray.b(), 0.0f, "Gray b");
 	}
@@ -63,22 +57,22 @@ public class OklabTests {
 		roundTripOkhsl(new RGB(0.5f, 0.5f, 0.5f), "Gray");
 
 		// Test that white has l=1
-		Okhsl white = Okhsl(new RGB(1, 1, 1));
+		Okhsl white = new RGB(1, 1, 1).Okhsl();
 		assertClose(1.0f, white.l(), "White Okhsl lightness");
 		assertClose(0.0f, white.s(), "White Okhsl saturation", 0.01f);
 
 		// Test that black has l=0
-		Okhsl black = Okhsl(new RGB(0, 0, 0));
+		Okhsl black = new RGB(0, 0, 0).Okhsl();
 		assertClose(0.0f, black.l(), "Black Okhsl lightness");
 
 		// Test that grays have s=0
-		Okhsl gray = Okhsl(new RGB(0.5f, 0.5f, 0.5f));
+		Okhsl gray = new RGB(0.5f, 0.5f, 0.5f).Okhsl();
 		assertClose(0.0f, gray.s(), "Gray Okhsl saturation", 0.01f);
 
 		// Test hue angles for primary colors
-		Okhsl red = Okhsl(new RGB(1, 0, 0));
-		Okhsl green = Okhsl(new RGB(0, 1, 0));
-		Okhsl blue = Okhsl(new RGB(0, 0, 1));
+		Okhsl red = new RGB(1, 0, 0).Okhsl();
+		Okhsl green = new RGB(0, 1, 0).Okhsl();
+		Okhsl blue = new RGB(0, 0, 1).Okhsl();
 
 		// Verify hue differences
 		float hueGreenRed = Math.abs(green.h() - red.h());
@@ -111,22 +105,22 @@ public class OklabTests {
 		roundTripOkhsv(new RGB(0.5f, 0.5f, 0.5f), "Gray");
 
 		// Test that white has v=1
-		Okhsv white = Okhsv(new RGB(1, 1, 1));
+		Okhsv white = new RGB(1, 1, 1).Okhsv();
 		assertClose(1.0f, white.v(), "White Okhsv value", 0.1f);
 		assertClose(0.0f, white.s(), "White Okhsv saturation", 0.01f);
 
 		// Test that black has v=0
-		Okhsv black = Okhsv(new RGB(0, 0, 0));
+		Okhsv black = new RGB(0, 0, 0).Okhsv();
 		assertClose(0.0f, black.v(), "Black Okhsv value", 0.01f);
 
 		// Test that grays have s=0
-		Okhsv gray = Okhsv(new RGB(0.5f, 0.5f, 0.5f));
+		Okhsv gray = new RGB(0.5f, 0.5f, 0.5f).Okhsv();
 		assertClose(0.0f, gray.s(), "Gray Okhsv saturation", 0.01f);
 
 		// Test hue angles for primary colors
-		Okhsv red = Okhsv(new RGB(1, 0, 0));
-		Okhsv green = Okhsv(new RGB(0, 1, 0));
-		Okhsv blue = Okhsv(new RGB(0, 0, 1));
+		Okhsv red = new RGB(1, 0, 0).Okhsv();
+		Okhsv green = new RGB(0, 1, 0).Okhsv();
+		Okhsv blue = new RGB(0, 0, 1).Okhsv();
 
 		// Verify hue differences
 		float hueGreenRed = Math.abs(green.h() - red.h());
@@ -154,8 +148,8 @@ public class OklabTests {
 		// Test Oklab to Oklch conversions, gray (should have C=0)
 		Oklab[] testLabs = {new Oklab(0.5f, 0.1f, 0.1f), new Oklab(0.8f, -0.05f, 0.05f), new Oklab(0.3f, 0.0f, 0.0f)};
 		for (Oklab lab : testLabs) {
-			Oklch lch = Oklch(lab);
-			Oklab labBack = Oklab(lch);
+			Oklch lch = lab.Oklch();
+			Oklab labBack = lch.Oklab();
 			assertRecordClose(lab, labBack, "Oklab <-> Oklch round trip", EPSILON_F);
 
 			// Verify cylindrical coordinate conversion
@@ -170,8 +164,8 @@ public class OklabTests {
 
 		// Test RGB to Oklch direct conversion
 		RGB rgb = new RGB(0.6f, 0.4f, 0.2f);
-		Oklch oklch = Oklch(rgb);
-		RGB rgbBack = RGB(oklch);
+		Oklch oklch = rgb.Oklch();
+		RGB rgbBack = oklch.RGB();
 		assertRecordClose(rgb, rgbBack, "RGB <-> Oklch round trip", EPSILON_F);
 	}
 
@@ -180,33 +174,33 @@ public class OklabTests {
 		// Test lerp with t=0 returns first color
 		Oklab color1 = new Oklab(0.3f, 0.1f, -0.1f);
 		Oklab color2 = new Oklab(0.8f, -0.05f, 0.15f);
-		Oklab result = lerp(color1, color2, 0);
+		Oklab result = color1.lerp(color2, 0);
 		assertRecordClose(color1, result, "Oklab lerp t=0");
 
 		// Test lerp with t=1 returns second color
-		result = lerp(color1, color2, 1);
+		result = color1.lerp(color2, 1);
 		assertRecordClose(color2, result, "Oklab lerp t=1");
 
 		// Test lerp with t=0.5 returns midpoint
-		result = lerp(color1, color2, 0.5f);
+		result = color1.lerp(color2, 0.5f);
 		Oklab expected = new Oklab((color1.L() + color2.L()) / 2, (color1.a() + color2.a()) / 2, (color1.b() + color2.b()) / 2);
 		assertRecordClose(expected, result, "Oklab lerp t=0.5");
 
 		// Test lerp between black and white
-		Oklab black = Oklab(new RGB(0, 0, 0));
-		Oklab white = Oklab(new RGB(1, 1, 1));
-		Oklab gray = lerp(black, white, 0.5f);
+		Oklab black = new RGB(0, 0, 0).Oklab();
+		Oklab white = new RGB(1, 1, 1).Oklab();
+		Oklab gray = black.lerp(white, 0.5f);
 		// Gray should have L around 0.5, a and b near 0
 		assertClose(0.5f, gray.L(), "Lerp black-white L", 0.1f);
 		assertClose(0, gray.a(), "Lerp black-white a", 0.01f);
 		assertClose(0, gray.b(), "Lerp black-white b", 0.01f);
 
 		// Test lerp between complementary colors
-		Oklab red = Oklab(new RGB(1, 0, 0));
-		Oklab cyan = Oklab(new RGB(0, 1, 1));
-		Oklab mid = lerp(red, cyan, 0.5f);
+		Oklab red = new RGB(1, 0, 0).Oklab();
+		Oklab cyan = new RGB(0, 1, 1).Oklab();
+		Oklab mid = red.lerp(cyan, 0.5f);
 		// Midpoint should be grayish
-		RGB midRGB = RGB(mid);
+		RGB midRGB = mid.RGB();
 		// Verify it's roughly gray (all channels similar)
 		float avgChannel = (midRGB.r() + midRGB.g() + midRGB.b()) / 3;
 		assertClose(avgChannel, midRGB.r(), "Lerp complementary R", 0.15f);
@@ -217,7 +211,7 @@ public class OklabTests {
 		float[] factors = {0, 0.25f, 0.5f, 0.75f, 1};
 		Oklab prevColor = null;
 		for (float t : factors) {
-			Oklab color = lerp(color1, color2, t);
+			Oklab color = color1.lerp(color2, t);
 			if (prevColor != null) {
 				// Verify smooth progression
 				float deltaL = Math.abs(color.L() - prevColor.L());
@@ -233,16 +227,16 @@ public class OklabTests {
 
 		// Test lerp preserves perceptual uniformity
 		// Colors at equal t intervals should appear equally spaced
-		Oklab blue = Oklab(new RGB(0, 0, 1));
-		Oklab yellow = Oklab(new RGB(1, 1, 0));
-		Oklab q1 = lerp(blue, yellow, 0.25f);
-		Oklab q2 = lerp(blue, yellow, 0.5f);
-		Oklab q3 = lerp(blue, yellow, 0.75f);
+		Oklab blue = new RGB(0, 0, 1).Oklab();
+		Oklab yellow = new RGB(1, 1, 0).Oklab();
+		Oklab q1 = blue.lerp(yellow, 0.25f);
+		Oklab q2 = blue.lerp(yellow, 0.5f);
+		Oklab q3 = blue.lerp(yellow, 0.75f);
 
 		// Convert to RGB to verify colors look reasonable
-		RGB rgbQ1 = RGB(q1);
-		RGB rgbQ2 = RGB(q2);
-		RGB rgbQ3 = RGB(q3);
+		RGB rgbQ1 = q1.RGB();
+		RGB rgbQ2 = q2.RGB();
+		RGB rgbQ3 = q3.RGB();
 
 		// All should be valid RGB values
 		assertTrue(rgbQ1.r() >= 0 && rgbQ1.r() <= 1, "Q1 R in range");
@@ -257,11 +251,11 @@ public class OklabTests {
 
 		// Test edge cases
 		// Lerp with same color should return that color
-		Oklab sameResult = lerp(color1, color1, 0.5f);
+		Oklab sameResult = color1.lerp(color1, 0.5f);
 		assertRecordClose(color1, sameResult, "Lerp same color");
 
 		// Test lerp with t outside [0,1] (extrapolation)
-		Oklab extrapolated = lerp(color1, color2, 1.5f);
+		Oklab extrapolated = color1.lerp(color2, 1.5f);
 		// Should continue the line beyond color2
 		float expectedL = color1.L() + 1.5f * (color2.L() - color1.L());
 		float expectedA = color1.a() + 1.5f * (color2.a() - color1.a());
@@ -271,7 +265,7 @@ public class OklabTests {
 		assertClose(expectedB, extrapolated.b(), "Extrapolated b");
 
 		// Test lerp with negative t
-		Oklab negativeT = lerp(color1, color2, -0.5f);
+		Oklab negativeT = color1.lerp(color2, -0.5f);
 		expectedL = color1.L() - 0.5f * (color2.L() - color1.L());
 		expectedA = color1.a() - 0.5f * (color2.a() - color1.a());
 		expectedB = color1.b() - 0.5f * (color2.b() - color1.b());
@@ -284,21 +278,21 @@ public class OklabTests {
 	public void testOklchConversions () {
 		// Test RGB -> Oklch -> RGB
 		RGB original = new RGB(0.7f, 0.3f, 0.5f);
-		Oklch lch = Oklch(original);
-		RGB result = RGB(lch);
+		Oklch lch = original.Oklch();
+		RGB result = lch.RGB();
 		assertRecordClose(original, result, "Oklch round trip");
 
 		// Test Oklab <-> Oklch
-		Oklab lab = Oklab(new RGB(0.6f, 0.4f, 0.2f));
-		Oklch lch2 = Oklch(lab);
-		Oklab labBack = Oklab(lch2);
+		Oklab lab = new RGB(0.6f, 0.4f, 0.2f).Oklab();
+		Oklch lch2 = lab.Oklch();
+		Oklab labBack = lch2.Oklab();
 		assertClose(lab.L(), labBack.L(), "L channel");
 		assertClose(lab.a(), labBack.a(), "a channel");
 		assertClose(lab.b(), labBack.b(), "b channel");
 
 		// Test hue angle wrapping
-		Oklab labResult = Oklab(new Oklch(0.5f, 0.1f, 370f)); // 370° = 10°
-		Oklab labExpected = Oklab(new Oklch(0.5f, 0.1f, 10f));
+		Oklab labResult = new Oklch(0.5f, 0.1f, 370f).Oklab(); // 370° = 10°
+		Oklab labExpected = new Oklch(0.5f, 0.1f, 10f).Oklab();
 		assertClose(labResult.a(), labExpected.a(), "Hue wrap a");
 		assertClose(labResult.b(), labExpected.b(), "Hue wrap b");
 	}
@@ -323,20 +317,20 @@ public class OklabTests {
 	}
 
 	static void roundTripOkhsl (RGB original, String name) {
-		Okhsl hsl = Okhsl(original);
-		RGB result = RGB(hsl);
+		Okhsl hsl = original.Okhsl();
+		RGB result = hsl.RGB();
 		assertRecordClose(original, result, name + " Okhsl round trip", 0.01f);
 	}
 
 	static void roundTripOkhsv (RGB original, String name) {
-		Okhsv hsv = Okhsv(original);
-		RGB result = RGB(hsv);
+		Okhsv hsv = original.Okhsv();
+		RGB result = hsv.RGB();
 		assertRecordClose(original, result, name + " Okhsv round trip", 0.02f);
 	}
 
 	static void roundTripOklab (RGB original, String name) {
-		Oklab lab = Oklab(original);
-		RGB result = RGB(lab);
+		Oklab lab = original.Oklab();
+		RGB result = lab.RGB();
 		assertRecordClose(original, result, name);
 	}
 }

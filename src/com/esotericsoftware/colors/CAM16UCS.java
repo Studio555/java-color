@@ -36,8 +36,8 @@ public record CAM16UCS (
 	}
 
 	/** Perceptual color difference. */
-	public float deltaE (CAM16UCS color1, CAM16UCS color2) {
-		float dJ = color1.J() - color2.J(), da = color1.a() - color2.a(), db = color1.b() - color2.b();
+	public float deltaE (CAM16UCS other) {
+		float dJ = J - other.J(), da = a - other.a(), db = b - other.b();
 		return 1.41f * (float)Math.pow(Math.sqrt(dJ * dJ + da * da + db * db), 0.63);
 	}
 

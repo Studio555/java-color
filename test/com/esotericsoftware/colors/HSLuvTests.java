@@ -1,13 +1,9 @@
 
-package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
+package com.esotericsoftware.colors;
 
-import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
 
 import org.junit.jupiter.api.Test;
-
-import com.esotericsoftware.colors.Colors.HSLuv;
-import com.esotericsoftware.colors.Colors.RGB;
 
 public class HSLuvTests {
 
@@ -39,8 +35,8 @@ public class HSLuvTests {
 			new RGB(1, 0, 1), new RGB(0.25f, 0.5f, 0.75f), new RGB(0.9f, 0.1f, 0.5f), new RGB(0, 0, 0), new RGB(1, 1, 1),
 			new RGB(0.5f, 0.5f, 0.5f)};
 		for (RGB color : testColors) {
-			HSLuv hsluv = HSLuv(color);
-			RGB back = RGB(hsluv);
+			HSLuv hsluv = color.HSLuv();
+			RGB back = hsluv.RGB();
 
 			assertClose(color.r(), back.r(), String.format("Roundtrip R for %s", color), 0.005f);
 			assertClose(color.g(), back.g(), String.format("Roundtrip G for %s", color), 0.005f);
@@ -51,12 +47,12 @@ public class HSLuvTests {
 	@Test
 	public void testHSLuvEdgeCases () {
 		// Test white (H should be defined but S should be 0)
-		HSLuv white = HSLuv(new RGB(1, 1, 1));
+		HSLuv white = new RGB(1, 1, 1).HSLuv();
 		assertClose(0.0f, white.S(), "White saturation", 0.1f);
 		assertClose(100.0f, white.L(), "White lightness", 0.1f);
 
 		// Test black (H should be defined but S should be 0)
-		HSLuv black = HSLuv(new RGB(0, 0, 0));
+		HSLuv black = new RGB(0, 0, 0).HSLuv();
 		assertClose(0.0f, black.S(), "Black saturation", 0.1f);
 		assertClose(0.0f, black.L(), "Black lightness", 0.1f);
 
@@ -64,7 +60,7 @@ public class HSLuvTests {
 		RGB[] pureColors = {new RGB(1, 0, 0), new RGB(0, 1, 0), new RGB(0, 0, 1), new RGB(1, 1, 0), new RGB(0, 1, 1),
 			new RGB(1, 0, 1)};
 		for (RGB color : pureColors) {
-			HSLuv hsluv = HSLuv(color);
+			HSLuv hsluv = color.HSLuv();
 			assertClose(100.0f, hsluv.S(), String.format("Saturation for pure color %s", color), 0.1f);
 		}
 	}
@@ -74,7 +70,7 @@ public class HSLuvTests {
 		// Test creating HSLuv from values and converting to RGB
 		// Reference: HSLuv(180, 50, 50) should be a desaturated cyan
 		HSLuv hsluv = new HSLuv(180.0f, 50.0f, 50.0f);
-		RGB rgb = RGB(hsluv);
+		RGB rgb = hsluv.RGB();
 
 		// Should be roughly equal amounts of green and blue, less red
 		assertTrue(rgb.r() < rgb.g(), "Red should be less than green");
@@ -82,7 +78,7 @@ public class HSLuvTests {
 		assertTrue(Math.abs(rgb.g() - rgb.b()) < 0.1f, "Green and blue should be similar");
 
 		// Test that the values roundtrip
-		HSLuv back = HSLuv(rgb);
+		HSLuv back = rgb.HSLuv();
 		assertClose(hsluv.H(), back.H(), "Hue roundtrip", 0.5f);
 		assertClose(hsluv.S(), back.S(), "Saturation roundtrip", 0.5f);
 		assertClose(hsluv.L(), back.L(), "Lightness roundtrip", 0.5f);
@@ -96,7 +92,7 @@ public class HSLuvTests {
 			for (float g = 0; g <= 1; g += 0.25f) {
 				for (float b = 0; b <= 1; b += 0.25f) {
 					RGB rgb = new RGB(r, g, b);
-					HSLuv hsluv = HSLuv(rgb);
+					HSLuv hsluv = rgb.HSLuv();
 
 					assertTrue(hsluv.S() >= 0.0f, String.format("S >= 0 for %s", rgb));
 					assertTrue(hsluv.S() <= 100.0f, String.format("S <= 100 for %s", rgb));
@@ -113,7 +109,7 @@ public class HSLuvTests {
 	}
 
 	private void testHSLuvConversion (RGB rgb, float expectedH, float expectedS, float expectedL, String name) {
-		HSLuv hsluv = HSLuv(rgb);
+		HSLuv hsluv = rgb.HSLuv();
 
 		// For achromatic colors, hue can be any value or NaN
 		if (expectedS == 0.0f) {
@@ -126,7 +122,7 @@ public class HSLuvTests {
 		}
 
 		// Test reverse conversion
-		RGB back = RGB(hsluv);
+		RGB back = hsluv.RGB();
 		assertClose(rgb.r(), back.r(), name + " roundtrip R", 0.005f);
 		assertClose(rgb.g(), back.g(), name + " roundtrip G", 0.005f);
 		assertClose(rgb.b(), back.b(), name + " roundtrip B", 0.005f);

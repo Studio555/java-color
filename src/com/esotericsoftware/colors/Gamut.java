@@ -4,10 +4,10 @@ package com.esotericsoftware.colors;
 import static com.esotericsoftware.colors.Illuminant.CIE2.*;
 import static com.esotericsoftware.colors.Util.*;
 
-/** @see RGB#XYZ( Gamut)
- * @see LinearRGB#XYZ( Gamut)
+/** @see RGB#XYZ(Gamut)
+ * @see LinearRGB#XYZ(Gamut)
  * @see RGB#xy(Gamut gamut)
- * @see xy#RGB( Gamut)
+ * @see xy#RGB(Gamut)
  * @author Nathan Sweet <misc@n4te.com> */
 public class Gamut {
 	static public final Gamut //

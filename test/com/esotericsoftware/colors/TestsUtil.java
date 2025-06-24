@@ -1,13 +1,9 @@
 
-package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
-
-import static com.esotericsoftware.colors.Colors.*;
+package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Colors.*;
 
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Assertions;
-
-import com.esotericsoftware.colors.Colors.RGB;
 
 public class TestsUtil {
 	static final float EPSILON_F = 0.00002f;

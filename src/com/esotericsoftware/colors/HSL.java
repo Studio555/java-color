@@ -20,6 +20,7 @@ public record HSL (
 		if (S < EPSILON) // Gray.
 			r = g = b = L;
 		else {
+			float H = this.H / 360;
 			float v2 = L < 0.5f ? L * (1 + S) : L + S - L * S, v1 = 2 * L - v2;
 			r = HSLUtil.hueToRGB(v1, v2, H + 1 / 3f);
 			g = HSLUtil.hueToRGB(v1, v2, H);

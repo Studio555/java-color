@@ -1,12 +1,8 @@
 
-package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
-
-import static com.esotericsoftware.colors.TestsUtil.*;
+package com.esotericsoftware.colors;import static com.esotericsoftware.colors.TestsUtil.*;
 import static com.esotericsoftware.colors.Util.RGBUtil.*;
 
 import org.junit.jupiter.api.Test;
-
-import com.esotericsoftware.colors.Colors.RGB;
 
 public class AccessibilityTests {
 	@Test

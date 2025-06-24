@@ -1,15 +1,12 @@
 
-package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
+package com.esotericsoftware.colors;
 
-import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
+
+import com.esotericsoftware.colors.Colors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.esotericsoftware.colors.Colors.RGB;
-import com.esotericsoftware.colors.Colors.uv;
-import com.esotericsoftware.colors.Colors.xy;
 
 public class SpectralLocusTests {
 	@Test
@@ -74,7 +71,7 @@ public class SpectralLocusTests {
 		assertTrue(SpectralLocus.contains(inside), "Point inside locus");
 
 		// Test white point (should be inside)
-		uv d65 = uv(xy(Illuminant.CIE2.D65));
+		uv d65 = Illuminant.CIE2.D65.xy().uv();
 		assertTrue(SpectralLocus.contains(d65), "D65 inside locus");
 
 		// Test points outside
@@ -102,7 +99,7 @@ public class SpectralLocusTests {
 		assertClose(600f, wavelength, "600nm dominant wavelength", 1f);
 
 		// Test achromatic (white point itself)
-		uv d65uv = uv(xy(d65));
+		uv d65uv = d65.xy().uv();
 		assertTrue(Float.isNaN(SpectralLocus.dominantWavelength(d65uv, d65)), "White point returns NaN");
 
 		// Test complementary colors (purples)
@@ -114,7 +111,7 @@ public class SpectralLocusTests {
 		float pu = violetEnd.u() + t * (redEnd.u() - violetEnd.u());
 		float pv = violetEnd.v() + t * (redEnd.v() - violetEnd.v());
 		// Move from white point toward purple line (80% of the way)
-		uv d65uv2 = uv(xy(d65));
+		uv d65uv2 = d65.xy().uv();
 		float dx = pu - d65uv2.u();
 		float dy = pv - d65uv2.v();
 		uv purple = new uv(d65uv2.u() + 0.8f * dx, d65uv2.v() + 0.8f * dy);
@@ -132,25 +129,25 @@ public class SpectralLocusTests {
 
 		// Test some RGB colors
 		RGB red = new RGB(1, 0, 0);
-		uv redUV = uv(xy(XYZ(red)));
+		uv redUV = red.XYZ().xy().uv();
 		float redWavelength = SpectralLocus.dominantWavelength(redUV, d65);
 		assertTrue(redWavelength > 600 && redWavelength < 700, "Red wavelength in expected range"); // Red should be ~700nm
 
 		// Green should be ~520-550nm
 		RGB green = new RGB(0, 1, 0);
-		uv greenUV = uv(xy(XYZ(green)));
+		uv greenUV = green.XYZ().xy().uv();
 		float greenWavelength = SpectralLocus.dominantWavelength(greenUV, d65);
 		assertTrue(greenWavelength > 500 && greenWavelength < 570, "Green wavelength in expected range");
 
 		// Blue should be ~470nm
 		RGB blue = new RGB(0, 0, 1);
-		uv blueUV = uv(xy(XYZ(blue)));
+		uv blueUV = blue.XYZ().xy().uv();
 		float blueWavelength = SpectralLocus.dominantWavelength(blueUV, d65);
 		assertTrue(blueWavelength > 440 && blueWavelength < 480, "Blue wavelength in expected range");
 
 		// Magenta should be complementary (negative)
 		RGB magenta = new RGB(1, 0, 1);
-		uv magentaUV = uv(xy(XYZ(magenta)));
+		uv magentaUV = magenta.XYZ().xy().uv();
 		float magentaWavelength = SpectralLocus.dominantWavelength(magentaUV, d65);
 		assertTrue(magentaWavelength < 0, "Magenta returns negative wavelength");
 	}
@@ -158,7 +155,7 @@ public class SpectralLocusTests {
 	@Test
 	public void testExcitationPurity () {
 		XYZ d65 = Illuminant.CIE2.D65;
-		uv d65uv = uv(xy(d65));
+		uv d65uv = d65.xy().uv();
 
 		// Test achromatic (white point)
 		assertClose(0f, SpectralLocus.excitationPurity(d65uv, d65), "White point purity", 0.0001f);
@@ -169,19 +166,19 @@ public class SpectralLocusTests {
 
 		// Test desaturated colors
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
-		uv grayUV = uv(xy(XYZ(gray)));
+		uv grayUV = gray.XYZ().xy().uv();
 		purity = SpectralLocus.excitationPurity(grayUV, d65);
 		assertTrue(purity < 0.1f, "Gray has low purity"); // Gray should have very low purity
 
 		// Test moderately saturated colors
 		RGB orange = new RGB(1, 0.5f, 0);
-		uv orangeUV = uv(xy(XYZ(orange)));
+		uv orangeUV = orange.XYZ().xy().uv();
 		purity = SpectralLocus.excitationPurity(orangeUV, d65);
 		assertTrue(purity > 0.3f && purity < 0.9f, "Orange has moderate purity"); // Orange should have moderate purity
 
 		// Test purple (complementary)
 		RGB purple = new RGB(0.5f, 0, 0.5f);
-		uv purpleUV = uv(xy(XYZ(purple)));
+		uv purpleUV = purple.XYZ().xy().uv();
 		purity = SpectralLocus.excitationPurity(purpleUV, d65);
 		assertTrue(purity > 0 && purity <= 1f, "Purple has valid purity"); // Should still be valid
 	}
@@ -199,7 +196,7 @@ public class SpectralLocusTests {
 		// Test with different white points
 		XYZ a = Illuminant.CIE2.A; // Incandescent
 		RGB blue = new RGB(0, 0, 1);
-		uv blueUV = uv(xy(XYZ(blue)));
+		uv blueUV = blue.XYZ().xy().uv();
 
 		float purityD65 = SpectralLocus.excitationPurity(blueUV, d65);
 		float purityA = SpectralLocus.excitationPurity(blueUV, a);
@@ -216,7 +213,7 @@ public class SpectralLocusTests {
 
 		// Test magenta (should be complementary)
 		RGB magenta = new RGB(1, 0, 1);
-		uv magentaUV = uv(xy(XYZ(magenta)));
+		uv magentaUV = magenta.XYZ().xy().uv();
 		float magentaWavelength = SpectralLocus.dominantWavelength(magentaUV, d65);
 		assertTrue(magentaWavelength < 0, "Magenta has negative wavelength");
 		assertTrue(Math.abs(magentaWavelength) >= 380 && Math.abs(magentaWavelength) <= 700,
@@ -237,7 +234,7 @@ public class SpectralLocusTests {
 		Assertions.assertFalse(Float.isNaN(purpleLineWavelength), "Purple line point returns valid wavelength");
 
 		// Move slightly inside from purple line toward white point
-		uv d65uv = uv(xy(d65));
+		uv d65uv = d65.xy().uv();
 		float dx = d65uv.u() - purpleU;
 		float dy = d65uv.v() - purpleV;
 		uv insidePurple = new uv(purpleU + 0.1f * dx, purpleV + 0.1f * dy);
@@ -253,8 +250,8 @@ public class SpectralLocusTests {
 		// Test that different purple shades give different complementary wavelengths
 		RGB purple1 = new RGB(0.6f, 0, 0.8f);
 		RGB purple2 = new RGB(0.8f, 0, 0.6f);
-		uv purple1UV = uv(xy(XYZ(purple1)));
-		uv purple2UV = uv(xy(XYZ(purple2)));
+		uv purple1UV = purple1.XYZ().xy().uv();
+		uv purple2UV = purple2.XYZ().xy().uv();
 
 		float wavelength1 = SpectralLocus.dominantWavelength(purple1UV, d65);
 		float wavelength2 = SpectralLocus.dominantWavelength(purple2UV, d65);

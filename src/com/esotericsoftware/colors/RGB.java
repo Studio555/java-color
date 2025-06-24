@@ -467,6 +467,10 @@ public record RGB (
 		return Lab().deltaE2000(other.Lab(), 1, 1, 1);
 	}
 
+	public float grayscale () {
+		return r * 0.2125f + g * 0.7154f + b * 0.0721f;
+	}
+
 	public float get (int index) {
 		return switch (index) {
 		case 0 -> r;
@@ -486,8 +490,8 @@ public record RGB (
 	}
 
 	public RGB lerp (RGB other, float t) {
-		return new RGB(clamp(Colors.lerp(r(), other.r(), t)), clamp(Colors.lerp(g(), other.g(), t)),
-			clamp(Colors.lerp(b(), other.b(), t)));
+		return new RGB(clamp(Colors.lerp(r, other.r(), t)), clamp(Colors.lerp(g, other.g(), t)),
+			clamp(Colors.lerp(b, other.b(), t)));
 	}
 
 	public RGB set (FloatIndexOperator op) {

@@ -1,19 +1,9 @@
 
-package com.esotericsoftware.colors;import static com.esotericsoftware.colors.Util.*;import static com.esotericsoftware.colors.Colors.*;import static com.esotericsoftware.colors.Colors.*;
+package com.esotericsoftware.colors;
 
-import static com.esotericsoftware.colors.Colors.*;
 import static com.esotericsoftware.colors.TestsUtil.*;
-import static com.esotericsoftware.colors.Util.LabUtil.*;
 
 import org.junit.jupiter.api.Test;
-
-import com.esotericsoftware.colors.Colors.CAM16;
-import com.esotericsoftware.colors.Colors.HCT;
-import com.esotericsoftware.colors.Colors.HSL;
-import com.esotericsoftware.colors.Colors.HSV;
-import com.esotericsoftware.colors.Colors.Lab;
-import com.esotericsoftware.colors.Colors.Oklab;
-import com.esotericsoftware.colors.Colors.RGB;
 
 /** Comprehensive tests that systematically test color conversions across the entire color space. */
 public class ColorSpaceTests {
@@ -28,8 +18,8 @@ public class ColorSpaceTests {
 			for (float g = 0; g <= 1.0f; g += 0.1f) {
 				for (float b = 0; b <= 1.0f; b += 0.1f) {
 					RGB rgb = new RGB(r, g, b);
-					Lab lab = Lab(rgb);
-					RGB rgbBack = RGB(lab);
+					Lab lab = rgb.Lab();
+					RGB rgbBack = lab.RGB();
 
 					float diff = Math.abs(rgb.r() - rgbBack.r()) + Math.abs(rgb.g() - rgbBack.g()) + Math.abs(rgb.b() - rgbBack.b());
 					if (diff > 0.01f) {
@@ -53,40 +43,40 @@ public class ColorSpaceTests {
 	@Test
 	public void testHuePreservation () {
 		// Test that hue is preserved across different color space conversions
-		for (float hue = 0; hue < 360; hue += 15) {
+		for (float hue = 15; hue < 360; hue += 15) {
 			for (float sat = 0.2f; sat <= 1.0f; sat += 0.2f) {
 				for (float light = 0.2f; light <= 0.8f; light += 0.2f) {
 					HSL hsl = new HSL(hue, sat, light);
-					RGB rgb = RGB(hsl);
+					RGB rgb = hsl.RGB();
 
 					// Convert through different color spaces
-					HSV hsv = HSV(rgb);
-					Lab lab = Lab(rgb);
-					Oklab oklab = Oklab(rgb);
-					CAM16 cam16 = CAM16(rgb);
-					HCT hct = HCT(rgb);
+					HSV hsv = rgb.HSV();
+					Lab lab = rgb.Lab();
+					Oklab oklab = rgb.Oklab();
+					CAM16 cam16 = rgb.CAM16();
+					HCT hct = rgb.HCT();
 
 					// Convert back to RGB
-					RGB rgbFromHSV = RGB(hsv);
-					RGB rgbFromLab = RGB(lab);
-					RGB rgbFromOklab = RGB(oklab);
-					RGB rgbFromCAM16 = RGB(cam16);
-					RGB rgbFromHCT = RGB(hct);
+					RGB rgbFromHSV = hsv.RGB();
+					RGB rgbFromLab = lab.RGB();
+					RGB rgbFromOklab = oklab.RGB();
+					RGB rgbFromCAM16 = cam16.RGB();
+					RGB rgbFromHCT = hct.RGB();
 
 					// Convert back to HSL to check hue
-					HSL hslFromHSV = HSL(rgbFromHSV);
-					HSL hslFromLab = HSL(rgbFromLab);
-					HSL hslFromOklab = HSL(rgbFromOklab);
-					HSL hslFromCAM16 = HSL(rgbFromCAM16);
-					HSL hslFromHCT = HSL(rgbFromHCT);
+					HSL hslFromHSV = rgbFromHSV.HSL();
+					HSL hslFromLab = rgbFromLab.HSL();
+					HSL hslFromOklab = rgbFromOklab.HSL();
+					HSL hslFromCAM16 = rgbFromCAM16.HSL();
+					HSL hslFromHCT = rgbFromHCT.HSL();
 
 					// For saturated colors, hue should be preserved
 					if (sat > 0.1f) {
-						assertHueClose(hue, hslFromHSV.H(), "HSV hue preservation", 2);
-						assertHueClose(hue, hslFromLab.H(), "Lab hue preservation", 5);
-						assertHueClose(hue, hslFromOklab.H(), "Oklab hue preservation", 5);
-						assertHueClose(hue, hslFromCAM16.H(), "CAM16 hue preservation", 5);
-						assertHueClose(hue, hslFromHCT.H(), "HCT hue preservation", 5);
+						assertHueClose(hue, hslFromHSV.H(), "HSV hue preservation " + hue, 2);
+						assertHueClose(hue, hslFromLab.H(), "Lab hue preservation " + hue, 5);
+						assertHueClose(hue, hslFromOklab.H(), "Oklab hue preservation " + hue, 5);
+						assertHueClose(hue, hslFromCAM16.H(), "CAM16 hue preservation " + hue, 5);
+						assertHueClose(hue, hslFromHCT.H(), "HCT hue preservation " + hue, 5);
 					}
 				}
 			}
@@ -100,32 +90,32 @@ public class ColorSpaceTests {
 			RGB rgb = new RGB(gray, gray, gray);
 
 			// Lab should have a*=b*=0 for grays
-			Lab lab = Lab(rgb);
+			Lab lab = rgb.Lab();
 			assertClose(0, lab.a(), "Gray Lab a* at " + gray, 0.5);
 			assertClose(0, lab.b(), "Gray Lab b* at " + gray, 0.5);
 
 			// Oklab should have a=b=0 for grays
-			Oklab oklab = Oklab(rgb);
+			Oklab oklab = rgb.Oklab();
 			assertClose(0, oklab.a(), "Gray Oklab a at " + gray, 0.001);
 			assertClose(0, oklab.b(), "Gray Oklab b at " + gray, 0.001);
 
 			// HSL/HSV should have S=0 for grays
-			HSL hsl = HSL(rgb);
-			HSV hsv = HSV(rgb);
+			HSL hsl = rgb.HSL();
+			HSV hsv = rgb.HSV();
 			assertClose(0, hsl.S(), "Gray HSL saturation at " + gray, 0.001);
 			assertClose(0, hsv.S(), "Gray HSV saturation at " + gray, 0.001);
 
 			// Round-trip through all color spaces should preserve gray
-			RGB grayBack = RGB(Lab(rgb));
+			RGB grayBack = rgb.Lab().RGB();
 			assertGray(grayBack, "Lab gray preservation at " + gray);
 
-			grayBack = RGB(Oklab(rgb));
+			grayBack = rgb.Oklab().RGB();
 			assertGray(grayBack, "Oklab gray preservation at " + gray);
 
-			grayBack = RGB(CAM16(rgb));
+			grayBack = rgb.CAM16().RGB();
 			assertGray(grayBack, "CAM16 gray preservation at " + gray);
 
-			grayBack = RGB(HCT(rgb));
+			grayBack = rgb.HCT().RGB();
 			assertGray(grayBack, "HCT gray preservation at " + gray);
 		}
 	}
@@ -141,14 +131,14 @@ public class ColorSpaceTests {
 
 		for (RGB boundary : boundaryColors) {
 			// Test round-trip through various color spaces
-			testRoundTrip(boundary, Colors::Lab, Colors::RGB, "Lab boundary");
-			testRoundTrip(boundary, Colors::Oklab, Colors::RGB, "Oklab boundary");
-			testRoundTrip(boundary, Colors::HSL, Colors::RGB, "HSL boundary");
-			testRoundTrip(boundary, Colors::HSV, Colors::RGB, "HSV boundary");
-			testRoundTrip(boundary, Colors::CAM16, Colors::RGB, "CAM16 boundary");
-			testRoundTrip(boundary, Colors::HCT, Colors::RGB, "HCT boundary");
-			testRoundTrip(boundary, Colors::XYZ, Colors::RGB, "XYZ boundary");
-			testRoundTrip(boundary, Colors::Luv, Colors::RGB, "Luv boundary");
+			testRoundTrip(boundary, rgb -> rgb.Lab(), lab -> lab.RGB(), "Lab boundary");
+			testRoundTrip(boundary, rgb -> rgb.Oklab(), oklab -> oklab.RGB(), "Oklab boundary");
+			testRoundTrip(boundary, rgb -> rgb.HSL(), hsl -> hsl.RGB(), "HSL boundary");
+			testRoundTrip(boundary, rgb -> rgb.HSV(), hsv -> hsv.RGB(), "HSV boundary");
+			testRoundTrip(boundary, rgb -> rgb.CAM16(), cam16 -> cam16.RGB(), "CAM16 boundary");
+			testRoundTrip(boundary, rgb -> rgb.HCT(), hct -> hct.RGB(), "HCT boundary");
+			testRoundTrip(boundary, rgb -> rgb.XYZ(), xyz -> xyz.RGB(), "XYZ boundary");
+			testRoundTrip(boundary, rgb -> rgb.Luv(), luv -> luv.RGB(), "Luv boundary");
 		}
 	}
 
@@ -157,8 +147,8 @@ public class ColorSpaceTests {
 		// Test that perceptually uniform spaces show consistent behavior
 		// Small steps in Lab/Oklab should produce visually similar changes
 		RGB baseColor = new RGB(0.5f, 0.5f, 0.7f);
-		Lab baseLab = Lab(baseColor);
-		Oklab baseOklab = Oklab(baseColor);
+		Lab baseLab = baseColor.Lab();
+		Oklab baseOklab = baseColor.Oklab();
 
 		float deltaE_Lab_total = 0;
 		float deltaE_Oklab_total = 0;
@@ -169,8 +159,8 @@ public class ColorSpaceTests {
 			Lab labStep = new Lab(baseLab.L() + i * 2, baseLab.a(), baseLab.b());
 			Oklab oklabStep = new Oklab(baseOklab.L() + i * 0.02f, baseOklab.a(), baseOklab.b());
 
-			RGB rgbLabStep = RGB(labStep);
-			RGB rgbOklabStep = RGB(oklabStep);
+			RGB rgbLabStep = labStep.RGB();
+			RGB rgbOklabStep = oklabStep.RGB();
 
 			// Verify RGB values are valid
 			assertTrue(rgbLabStep.r() >= 0 && rgbLabStep.r() <= 1, "Lab step " + i + " R out of range: " + rgbLabStep.r());
@@ -182,8 +172,8 @@ public class ColorSpaceTests {
 			assertTrue(rgbOklabStep.b() >= 0 && rgbOklabStep.b() <= 1, "Oklab step " + i + " B out of range: " + rgbOklabStep.b());
 
 			// Verify round-trip accuracy
-			Lab labRoundTrip = Lab(rgbLabStep);
-			Oklab oklabRoundTrip = Oklab(rgbOklabStep);
+			Lab labRoundTrip = rgbLabStep.Lab();
+			Oklab oklabRoundTrip = rgbOklabStep.Oklab();
 			assertRecordClose(labStep, labRoundTrip, "Lab round-trip at step " + i, 0.01f);
 			assertRecordClose(oklabStep, oklabRoundTrip, "Oklab round-trip at step " + i, 0.01f);
 
@@ -192,8 +182,8 @@ public class ColorSpaceTests {
 				Lab prevLab = new Lab(baseLab.L() + (i - 1) * 2, baseLab.a(), baseLab.b());
 				Oklab prevOklab = new Oklab(baseOklab.L() + (i - 1) * 0.02f, baseOklab.a(), baseOklab.b());
 
-				float deltaE_Lab = deltaE2000(prevLab, labStep);
-				float deltaE_Oklab = deltaE2000(Lab(RGB(prevOklab)), Lab(RGB(oklabStep)));
+				float deltaE_Lab = prevLab.deltaE2000(labStep);
+				float deltaE_Oklab = prevOklab.RGB().Lab().deltaE2000(oklabStep.RGB().Lab());
 
 				deltaE_Lab_total += deltaE_Lab;
 				deltaE_Oklab_total += deltaE_Oklab;

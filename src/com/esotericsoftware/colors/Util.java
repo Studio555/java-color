@@ -452,10 +452,6 @@ public class Util {
 	}
 
 	static public class RGBUtil {
-		static public float grayscale (RGB rgb) {
-			return rgb.r() * 0.2125f + rgb.g() * 0.7154f + rgb.b() * 0.0721f;
-		}
-
 		static public boolean achromatic (RGB rgb) {
 			return max(rgb.r(), rgb.g(), rgb.b()) - min(rgb.r(), rgb.g(), rgb.b()) < EPSILON;
 		}
