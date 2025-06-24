@@ -75,79 +75,82 @@ This image shows a few gradients for some of the supported color spaces. Other c
 ![](gradients.png)
 
 ### Example Usage
-It is convenient to omit `Colors.` using a static import:
+
+Import the color space records:
 ```java
-import static com.esotericsoftware.Colors.*;
+import com.esotericsoftware.colors.space.*;
 ```
 
-Records are provided for type safety and method signature clarity rather than using `float[]`. Any record can be converted using `float[] values = array(record)`.
+Records are provided for type safety and method signature clarity rather than using `float[]`. Any record can be converted using `float[] values = Util.floats(record)`.
 
 This library breaks from Java naming conventions to use capitalization that matches the color space names, making the code clearer and more aligned with color science literature.
 
 #### Standard Color Models
 - **HSV** (Hue, Saturation, Value)
   ```java
-  HSV hsv = HSV(rgb);
-  RGB rgb = RGB(hsv);
+  HSV hsv = rgb.HSV();
+  RGB rgb = hsv.RGB();
   ```
 
 - **HSL** (Hue, Saturation, Lightness)
   ```java
-  HSL hsl = HSL(rgb);
-  RGB rgb = RGB(hsl);
+  HSL hsl = rgb.HSL();
+  RGB rgb = hsl.RGB();
   ```
 
 - **HSI** (Hue, Saturation, Intensity)
   ```java
-  HSI hsi = HSI(rgb);
-  RGB rgb = RGB(hsi);
+  HSI hsi = rgb.HSI();
+  RGB rgb = hsi.RGB();
   ```
 
 #### CIE Color Spaces
 - **Lab** (CIELAB)
   ```java
-  Lab lab = Lab(rgb);
-  RGB rgb = RGB(lab);
+  Lab lab = rgb.Lab();
+  RGB rgb = lab.RGB();
   // With white point:
-  Lab lab = Lab(rgb, Illuminant.CIE2.D50);
-  Lab lab = Lab(rgb, customWhitePoint);
+  Lab lab = rgb.Lab(Illuminant.CIE2.D50);
+  Lab lab = xyz.Lab(customWhitePoint);
   ```
 
 - **Luv** (CIELUV)
   ```java
-  Luv luv = Luv(rgb);
-  RGB rgb = RGB(luv);
+  Luv luv = rgb.Luv();
+  RGB rgb = luv.RGB();
   ```
 
 - **LCh** (Lab-based cylindrical)
   ```java
-  LCh lch = LCh(rgb);
-  RGB rgb = RGB(lch);
+  LCh lch = rgb.LCh();
+  RGB rgb = lch.RGB();
   ```
 
 - **XYZ** (CIE 1931 XYZ)
   ```java
-  XYZ xyz = XYZ(rgb);
-  RGB rgb = RGB(xyz);
+  XYZ xyz = rgb.XYZ();
+  RGB rgb = xyz.RGB();
   ```
 
 #### Perceptually Uniform Spaces
 - **Oklab** - Modern perceptually uniform color space
   ```java
-  Oklab oklab = Oklab(rgb);
-  RGB rgb = RGB(oklab);
+  Oklab oklab = rgb.Oklab();
+  RGB rgb = oklab.RGB();
   ```
 
 - **Oklch** - Cylindrical version of Oklab
   ```java
-  Oklch oklch = Oklch(rgb);
-  RGB rgb = RGB(oklch);
+  Oklch oklch = rgb.Oklch();
+  RGB rgb = oklch.RGB();
   ```
 
 - **Okhsv/Okhsl** - Oklab-based HSV/HSL alternatives
   ```java
-  Okhsv okhsv = Okhsv(rgb);
-  Okhsl okhsl = Okhsl(rgb);
+  Okhsv okhsv = rgb.Okhsv();
+  Okhsl okhsl = rgb.Okhsl();
+  RGB rgbFromOkhsv = okhsv.RGB();
+  RGB rgbFromOkhsl = okhsl.RGB();
   ```
 
 #### Video & Broadcasting
@@ -155,66 +158,75 @@ This library breaks from Java naming conventions to use capitalization that matc
 #### Printing & Other Spaces
 - **CMYK** - Cyan, Magenta, Yellow, Key (Black)
   ```java
-  CMYK cmyk = CMYK(rgb);
-  RGB rgb = RGB(cmyk);
+  CMYK cmyk = rgb.CMYK();
+  RGB rgb = cmyk.RGB();
   ```
 
 - **LMS** - Cone Response Space
   ```java
-  LMS lms = LMS(xyz, CAT.Bradford);
-  XYZ xyz = XYZ(lms, CAT.Bradford);
+  LMS lms = xyz.LMS(LMS.CAT.Bradford);
+  XYZ xyz = lms.XYZ(LMS.CAT.Bradford);
   ```
 
 - **O1O2** - Opponent Color Space (Forward only)
   ```java
-  O1O2 o1o2 = O1O2(rgb);
+  O1O2 o1o2 = rgb.O1O2();
   // O1: Yellow-blue opponent [-1..1]
   // O2: Red-green opponent [-0.5..0.5]
   ```
 
 - **C1C2C3** - 3-Channel Opponent Space (Forward only)
   ```java
-  C1C2C3 c1c2c3 = C1C2C3(rgb);
+  C1C2C3 c1c2c3 = rgb.C1C2C3();
   // C1, C2, C3: Achromatic channels [0..pi/2]
   ```
 
 ### Chromaticity Coordinates
 - **xy** (CIE 1931), **uv** (CIE 1976), **uv1960** (CIE 1960)
   ```java
-  xy chromaticity = xy(rgb, gamut);
-  uv1960 uv60 = uv1960(chromaticity);
-  RGB rgb = RGB(chromaticity);  // Uses sRGB gamut
-  RGB rgb = RGB(chromaticity, gamut);
-  uv uv76 = uv(rgb);
-  XYZ xyz = XYZ(chromaticity, 50);  // Y=50
+  xy chromaticity = rgb.xy();
+  xy chromaticity = rgb.xy(gamut);
+  uv1960 uv60 = chromaticity.uv1960();
+  RGB rgb = chromaticity.RGB();  // Uses sRGB gamut
+  RGB rgb = chromaticity.RGB(gamut);
+  uv uv76 = rgb.uv();
+  XYZ xyz = new xyY(chromaticity.x(), chromaticity.y(), 50).XYZ();  // Y=50
   ```
 
 ## Color Temperature & Lighting
 
 ### Correlated Color Temperature (CCT)
 ```java
-// Create RGB from color temperature
-RGB warmWhite = RGB(2700, 0);   // 2700K, Duv=0
-RGB daylight = RGB(6500, 0.003f);  // 6500K, Duv=0.003
+import com.esotericsoftware.colors.CCT;
+
+// Create CCT object
+CCT warmWhite = new CCT(2700);   // 2700K
+CCT daylight = new CCT(6500);    // 6500K
+
+// Convert to RGB
+RGB warmRGB = warmWhite.RGB();          // On blackbody locus (Duv=0)
+RGB daylightRGB = daylight.RGB(0.003f); // With Duv offset
 
 // Calculate CCT from color
-float temperature = CCT(rgb);
+CCT cct = rgb.CCT();
+float temperature = cct.K();
 
 // Duv - Distance from Planckian locus
-float duv = Duv(rgb);
+float duv = rgb.uv().Duv();
 ```
 
 ### RGB + White LEDs
 ```java
 // RGBW (single white channel)
-RGBW rgbw = RGBW(rgb, whitePoint);
+RGBW rgbw = rgb.RGBW(whitePoint);
 
-// RGBWW (dual white channels)
-RGBWW rgbww = RGBWW(rgb, warmWhite, coolWhite);
+// RGBWW (dual white channels)  
+RGBWW rgbww = rgb.RGBWW(warmWhite, coolWhite);
 
 // Create from color temperature (higher potential brightness)
-RGBW rgbw = RGBW(3000, 0.8f, whitePoint);  // 3000K at 80% brightness
-RGBWW rgbw = RGBWW(3000, 0.8f, warmWhite, coolWhite);
+CCT cct3000 = new CCT(3000);
+RGBW rgbw = cct3000.RGBW(0.8f, whitePoint);  // 3000K at 80% brightness
+RGBWW rgbww = cct3000.RGBWW(0.8f, warmWhite, coolWhite);
 ```
 
 ## Color Analysis & Utilities
@@ -222,75 +234,72 @@ RGBWW rgbw = RGBWW(3000, 0.8f, warmWhite, coolWhite);
 ### Color Difference
 ```java
 // Delta E 2000 - Perceptual lightness, chromaticity, and hue difference
-float deltaE = deltaE2000(rgb1, rgb2);
-float deltaE = deltaE2000(lab1, lab2);
+float deltaE = rgb1.deltaE2000(rgb2);
+float deltaE = lab1.deltaE2000(lab2);
 
 // With custom weights for L*, C*, H*
-float deltaE = deltaE2000(lab1, lab2, 2f, 1f, 1f);
+float deltaE = lab1.deltaE2000(lab2, 2f, 1f, 1f);
 
 // MacAdam steps - Perceptual chromaticity difference
-float steps = MacAdamSteps(xy1, xy2);
+float steps = xy1.MacAdamSteps(xy2);
+
+// CAM16-UCS distance (perceptually uniform)
+float distance = cam16ucs1.deltaE(cam16ucs2);
 ```
 
 ### Accessibility & Contrast
 ```java
-import static com.esotericsoftware.colors.Util.RGBUtil.*;
-
 // WCAG contrast ratio (1:1 to 21:1)
-float ratio = contrastRatio(foreground, background);
+float ratio = foreground.contrastRatio(background);
 
 // Check WCAG compliance
-boolean meetsAA = WCAG_AA(fg, bg, largeText);
-boolean meetsAAA = WCAG_AAA(fg, bg, largeText);
+boolean meetsAA = foreground.WCAG_AA(background, largeText);
+boolean meetsAAA = foreground.WCAG_AAA(background, largeText);
 ```
 
 ### Color Analysis
 ```java
 // Convert to grayscale (perceptual luminance)
-float gray = grayscale(rgb);
+float gray = rgb.grayscale();
 
 // Check if color is achromatic
-boolean isGray = achromatic(rgb);
+boolean isGray = rgb.achromatic();
 
-// Get Y (luminance) from L* (perceptual lightness)
-float Y = LabUtil.LstarToY(50);  // L*=50 -> Y=~18.4
-float Yn = LabUtil.LstarToYn(50);  // Normalized [0,1]
-
-// Get L* from Y
-float Lstar = LabUtil.YtoLstar(18.4);
+// Get relative luminance
+float luminance = rgb.luminance();
 ```
 
 ### Color Harmonies
 ```java
-import static com.esotericsoftware.colors.Util.RGBUtil.*;
-RGB complementary = complementary(baseColor);
-RGB[] triadic = triadic(baseColor);
-RGB[] analogous = analogous(baseColor, 30f);  // 30° angle
-RGB[] splitComp = splitComplementary(baseColor);
+RGB baseColor = new RGB(1, 0.5, 0.25);
+RGB complementary = baseColor.complementary();
+RGB[] triadic = baseColor.triadic();
+RGB[] analogous = baseColor.analogous(30f);  // 30° angle
+RGB[] splitComp = baseColor.splitComplementary();
 ```
 
 #### Video & Broadcasting Examples
 - **YCbCr** - Digital video color space
   ```java
-  YCbCr ycbcr = YCbCr(rgb, YCbCrColorSpace.ITU_BT_709_HDTV);
-  RGB rgb = RGB(ycbcr, YCbCrColorSpace.ITU_BT_709_HDTV);
+  YCbCr ycbcr = rgb.YCbCr(YCbCr.YCbCrColorSpace.ITU_BT_709_HDTV);
+  RGB rgb = ycbcr.RGB(YCbCr.YCbCrColorSpace.ITU_BT_709_HDTV);
   ```
 
 - **YUV/YIQ/YCoCg** - Television and lossless formats
   ```java
-  YUV yuv = YUV(rgb);      // PAL television
-  YIQ yiq = YIQ(rgb);      // NTSC television
-  YCoCg ycocg = YCoCg(rgb); // Lossless transform
-  YCC ycc = YCC(rgb);      // Kodak Photo YCC
-  YES yes = YES(rgb);      // Xerox YES
+  YUV yuv = rgb.YUV();      // PAL television
+  YIQ yiq = rgb.YIQ();      // NTSC television
+  YCoCg ycocg = rgb.YCoCg(); // Lossless transform
+  YCC ycc = rgb.YCC();      // Kodak Photo YCC
+  YES yes = rgb.YES();      // Xerox YES
   ```
 
 #### Advanced Color Spaces
 
 - **TSL** (Tint, Saturation, Lightness) - Face Detection
   ```java
-  TSL tsl = TSL(rgb);
-  RGB rgb = RGB(tsl);
+  TSL tsl = rgb.TSL();
+  RGB rgb = tsl.RGB();
   // Optimized for skin tone analysis in computer vision
   // Note: When T=0, the inverse uses "negative zero" to distinguish between 
   // two possible solutions, as the reverse mapping is not unique
@@ -298,52 +307,55 @@ RGB[] splitComp = splitComplementary(baseColor);
 
 - **ITP** (ICtCp/HDR Color Space)
   ```java
-  ITP itp = ITP(rgb);
-  RGB rgb = RGB(itp);
+  ITP itp = rgb.ITP();
+  RGB rgb = itp.RGB();
   // Supports HDR content and wide color gamut (ITU-R BT.2100)
   // Full round-trip accuracy BT.2020 conversion
   ```
 
 - **HCT** (Hue, Chroma, Tone) - Google Material You
   ```java
-  HCT hct = HCT(rgb);
-  RGB rgb = RGB(hct);
+  HCT hct = rgb.HCT();
+  RGB rgb = hct.RGB();
   // Perceptually accurate color system used in Material Design
+  // Can also specify viewing conditions:
+  HCT hct = rgb.HCT(CAM16.VC.sRGB);
   ```
 
 - **CAM16** (Color Appearance Model)
   ```java
   // Using default viewing conditions
-  CAM16 cam = CAM16(rgb);
+  CAM16 cam = rgb.CAM16();
   
   // With custom viewing conditions
-  CAM16.VC vc = CAM16.VC.create(
+  CAM16.VC vc = CAM16.VC.with(
     Illuminant.CIE2.D50,  // White point
     40,                   // Adapting luminance (cd/m²)
     50,                   // Background L* value
     2,                    // Surround (0=dark, 1=dim, 2=average)
     false                 // Discounting illuminant
   );
-  CAM16 cam = CAM16(rgb, vc);
+  CAM16 cam = rgb.CAM16(vc);
   
   // Convert to/from uniform color space
-  CAM16UCS ucs = CAM16UCS(cam, vc);
-  CAM16 cam2 = CAM16(ucs, vc);
+  CAM16UCS ucs = cam.CAM16UCS();
+  CAM16 cam2 = ucs.CAM16(vc);
+  RGB rgb = ucs.RGB(vc);
   ```
 
 - **ACES** (Academy Color Encoding System)
   ```java
   // ACES2065-1 (archival format, AP0 primaries)
-  ACES2065_1 aces2065 = ACES2065_1(rgb);
-  RGB rgb = RGB(aces2065);
+  ACES2065_1 aces2065 = rgb.ACES2065_1();
+  RGB rgb = aces2065.RGB();
   
   // ACEScg (CGI working space, AP1 primaries)
-  ACEScg acesCg = ACEScg(rgb);
-  RGB rgb = RGB(acesCg);
+  ACEScg acesCg = rgb.ACEScg();
+  RGB rgb = acesCg.RGB();
   
   // ACEScc (logarithmic color grading, AP1 primaries)
-  ACEScc acesCc = ACEScc(rgb);
-  RGB rgb = RGB(acesCc);
+  ACEScc acesCc = rgb.ACEScc();
+  RGB rgb = acesCc.RGB();
   ```
 
 ## Gamut Management
@@ -371,12 +383,9 @@ xy clamped = gamut.clamp(chromaticity);
 ## Utility Functions
 
 ### Gamma Correction
-- `sRGB(float linear)` - sRGB gamma encoding
-- `linear(float srgb)` - sRGB gamma decoding
-- `gammaEncode(float linear, float gamma)` - Custom gamma encoding
-- `gammaDecode(float encoded, float gamma)` - Custom gamma decoding
-
 ```java
+import static com.esotericsoftware.colors.Util.*;
+
 // sRGB gamma encoding/decoding
 float encoded = sRGB(linearValue);
 float linear = linear(sRGBValue);
@@ -387,9 +396,9 @@ float decoded = gammaDecode(encoded, 2.2f);
 ```
 
 ### Float arrays
-- `floats(Record record)` - Convert color record to float array
-
 ```java
+import static com.esotericsoftware.colors.Util.*;
+
 // Convert any color record to float array
 float[] rgbArray = floats(rgb);  // [r, g, b]
 float[] hsvArray = floats(hsv);  // [H, S, V]
@@ -397,24 +406,20 @@ float[] labArray = floats(lab);  // [L, a, b]
 ```
 
 ### Output Formatting
-- `hex(Record)` or `hex(float... values)` - Convert to hex color string
-- `toString(Record)` or `toString(float... values)` - Convert to string (float values)
-- `toString255(Record)` or `toString255(float... values)` - Convert to string (0-255 values)
-- `dmx8(float value)` - Convert to 8-bit DMX value (0-255)
-- `dmx16(float value)` - Convert to 16-bit DMX value (0-65535)
-
 ```java
+import static com.esotericsoftware.colors.Util.*;
+
 // Hex color string
-String hex1 = hex(new RGB(r, g, b));  // "7F7F7F"
-String hex2 = hex(r, g, b);           // "7F7F7F"
+String hex1 = hex(new RGB(0.5f, 0.5f, 0.5f));  // "808080"
+String hex2 = hex(0.5f, 0.5f, 0.5f);           // "808080"
 
 // RGB string (float values)
-String str1 = toString(new RGB(r, g, b));  // "0.5, 0.5, 0.5"
-String str2 = toString(r, g, b);           // "0.5, 0.5, 0.5"
+String str1 = toString(new RGB(0.5f, 0.5f, 0.5f));  // "0.5, 0.5, 0.5"
+String str2 = toString(0.5f, 0.5f, 0.5f);           // "0.5, 0.5, 0.5"
 
 // RGB string (0-255 values)
-String str1 = toString255(new RGB(r, g, b));  // "128, 128, 128"
-String str2 = toString255(r, g, b);           // "128, 128, 128"
+String str255_1 = toString255(new RGB(0.5f, 0.5f, 0.5f));  // "128, 128, 128"
+String str255_2 = toString255(0.5f, 0.5f, 0.5f);           // "128, 128, 128"
 
 // DMX control
 int dmx8bit = dmx8(0.5f);    // 128
@@ -429,6 +434,8 @@ Utilities are provided for working with spectral colors and the visible spectrum
 
 ### Wavelength to Chromaticity
 ```java
+import com.esotericsoftware.colors.SpectralLocus;
+
 // Convert wavelength (380-700nm) to CIE u'v' coordinates
 uv color550nm = SpectralLocus.uv(550);  // Green at 550nm
 xy color550nmXY = SpectralLocus.xy(550);  // Same in xy space
@@ -442,7 +449,7 @@ uv green = SpectralLocus.uv(550);  // Green
 ### Spectrum Boundary Testing
 ```java
 // Check if a color is within the visible spectrum
-uv testColor = uv(rgb);
+uv testColor = rgb.uv();
 boolean visible = SpectralLocus.contains(testColor);
 
 // Colors outside the spectral locus are not physically realizable
@@ -452,11 +459,11 @@ boolean impossible = SpectralLocus.contains(new uv(0.8f, 0.8f)); // false
 ### Dominant Wavelength
 ```java
 // Find the dominant wavelength of any color
-uv color = uv(new RGB(0, 1, 0));  // Green RGB
+uv color = new RGB(0, 1, 0).uv();  // Green RGB
 float wavelength = SpectralLocus.dominantWavelength(color);  // ~550nm
 
 // Purple/magenta colors return negative complementary wavelengths
-uv magenta = uv(new RGB(1, 0, 1));
+uv magenta = new RGB(1, 0, 1).uv();
 float purpleWave = SpectralLocus.dominantWavelength(magenta);  // Negative value
 
 // Use custom white point
@@ -469,11 +476,11 @@ float wavelength2 = SpectralLocus.dominantWavelength(color, Illuminant.CIE2.A);
 float purity = SpectralLocus.excitationPurity(color);
 
 // Gray has low purity
-uv gray = uv(new RGB(0.5f, 0.5f, 0.5f));
+uv gray = new RGB(0.5f, 0.5f, 0.5f).uv();
 float grayPurity = SpectralLocus.excitationPurity(gray);  // < 0.1
 
 // Saturated colors have high purity
-uv saturated = uv(new RGB(1, 0, 0));
+uv saturated = new RGB(1, 0, 0).uv();
 float redPurity = SpectralLocus.excitationPurity(saturated);  // > 0.8
 ```
 
@@ -482,12 +489,14 @@ float redPurity = SpectralLocus.excitationPurity(saturated);  // > 0.8
 CIE standard illuminants are included for both 2° and 10° observers:
 
 ```java
+import com.esotericsoftware.colors.Illuminant;
+
 // 2° observer
-XYZ d65_2deg = CIE2.D65;
-XYZ d50_2deg = CIE2.D50;
+XYZ d65_2deg = Illuminant.CIE2.D65;
+XYZ d50_2deg = Illuminant.CIE2.D50;
 
 // 10° observer
-XYZ d65_10deg = CIE10.D65;
+XYZ d65_10deg = Illuminant.CIE10.D65;
 ```
 
 Available illuminants: A, C, D50, D55, D65, D75, F2, F7, F11
@@ -496,14 +505,14 @@ Available illuminants: A, C, D50, D55, D65, D75, F2, F7, F11
 
 ```java
 // Various CAT methods for cone response
-LMS lms = LMS(xyz, CAT.Bradford);
-LMS lms = LMS(xyz, CAT.vonKries);
-LMS lms = LMS(xyz, CAT.CAT02);
-LMS lms = LMS(xyz, CAT.CAT97);
-LMS lms = LMS(xyz, CAT.HPE);
+LMS lms = xyz.LMS(LMS.CAT.Bradford);
+LMS lms = xyz.LMS(LMS.CAT.vonKries);
+LMS lms = xyz.LMS(LMS.CAT.CAT02);
+LMS lms = xyz.LMS(LMS.CAT.CAT97);
+LMS lms = xyz.LMS(LMS.CAT.HPE);
 
 // Convert back
-XYZ xyz = XYZ(lms, CAT.Bradford);
+XYZ xyz = lms.XYZ(LMS.CAT.Bradford);
 ```
 
 ## Usage Examples
@@ -512,62 +521,70 @@ XYZ xyz = XYZ(lms, CAT.Bradford);
 ```java
 // Convert RGB to HSV
 RGB rgb = new RGB(0.5f, 0.7f, 0.3f);
-HSV hsv = HSV(rgb);
-System.out.println("Hue: " + hsv.h + "°");
+HSV hsv = rgb.HSV();
+System.out.println("Hue: " + hsv.H() + "°");
 // Convert back to RGB
-RGB rgb2 = RGB(hsv);
+RGB rgb2 = hsv.RGB();
 ```
 
 ### Perceptual Colors
 ```java
 // Use Oklab for perceptually uniform operations
-Oklab color1 = Oklab(rgb1);
-Oklab color2 = Oklab(rgb2);
+Oklab color1 = rgb1.Oklab();
+Oklab color2 = rgb2.Oklab();
 // Interpolate in perceptual space
-Oklab middle = lerp(color1, color2, 0.5f);
-RGB result = RGB(middle);
+Oklab middle = color1.lerp(color2, 0.5f);
 ```
 
 ### Color Interpolation
 ```java
+import static com.esotericsoftware.colors.Util.*;
+
 RGB red = new RGB(1, 0, 0);
 RGB blue = new RGB(0, 0, 1);
 
 // RGB interpolation (simple but not perceptual)
-RGB rgbMix = lerp(red, blue, 0.5f);  // Purple
+RGB rgbMix = red.lerp(blue, 0.5f);  // Purple
 
 // Lab interpolation (perceptually uniform)
-Lab labMix = lerp(Lab(red), Lab(blue), 0.5f);
-RGB labResult = RGB(labMix);  // More perceptual purple
+Lab labRed = red.Lab();
+Lab labBlue = blue.Lab();
+Lab labMix = labRed.lerp(labBlue, 0.5f);  // More perceptual purple
 
 // HSL interpolation (hue-based, handles angles correctly)
-HSL hslMix = lerp(HSL(red), HSL(blue), 0.5f);
-RGB hslResult = RGB(hslMix);  // Goes through magenta
+HSL hslRed = red.HSL();
+HSL hslBlue = blue.HSL();
+HSL hslMix = hslRed.lerp(hslBlue, 0.5f);  // Hue wraparound, through magenta
 
 // Oklab interpolation (modern perceptual)
-Oklab oklabMix = lerp(Oklab(red), Oklab(blue), 0.5f);
-RGB oklabResult = RGB(oklabMix);  // Best perceptual result
+Oklab oklabRed = red.Oklab();
+Oklab oklabBlue = blue.Oklab();
+Oklab oklabMix = oklabRed.lerp(oklabBlue, 0.5f);  // Best perceptual result
 
-// Create smooth gradients
+// Create smooth perceptual gradients
 for (float t = 0; t <= 1; t += 0.1f) {
-	RGB color = RGB(lerp(Oklab(red), Oklab(blue), t));
-	// Use color for gradient.
+    Oklab interpolated = oklabRed.lerp(oklabBlue, t);
+    RGB color = interpolated.RGB();
+    // Use color for gradient.
 }
 ```
 
 ### Color Temperature to RGB
 ```java
 // Create warm white (2700K)
-RGB warmWhite = RGB(2700, 0f);
+CCT warmCCT = new CCT(2700);
+RGB warmWhite = warmCCT.RGB();
+
 // Create daylight (6500K) with slight green tint
-RGB daylight = RGB(6500, -0.003f);
+CCT daylightCCT = new CCT(6500);
+RGB daylight = daylightCCT.RGB(-0.003f);  // With Duv offset
 ```
 
 ### Accessibility Checking
 ```java
 RGB background = new RGB(1, 1, 1);  // White
 RGB text = new RGB(0.2f, 0.2f, 0.2f);
-float contrast = contrastRatio(text, background);
-boolean accessible = WCAG_AA(text, background, false);
+float contrast = text.contrastRatio(background);
+boolean accessible = text.WCAG_AA(background, false);
 if (!accessible) System.out.println("Text color fails WCAG AA standards");
 ```

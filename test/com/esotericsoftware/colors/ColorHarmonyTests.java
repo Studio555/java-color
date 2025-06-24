@@ -2,7 +2,6 @@
 package com.esotericsoftware.colors;
 
 import static com.esotericsoftware.colors.TestsUtil.*;
-import static com.esotericsoftware.colors.space.RGB.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +15,7 @@ public class ColorHarmonyTests {
 		RGB baseColor = new RGB(1, 0, 0); // Red
 
 		// Test with 15° angle
-		RGB[] analogous15 = analogous(baseColor, 15);
+		RGB[] analogous15 = baseColor.analogous(15);
 		assertEquals(3, analogous15.length, "Analogous should return 3 colors");
 		assertRecordClose(baseColor, analogous15[1], "Middle color should be base color");
 
@@ -34,7 +33,7 @@ public class ColorHarmonyTests {
 		assertClose(expectedRight, right15.H(), "Right analogous hue (15°)", 1);
 
 		// Test with 30° angle
-		RGB[] analogous30 = analogous(baseColor, 30);
+		RGB[] analogous30 = baseColor.analogous(30);
 		HSL left30 = analogous30[0].HSL();
 		HSL right30 = analogous30[2].HSL();
 
@@ -47,7 +46,7 @@ public class ColorHarmonyTests {
 		assertClose(expectedRight, right30.H(), "Right analogous hue (30°)", 1);
 
 		// Test with 45° angle
-		RGB[] analogous45 = analogous(baseColor, 45);
+		RGB[] analogous45 = baseColor.analogous(45);
 		HSL left45 = analogous45[0].HSL();
 		HSL right45 = analogous45[2].HSL();
 
@@ -60,21 +59,21 @@ public class ColorHarmonyTests {
 		assertClose(expectedRight, right45.H(), "Right analogous hue (45°)", 1);
 
 		// Test edge cases with 0° angle (all three should be the same)
-		RGB[] analogous0 = analogous(baseColor, 0);
+		RGB[] analogous0 = baseColor.analogous(0);
 		assertRecordClose(baseColor, analogous0[0], "0° analogous left should equal base");
 		assertRecordClose(baseColor, analogous0[1], "0° analogous middle should equal base");
 		assertRecordClose(baseColor, analogous0[2], "0° analogous right should equal base");
 
 		// Test with 360° angle (should wrap around)
 		RGB greenBase = new RGB(0, 1, 0);
-		RGB[] analogous360 = analogous(greenBase, 360);
+		RGB[] analogous360 = greenBase.analogous(360);
 		// All three should be the same since 360° is a full circle
 		assertRecordClose(greenBase, analogous360[0], "360° analogous left should equal base");
 		assertRecordClose(greenBase, analogous360[1], "360° analogous middle should equal base");
 		assertRecordClose(greenBase, analogous360[2], "360° analogous right should equal base");
 
 		// Test saturation and lightness preservation
-		RGB[] testColors = analogous(new RGB(0.7f, 0.3f, 0.5f), 20);
+		RGB[] testColors = new RGB(0.7f, 0.3f, 0.5f).analogous(20);
 		HSL testBase = testColors[1].HSL();
 		HSL testLeft = testColors[0].HSL();
 		HSL testRight = testColors[2].HSL();
@@ -89,26 +88,26 @@ public class ColorHarmonyTests {
 	public void testComplementary () {
 		// Test with primary colors
 		RGB red = new RGB(1, 0, 0);
-		RGB redComplement = complementary(red);
+		RGB redComplement = red.complementary();
 		// Red (0°) complement should be cyan (180°)
 		HSL redComplementHSL = redComplement.HSL();
 		assertClose(180, redComplementHSL.H(), "Red complement hue", 1);
 
 		RGB green = new RGB(0, 1, 0);
-		RGB greenComplement = complementary(green);
+		RGB greenComplement = green.complementary();
 		// Green (120°) complement should be magenta (300°)
 		HSL greenComplementHSL = greenComplement.HSL();
 		assertClose(300, greenComplementHSL.H(), "Green complement hue", 1);
 
 		RGB blue = new RGB(0, 0, 1);
-		RGB blueComplement = complementary(blue);
+		RGB blueComplement = blue.complementary();
 		// Blue (240°) complement should be yellow (60°)
 		HSL blueComplementHSL = blueComplement.HSL();
 		assertClose(60, blueComplementHSL.H(), "Blue complement hue", 1);
 
 		// Test with secondary colors
 		RGB cyan = new RGB(0, 1, 1);
-		RGB cyanComplement = complementary(cyan);
+		RGB cyanComplement = cyan.complementary();
 		// Cyan (180°) complement should be red (0° or 360°)
 		HSL cyanComplementHSL = cyanComplement.HSL();
 		// 359° and 0° are equivalent (both are red)
@@ -116,26 +115,26 @@ public class ColorHarmonyTests {
 		assertTrue(cyanCompHue < 1 || cyanCompHue > 358, "Cyan complement hue should be ~0° (was " + cyanCompHue + ")");
 
 		RGB magenta = new RGB(1, 0, 1);
-		RGB magentaComplement = complementary(magenta);
+		RGB magentaComplement = magenta.complementary();
 		// Magenta (300°) complement should be green (120°)
 		HSL magentaComplementHSL = magentaComplement.HSL();
 		assertClose(120, magentaComplementHSL.H(), "Magenta complement hue", 1);
 
 		RGB yellow = new RGB(1, 1, 0);
-		RGB yellowComplement = complementary(yellow);
+		RGB yellowComplement = yellow.complementary();
 		// Yellow (60°) complement should be blue (240°)
 		HSL yellowComplementHSL = yellowComplement.HSL();
 		assertClose(240, yellowComplementHSL.H(), "Yellow complement hue", 1);
 
 		// Test with gray (should return gray)
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
-		RGB grayComplement = complementary(gray);
+		RGB grayComplement = gray.complementary();
 		assertRecordClose(gray, grayComplement, "Gray complement should be gray", 0.01);
 
 		// Verify that applying complementary twice returns original color
 		RGB testColor = new RGB(0.7f, 0.3f, 0.5f);
-		RGB complement = complementary(testColor);
-		RGB doubleComplement = complementary(complement);
+		RGB complement = testColor.complementary();
+		RGB doubleComplement = complement.complementary();
 		assertRecordClose(testColor, doubleComplement, "Double complement should return original", 0.01);
 	}
 
@@ -143,7 +142,7 @@ public class ColorHarmonyTests {
 	public void testSplitComplementary () {
 		// Test with primary colors
 		RGB red = new RGB(1, 0, 0);
-		RGB[] splitComp = splitComplementary(red);
+		RGB[] splitComp = red.splitComplementary();
 
 		assertEquals(3, splitComp.length, "Split complementary should return 3 colors");
 		assertRecordClose(red, splitComp[0], "First color should be base color");
@@ -171,7 +170,7 @@ public class ColorHarmonyTests {
 
 		// Test with different base colors
 		RGB green = new RGB(0, 1, 0);
-		RGB[] greenSplit = splitComplementary(green);
+		RGB[] greenSplit = green.splitComplementary();
 		HSL greenBase = green.HSL();
 		HSL greenSplit1 = greenSplit[1].HSL();
 		HSL greenSplit2 = greenSplit[2].HSL();
@@ -186,7 +185,7 @@ public class ColorHarmonyTests {
 
 		// Test saturation and lightness preservation
 		RGB testColor = new RGB(0.7f, 0.3f, 0.5f);
-		RGB[] testSplit = splitComplementary(testColor);
+		RGB[] testSplit = testColor.splitComplementary();
 		HSL testBase = testSplit[0].HSL();
 		HSL testSplit1 = testSplit[1].HSL();
 		HSL testSplit2 = testSplit[2].HSL();
@@ -201,7 +200,7 @@ public class ColorHarmonyTests {
 	public void testTriadic () {
 		// Test with primary colors
 		RGB red = new RGB(1, 0, 0);
-		RGB[] triadicRed = triadic(red);
+		RGB[] triadicRed = red.triadic();
 
 		assertEquals(3, triadicRed.length, "Triadic should return 3 colors");
 		assertRecordClose(red, triadicRed[0], "First color should be base color");
@@ -220,7 +219,7 @@ public class ColorHarmonyTests {
 		assertClose(expected3, color3.H(), "Third triadic hue", 1);
 
 		// Test that it forms the RGB primary triad
-		RGB[] rgbTriad = triadic(red);
+		RGB[] rgbTriad = red.triadic();
 		// Red (0°) -> Green (120°) -> Blue (240°)
 		assertClose(0, rgbTriad[0].HSL().H(), "Red hue", 1);
 		assertClose(120, rgbTriad[1].HSL().H(), "Green hue", 1);
@@ -228,7 +227,7 @@ public class ColorHarmonyTests {
 
 		// Test with green
 		RGB green = new RGB(0, 1, 0);
-		RGB[] triadicGreen = triadic(green);
+		RGB[] triadicGreen = green.triadic();
 		// Green (120°) -> Blue (240°) -> Red (360°/0°)
 		assertClose(120, triadicGreen[0].HSL().H(), "Green hue", 1);
 		assertClose(240, triadicGreen[1].HSL().H(), "Blue hue", 1);
@@ -237,7 +236,7 @@ public class ColorHarmonyTests {
 
 		// Test saturation and lightness preservation for all colors
 		RGB testColor = new RGB(0.8f, 0.3f, 0.5f);
-		RGB[] testTriadic = triadic(testColor);
+		RGB[] testTriadic = testColor.triadic();
 		HSL testBase = testTriadic[0].HSL();
 		HSL test2 = testTriadic[1].HSL();
 		HSL test3 = testTriadic[2].HSL();
@@ -251,7 +250,7 @@ public class ColorHarmonyTests {
 		for (float hue = 0; hue < 360; hue += 45) {
 			HSL hsl = new HSL(hue, 0.8f, 0.5f);
 			RGB rgb = hsl.RGB();
-			RGB[] triad = triadic(rgb);
+			RGB[] triad = rgb.triadic();
 
 			float h1 = triad[0].HSL().H();
 			float h2 = triad[1].HSL().H();
@@ -274,7 +273,7 @@ public class ColorHarmonyTests {
 
 		// Test with gray (should handle achromatic case)
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
-		RGB[] triadicGray = triadic(gray);
+		RGB[] triadicGray = gray.triadic();
 		// All three should remain gray since there's no hue
 		for (RGB color : triadicGray) {
 			HSL hsl = color.HSL();

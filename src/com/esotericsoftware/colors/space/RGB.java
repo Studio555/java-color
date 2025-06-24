@@ -495,53 +495,53 @@ public record RGB (
 		return new RGB(clamp(op.apply(0, r)), clamp(op.apply(1, g)), clamp(op.apply(2, b)));
 	}
 
-	static public boolean achromatic (RGB rgb) {
-		return max(rgb.r(), rgb.g(), rgb.b()) - min(rgb.r(), rgb.g(), rgb.b()) < EPSILON;
+	public boolean achromatic () {
+		return max(r, g, b) - min(r, g, b) < EPSILON;
 	}
 
 	/** Returns colors opposite on color wheel. */
-	static public RGB complementary (RGB base) {
-		HSL hsl = base.HSL();
+	public RGB complementary () {
+		HSL hsl = HSL();
 		float h = hsl.H() + 180;
 		if (h >= 360) h -= 360;
 		return new HSL(h, hsl.S(), hsl.L()).RGB();
 	}
 
 	/** Returns 3 colors evenly spaced on color wheel. */
-	static public RGB[] triadic (RGB base) {
-		HSL hsl = base.HSL();
+	public RGB[] triadic () {
+		HSL hsl = HSL();
 		float h1 = hsl.H() + 120;
 		float h2 = hsl.H() + 240;
 		if (h1 >= 360) h1 -= 360;
 		if (h2 >= 360) h2 -= 360;
-		return new RGB[] {base, new HSL(h1, hsl.S(), hsl.L()).RGB(), new HSL(h2, hsl.S(), hsl.L()).RGB()};
+		return new RGB[] {this, new HSL(h1, hsl.S(), hsl.L()).RGB(), new HSL(h2, hsl.S(), hsl.L()).RGB()};
 	}
 
 	/** Returns 3 colors adjacent on color wheel.
 	 * @param angle [0..360] */
-	static public RGB[] analogous (RGB base, float angle) {
-		HSL hsl = base.HSL();
+	public RGB[] analogous (float angle) {
+		HSL hsl = HSL();
 		float h1 = hsl.H() + angle;
 		float h2 = hsl.H() - angle;
 		if (h1 >= 360) h1 -= 360;
 		if (h2 < 0) h2 += 360;
-		return new RGB[] {new HSL(h2, hsl.S(), hsl.L()).RGB(), base, new HSL(h1, hsl.S(), hsl.L()).RGB()};
+		return new RGB[] {new HSL(h2, hsl.S(), hsl.L()).RGB(), this, new HSL(h1, hsl.S(), hsl.L()).RGB()};
 	}
 
 	/** Returns a split-complementary color scheme. */
-	static public RGB[] splitComplementary (RGB base) {
-		HSL hsl = base.HSL();
+	public RGB[] splitComplementary () {
+		HSL hsl = HSL();
 		float h1 = hsl.H() + 150;
 		float h2 = hsl.H() + 210;
 		if (h1 >= 360) h1 -= 360;
 		if (h2 >= 360) h2 -= 360;
-		return new RGB[] {base, new HSL(h1, hsl.S(), hsl.L()).RGB(), new HSL(h2, hsl.S(), hsl.L()).RGB()};
+		return new RGB[] {this, new HSL(h1, hsl.S(), hsl.L()).RGB(), new HSL(h2, hsl.S(), hsl.L()).RGB()};
 	}
 
 	/** Returns the WCAG contrast ratio between foreground and background colors.
 	 * @return Contrast ratio, 1:1 to 21:1. */
-	static public float contrastRatio (RGB fg, RGB bg) {
-		float fgLum = fg.Y() / 100;
+	public float contrastRatio (RGB bg) {
+		float fgLum = Y() / 100;
 		float bgLum = bg.Y() / 100;
 		float L1 = Math.max(fgLum, bgLum);
 		float L2 = Math.min(fgLum, bgLum);
@@ -550,13 +550,13 @@ public record RGB (
 
 	/** Returns true if the colors meet the WCAG AA contrast accessibility standard.
 	 * @param largeText true for 18pt+ normal or 14pt+ bold text */
-	static public boolean WCAG_AA (RGB fg, RGB bg, boolean largeText) {
-		return contrastRatio(fg, bg) >= (largeText ? 3 : 4.5f);
+	public boolean WCAG_AA (RGB bg, boolean largeText) {
+		return contrastRatio(bg) >= (largeText ? 3 : 4.5f);
 	}
 
 	/** Returns true if the colors meet the WCAG AAA contrast accessibility standard.
 	 * @param largeText true for 18pt+ normal or 14pt+ bold text */
-	static public boolean WCAG_AAA (RGB fg, RGB bg, boolean largeText) {
-		return contrastRatio(fg, bg) >= (largeText ? 4.5f : 7);
+	public boolean WCAG_AAA (RGB bg, boolean largeText) {
+		return contrastRatio(bg) >= (largeText ? 4.5f : 7);
 	}
 }
