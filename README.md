@@ -1,4 +1,4 @@
-# Colors
+# Color
 
 This Java library provides color space conversions and other color related utilities.
 
@@ -78,7 +78,7 @@ This image shows a few gradients for some of the supported color spaces. Other c
 
 Import the color space records:
 ```java
-import com.esotericsoftware.colors.space.*;
+import com.esotericsoftware.color.space.*;
 ```
 
 Records are provided for type safety and method signature clarity rather than using `float[]`. Any record can be converted using `float[] values = Util.floats(record)`.
@@ -197,7 +197,7 @@ This library breaks from Java naming conventions to use capitalization that matc
 
 ### Correlated Color Temperature (CCT)
 ```java
-import com.esotericsoftware.colors.CCT;
+import com.esotericsoftware.color.CCT;
 
 // Create CCT object
 CCT warmWhite = new CCT(2700);   // 2700K
@@ -382,9 +382,64 @@ xy clamped = gamut.clamp(chromaticity);
 
 ## Utility Functions
 
+### Component Access
+CAM16UCS, Lab, LinearRGB, Luv, Oklab, RGB, XYZ:
+```java
+// Get component by index (0, 1, 2)
+float value = lab.get(0);  // L component
+
+// Set component by index (returns new instance)
+Lab newLab = lab.set(1, 0.5f);  // Set a component
+
+// Add value to all components
+RGB lighter = rgb.add(0.1f);
+
+// Add to specific component
+RGB moreRed = rgb.add(0, 0.2f);
+
+// Add different values to each component
+Oklab shifted = oklab.add(0.1f, -0.05f, 0.02f);
+
+// Subtract operations (same patterns as add)
+XYZ darker = xyz.sub(10);
+Lab lessGreen = lab.sub(1, 5);
+```
+
+Note: RGB values are clamped to [0..1], other spaces are not. Use LinearRGB or XYZ for interchange to preserve wide-gamut colors.
+
+#### Scaling & Normalization
+LinearRGB, RGB, XYZ:
+```java
+// Scale all components
+RGB halfBright = rgb.scl(0.5f);
+
+// Scale specific component
+LinearRGB dimRed = linearRGB.scl(0, 0.7f);
+
+// Scale each component differently
+XYZ adjusted = xyz.scl(1.1f, 1.0f, 0.9f);
+
+// Get min/max component
+float darkest = rgb.min();
+float brightest = rgb.max();
+
+// Normalize (divide by max component)
+LinearRGB normalized = linearRGB.nor();
+```
+
+#### Distance Calculations
+CAM16UCS, Lab, LinearRGB, Luv, Oklab, RGB, uv, xy, XYZ:
+```java
+// Euclidean distance
+float distance = color1.dst(color2);
+
+// Squared distance (faster, no sqrt)
+float distSquared = color1.dst2(color2);
+```
+
 ### Gamma Correction
 ```java
-import static com.esotericsoftware.colors.Util.*;
+import static com.esotericsoftware.color.Util.*;
 
 // sRGB gamma encoding/decoding
 float encoded = sRGB(linearValue);
@@ -397,7 +452,7 @@ float decoded = gammaDecode(encoded, 2.2f);
 
 ### Float arrays
 ```java
-import static com.esotericsoftware.colors.Util.*;
+import static com.esotericsoftware.color.Util.*;
 
 // Convert any color record to float array
 float[] rgbArray = floats(rgb);  // [r, g, b]
@@ -407,7 +462,7 @@ float[] labArray = floats(lab);  // [L, a, b]
 
 ### Output Formatting
 ```java
-import static com.esotericsoftware.colors.Util.*;
+import static com.esotericsoftware.color.Util.*;
 
 // Hex color string
 String hex1 = hex(new RGB(0.5f, 0.5f, 0.5f));  // "808080"
@@ -434,7 +489,7 @@ Utilities are provided for working with spectral colors and the visible spectrum
 
 ### Wavelength to Chromaticity
 ```java
-import com.esotericsoftware.colors.SpectralLocus;
+import com.esotericsoftware.color.SpectralLocus;
 
 // Convert wavelength (380-700nm) to CIE u'v' coordinates
 uv color550nm = SpectralLocus.uv(550);  // Green at 550nm
@@ -489,7 +544,7 @@ float redPurity = SpectralLocus.excitationPurity(saturated);  // > 0.8
 CIE standard illuminants are included for both 2° and 10° observers:
 
 ```java
-import com.esotericsoftware.colors.Illuminant;
+import com.esotericsoftware.color.Illuminant;
 
 // 2° observer
 XYZ d65_2deg = Illuminant.CIE2.D65;
@@ -538,7 +593,7 @@ Oklab middle = color1.lerp(color2, 0.5f);
 
 ### Color Interpolation
 ```java
-import static com.esotericsoftware.colors.Util.*;
+import static com.esotericsoftware.color.Util.*;
 
 RGB red = new RGB(1, 0, 0);
 RGB blue = new RGB(0, 0, 1);

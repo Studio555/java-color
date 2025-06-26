@@ -5,11 +5,11 @@
 
 <modelVersion>4.0.0</modelVersion>
 
-<groupId>com.esotericsoftware.colors</groupId>
-<artifactId>colors</artifactId>
+<groupId>com.esotericsoftware.color</groupId>
+<artifactId>color</artifactId>
 <version>1.0-SNAPSHOT</version>
 
-<name>colors</name>
+<name>color</name>
 
 <properties>
 <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
