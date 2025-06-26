@@ -14,6 +14,10 @@ public record HSV (
 	/** Value/Brightness [0..1]. */
 	float V) {
 
+	public LinearRGB LinearRGB () {
+		return RGB().LinearRGB();
+	}
+
 	public RGB RGB () {
 		if (Float.isNaN(H) || S < EPSILON) return new RGB(V, V, V);
 		float f = H / 60 - (float)Math.floor(H / 60);
@@ -54,6 +58,10 @@ public record HSV (
 		}
 		}
 		return new RGB(r, g, b);
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
 	}
 
 	public HSV lerp (HSV other, float t) {

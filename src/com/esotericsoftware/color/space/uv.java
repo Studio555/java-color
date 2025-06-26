@@ -3,6 +3,8 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Illuminant;
+import com.esotericsoftware.color.Illuminant.CIE2;
 import com.esotericsoftware.color.Util;
 
 /** CIE 1976 u'v' chromaticity coordinates. */
@@ -15,6 +17,49 @@ public record uv (
 	/** @return [1667..25000K] or NaN if invalid. */
 	public CCT CCT () {
 		return xy().CCT();
+	}
+
+	/** Uses {@link CIE2#D65}. */
+	public Lab Lab () {
+		return Lab(CIE2.D65);
+	}
+
+	/** @param tristimulus See {@link Illuminant}. */
+	public Lab Lab (XYZ tristimulus) {
+		return XYZ().Lab(tristimulus);
+	}
+
+	/** @return Normalized. */
+	public LinearRGB LinearRGB () {
+		xy xy = xy();
+		return new xyY(xy.x(), xy.y(), 1).XYZ().LinearRGB().nor();
+	}
+
+	/** Uses {@link CIE2#D65}. */
+	public LCh LCh () {
+		return LCh(CIE2.D65);
+	}
+
+	/** @param tristimulus See {@link Illuminant}. */
+	public LCh LCh (XYZ tristimulus) {
+		return Lab(tristimulus).LCh();
+	}
+
+	/** Uses {@link CIE2#D65}.
+	 * @return NaN if invalid. */
+	public LCHuv LChuv () {
+		return Luv().LCHuv();
+	}
+
+	/** Uses {@link CIE2#D65}.
+	 * @return NaN if invalid. */
+	public Luv Luv () {
+		return XYZ().Luv(CIE2.D65);
+	}
+
+	/** @return NaN if invalid. */
+	public Luv Luv (XYZ tristimulus) {
+		return XYZ().Luv(tristimulus);
 	}
 
 	/** @return Normalized. */

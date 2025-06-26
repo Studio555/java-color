@@ -461,23 +461,23 @@ public class RGBTests {
 	@Test
 	public void testRGBW () {
 		// Test with perfect white LED (ideal case)
-		RGB white = new RGB(1, 1, 1);
-		RGBW rgbwWhite = white.RGBW(new RGB(1, 1, 1));
+		LinearRGB white = new LinearRGB(1, 1, 1);
+		RGBW rgbwWhite = white.RGBW(new LinearRGB(1, 1, 1));
 		assertClose(0, rgbwWhite.r(), "White RGBW R");
 		assertClose(0, rgbwWhite.g(), "White RGBW G");
 		assertClose(0, rgbwWhite.b(), "White RGBW B");
 		assertClose(1, rgbwWhite.w(), "White RGBW W");
 
 		// Test pure colors with ideal white
-		RGB red = new RGB(1, 0, 0);
-		RGBW rgbwRed = red.RGBW(new RGB(1, 1, 1));
+		LinearRGB red = new LinearRGB(1, 0, 0);
+		RGBW rgbwRed = red.RGBW(new LinearRGB(1, 1, 1));
 		assertClose(1, rgbwRed.r(), "Red RGBW R");
 		assertClose(0, rgbwRed.g(), "Red RGBW G");
 		assertClose(0, rgbwRed.b(), "Red RGBW B");
 		assertClose(0, rgbwRed.w(), "Red RGBW W");
 
 		// Test with warm white LED calibration
-		RGB warmWhiteLED = new RGB(1, 0.8f, 0.6f);
+		LinearRGB warmWhiteLED = new LinearRGB(1, 0.8f, 0.6f);
 
 		// Pure white should use only W channel up to the blue limit
 		RGBW warmWhite = white.RGBW(warmWhiteLED);
@@ -487,7 +487,7 @@ public class RGBTests {
 		assertClose(1, warmWhite.w(), "Warm white RGBW W");
 
 		// Test mixed color
-		RGB mixed = new RGB(0.8f, 0.6f, 0.4f);
+		LinearRGB mixed = new LinearRGB(0.8f, 0.6f, 0.4f);
 		RGBW rgbwMixed = mixed.RGBW(warmWhiteLED);
 		// W is limited by blue channel: 0.4 / 0.6 = 0.667
 		float expectedW = 0.4f / 0.6f;
@@ -497,19 +497,14 @@ public class RGBTests {
 		assertClose(0, rgbwMixed.b(), "Mixed RGBW B", 0.001); // Should be 0
 
 		// Test warm white conversion
-		RGBW defaultRGBW = new RGB(0.5f, 0.5f, 0.5f).RGBW(warmWhiteLED);
-		// With default calibration (1, 0.8, 0.6), gray is limited by blue
-		// But we also clamp W to 1, so W = min(0.5/0.6, 1) = min(0.833, 1) = 0.833
-		// Actually no, we need to check which channel limits first
-		// For gray 0.5: R needs 0.5/1.0 = 0.5, G needs 0.5/0.8 = 0.625, B needs 0.5/0.6 = 0.833
-		// So R is the limiting factor, W = 0.5
+		RGBW defaultRGBW = new LinearRGB(0.5f, 0.5f, 0.5f).RGBW(warmWhiteLED);
 		assertClose(0.5f, defaultRGBW.w(), "Default gray RGBW W", 0.001);
 		assertClose(0, defaultRGBW.r(), "Default gray RGBW R", 0.001);
 		assertClose(0.1f, defaultRGBW.g(), "Default gray RGBW G", 0.001);
 		assertClose(0.2f, defaultRGBW.b(), "Default gray RGBW B", 0.001);
 
 		// Test edge cases
-		RGB black = new RGB(0, 0, 0);
+		LinearRGB black = new LinearRGB(0, 0, 0);
 		RGBW rgbwBlack = black.RGBW(warmWhiteLED);
 		assertClose(0, rgbwBlack.r(), "Black RGBW R");
 		assertClose(0, rgbwBlack.g(), "Black RGBW G");
@@ -517,8 +512,8 @@ public class RGBTests {
 		assertClose(0, rgbwBlack.w(), "Black RGBW W");
 
 		// Test that total light output is preserved
-		RGB testRGB = new RGB(0.7f, 0.5f, 0.3f);
-		RGBW testRGBW = testRGB.RGBW(new RGB(0.9f, 0.7f, 0.5f));
+		LinearRGB testRGB = new LinearRGB(0.7f, 0.5f, 0.3f);
+		RGBW testRGBW = testRGB.RGBW(new LinearRGB(0.9f, 0.7f, 0.5f));
 		// Verify: original = RGBW.rgb + W * calibration
 		float reconR = testRGBW.r() + testRGBW.w() * 0.9f;
 		float reconG = testRGBW.g() + testRGBW.w() * 0.7f;
@@ -533,7 +528,7 @@ public class RGBTests {
 		assertEquals("255, 128, 64, 191", Util.toString255(hexTest), "RGBW toString255");
 
 		// Test CCT to RGBW conversion
-		RGB scaledWhite = new RGB(1.8f, 1.6f, 1.0f); // Scaled warm white LED (~2700K)
+		LinearRGB scaledWhite = new LinearRGB(1.8f, 1.6f, 1.0f); // Scaled warm white LED (~2700K)
 
 		// Test maximum brightness at full
 		RGB target4000 = new CCT(4000).RGB(0);
@@ -581,23 +576,23 @@ public class RGBTests {
 	@Test
 	public void testRGBWW () {
 		// Test RGB to RGBWW with two whites
-		RGB warmWhite = new RGB(1.8f, 1.6f, 1.0f); // 2700K-ish, scaled
-		RGB coolWhite = new RGB(1.2f, 1.4f, 1.8f); // 6500K-ish, scaled
+		LinearRGB warmWhite = new LinearRGB(1.8f, 1.6f, 1.0f); // 2700K-ish, scaled
+		LinearRGB coolWhite = new LinearRGB(1.2f, 1.4f, 1.8f); // 6500K-ish, scaled
 
 		// Test warm color - should prefer warm white
-		RGB warmColor = new RGB(0.8f, 0.6f, 0.4f);
+		LinearRGB warmColor = new LinearRGB(0.8f, 0.6f, 0.4f);
 		RGBWW warmResult = warmColor.RGBWW(warmWhite, coolWhite);
 		assertTrue(warmResult.w1() > warmResult.w2(), "Warm color should use more warm white");
 
 		// Test cool color - should prefer cool white
-		RGB coolColor = new RGB(0.4f, 0.5f, 0.8f);
+		LinearRGB coolColor = new LinearRGB(0.4f, 0.5f, 0.8f);
 		RGBWW coolResult = coolColor.RGBWW(warmWhite, coolWhite);
 		assertTrue(coolResult.w2() > coolResult.w1(), "Cool color should use more cool white");
 
 		// Test CCT to RGBWW conversion
 
 		// Test intermediate CCT - should blend whites
-		RGBWW cct4000 = new CCT(4000).RGBWW(1.0f, warmWhite, coolWhite);
+		RGBWW cct4000 = new CCT(5500).RGBWW(1.0f, warmWhite, coolWhite);
 		assertTrue(cct4000.w1() > 0 && cct4000.w2() > 0, "Mid CCT should blend both whites");
 
 		// Test warm CCT - should use mostly warm white

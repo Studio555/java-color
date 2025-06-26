@@ -19,4 +19,7 @@ public record YCC (
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
+	public XYZ XYZ () {
+		return RGB().XYZ();
+	}
 }

@@ -47,12 +47,57 @@ public record CAM16UCS (
 	}
 
 	/** Uses {@link CAM16.VC#sRGB}. */
+	public Lab Lab () {
+		return Lab(CAM16.VC.sRGB);
+	}
+
+	public Lab Lab (CAM16.VC vc) {
+		return CAM16(vc).Lab(vc);
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public LinearRGB LinearRGB () {
+		return LinearRGB(CAM16.VC.sRGB);
+	}
+
+	public LinearRGB LinearRGB (CAM16.VC vc) {
+		return CAM16(vc).LinearRGB(vc);
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
 	public RGB RGB () {
 		return RGB(CAM16.VC.sRGB);
 	}
 
 	public RGB RGB (CAM16.VC vc) {
 		return CAM16(vc).RGB(vc);
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public uv uv () {
+		return uv(CAM16.VC.sRGB);
+	}
+
+	public uv uv (CAM16.VC vc) {
+		return CAM16(vc).uv(vc);
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public xy xy () {
+		return xy(CAM16.VC.sRGB);
+	}
+
+	public xy xy (CAM16.VC vc) {
+		return CAM16(vc).xy(vc);
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public XYZ XYZ () {
+		return XYZ(CAM16.VC.sRGB);
+	}
+
+	public XYZ XYZ (CAM16.VC vc) {
+		return CAM16(vc).XYZ(vc);
 	}
 
 	/** Perceptual color difference. */

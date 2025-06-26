@@ -158,7 +158,6 @@ public class Gradients {
 		ArrayList<Gradient> gradients = new ArrayList();
 	}
 
-	@SuppressWarnings("unused")
 	static public void main (String[] args) throws Throwable {
 		var config = new Table();
 

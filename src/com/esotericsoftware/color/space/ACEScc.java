@@ -10,8 +10,16 @@ public record ACEScc (
 	/** Blue [0..1]. */
 	float b) {
 
+	public LinearRGB LinearRGB () {
+		return new ACEScg(decode(r), decode(g), decode(b)).LinearRGB();
+	}
+
 	public RGB RGB () {
-		return new ACEScg(decode(r), decode(g), decode(b)).RGB();
+		return LinearRGB().RGB();
+	}
+
+	public XYZ XYZ () {
+		return new ACEScg(decode(r), decode(g), decode(b)).XYZ();
 	}
 
 	static float encode (float linear) {

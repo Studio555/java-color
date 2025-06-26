@@ -28,6 +28,14 @@ public record HSL (
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
+	public LinearRGB LinearRGB () {
+		return RGB().LinearRGB();
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
+	}
+
 	public HSL lerp (HSL other, float t) {
 		return new HSL(lerpAngle(H, other.H, t), Util.lerp(S, other.S, t), Util.lerp(L, other.L, t));
 	}

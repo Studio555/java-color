@@ -37,6 +37,16 @@ public record Lab (
 		};
 	}
 
+	/** Uses {@link CIE2#D65}. */
+	public LinearRGB LinearRGB () {
+		return XYZ(CIE2.D65).LinearRGB();
+	}
+
+	/** @param tristimulus See {@link Illuminant}. */
+	public LinearRGB LinearRGB (XYZ tristimulus) {
+		return XYZ(tristimulus).LinearRGB();
+	}
+
 	public LCh LCh () {
 		float C = (float)Math.sqrt(a * a + b * b);
 		float h = C < EPSILON ? Float.NaN : (float)Math.atan2(b, a) * radDeg;

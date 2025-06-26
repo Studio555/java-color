@@ -18,4 +18,8 @@ public record YCoCg (
 		float b = Y - Co - Cg;
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
+	}
 }

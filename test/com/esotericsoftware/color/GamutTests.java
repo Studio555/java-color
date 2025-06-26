@@ -5,7 +5,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import com.esotericsoftware.color.space.LinearRGB;
 import com.esotericsoftware.color.space.RGB;
+import com.esotericsoftware.color.space.XYZ;
+import com.esotericsoftware.color.space.uv;
 import com.esotericsoftware.color.space.xy;
 
 /** @author Nathan Sweet <misc@n4te.com> */
@@ -17,9 +20,9 @@ public class GamutTests {
 		// Test that different gamuts produce different results
 		RGB testColor = new RGB(0.8f, 0.2f, 0.3f);
 
-		xy srgbResult = testColor.xy(Gamut.sRGB);
-		xy p3Result = testColor.xy(Gamut.DisplayP3);
-		xy rec2020Result = testColor.xy(Gamut.Rec2020);
+		xy srgbResult = Gamut.sRGB.xy(testColor);
+		xy p3Result = Gamut.DisplayP3.xy(testColor);
+		xy rec2020Result = Gamut.Rec2020.xy(testColor);
 
 		// Results should be different (gamuts have different primaries)
 		assertTrue(Math.abs(srgbResult.x() - p3Result.x()) > EPSILON || Math.abs(srgbResult.y() - p3Result.y()) > EPSILON,
@@ -60,9 +63,18 @@ public class GamutTests {
 		assertFalse(Gamut.sRGB.contains(outsidePoint), "Point should be outside sRGB gamut");
 
 		// Test gamut vertices - they should be on the boundary
-		assertTrue(Gamut.sRGB.contains(Gamut.sRGB.red), "Red primary should be in gamut");
-		assertTrue(Gamut.sRGB.contains(Gamut.sRGB.green), "Green primary should be in gamut");
-		assertTrue(Gamut.sRGB.contains(Gamut.sRGB.blue), "Blue primary should be in gamut");
+		Gamut.RGBGamut srgb = (Gamut.RGBGamut)Gamut.sRGB;
+		assertTrue(Gamut.sRGB.contains(srgb.red), "Red primary should be in gamut");
+		assertTrue(Gamut.sRGB.contains(srgb.green), "Green primary should be in gamut");
+		assertTrue(Gamut.sRGB.contains(srgb.blue), "Blue primary should be in gamut");
+
+		// Test points on edges
+		xy redGreenMid = new xy((srgb.red.x() + srgb.green.x()) / 2, (srgb.red.y() + srgb.green.y()) / 2);
+		xy greenBlueMid = new xy((srgb.green.x() + srgb.blue.x()) / 2, (srgb.green.y() + srgb.blue.y()) / 2);
+		xy blueRedMid = new xy((srgb.blue.x() + srgb.red.x()) / 2, (srgb.blue.y() + srgb.red.y()) / 2);
+		assertTrue(Gamut.sRGB.contains(redGreenMid), "Midpoint of red-green edge should be in gamut");
+		assertTrue(Gamut.sRGB.contains(greenBlueMid), "Midpoint of green-blue edge should be in gamut");
+		assertTrue(Gamut.sRGB.contains(blueRedMid), "Midpoint of blue-red edge should be in gamut");
 	}
 
 	@Test
@@ -72,19 +84,20 @@ public class GamutTests {
 		RGB pureGreen = new RGB(0, 1, 0);
 		RGB pureBlue = new RGB(0, 0, 1);
 
-		xy redXY = pureRed.xy(Gamut.sRGB);
-		xy greenXY = pureGreen.xy(Gamut.sRGB);
-		xy blueXY = pureBlue.xy(Gamut.sRGB);
+		xy redXY = Gamut.sRGB.xy(pureRed);
+		xy greenXY = Gamut.sRGB.xy(pureGreen);
+		xy blueXY = Gamut.sRGB.xy(pureBlue);
 
 		// They should be close to the gamut's primaries
-		assertEquals(Gamut.sRGB.red.x(), redXY.x(), 0.01f, "Pure red should map to red primary x");
-		assertEquals(Gamut.sRGB.red.y(), redXY.y(), 0.01f, "Pure red should map to red primary y");
+		Gamut.RGBGamut srgb = (Gamut.RGBGamut)Gamut.sRGB;
+		assertEquals(srgb.red.x(), redXY.x(), 0.01f, "Pure red should map to red primary x");
+		assertEquals(srgb.red.y(), redXY.y(), 0.01f, "Pure red should map to red primary y");
 
-		assertEquals(Gamut.sRGB.green.x(), greenXY.x(), 0.01f, "Pure green should map to green primary x");
-		assertEquals(Gamut.sRGB.green.y(), greenXY.y(), 0.01f, "Pure green should map to green primary y");
+		assertEquals(srgb.green.x(), greenXY.x(), 0.01f, "Pure green should map to green primary x");
+		assertEquals(srgb.green.y(), greenXY.y(), 0.01f, "Pure green should map to green primary y");
 
-		assertEquals(Gamut.sRGB.blue.x(), blueXY.x(), 0.01f, "Pure blue should map to blue primary x");
-		assertEquals(Gamut.sRGB.blue.y(), blueXY.y(), 0.01f, "Pure blue should map to blue primary y");
+		assertEquals(srgb.blue.x(), blueXY.x(), 0.01f, "Pure blue should map to blue primary x");
+		assertEquals(srgb.blue.y(), blueXY.y(), 0.01f, "Pure blue should map to blue primary y");
 	}
 
 	@Test
@@ -93,7 +106,7 @@ public class GamutTests {
 		xy wideGamutPoint = new xy(0.8f, 0.2f); // Likely outside sRGB
 
 		// Convert to RGB - should be clamped
-		RGB clamped = wideGamutPoint.RGB(Gamut.sRGB);
+		RGB clamped = Gamut.sRGB.RGB(wideGamutPoint);
 
 		// All channels should be in [0, 1]
 		assertTrue(clamped.r() >= 0 && clamped.r() <= 1, "R should be in range");
@@ -110,23 +123,24 @@ public class GamutTests {
 	public void testRGBToXYConversion () {
 		// Test all primary colors
 		RGB red = new RGB(1, 0, 0);
-		xy redXY = red.xy(Gamut.sRGB);
-		assertEquals(Gamut.sRGB.red.x(), redXY.x(), 0.001f, "Red x coordinate");
-		assertEquals(Gamut.sRGB.red.y(), redXY.y(), 0.001f, "Red y coordinate");
+		xy redXY = Gamut.sRGB.xy(red);
+		Gamut.RGBGamut srgb = (Gamut.RGBGamut)Gamut.sRGB;
+		assertEquals(srgb.red.x(), redXY.x(), 0.001f, "Red x coordinate");
+		assertEquals(srgb.red.y(), redXY.y(), 0.001f, "Red y coordinate");
 
 		RGB green = new RGB(0, 1, 0);
-		xy greenXY = green.xy(Gamut.sRGB);
-		assertEquals(Gamut.sRGB.green.x(), greenXY.x(), 0.001f, "Green x coordinate");
-		assertEquals(Gamut.sRGB.green.y(), greenXY.y(), 0.001f, "Green y coordinate");
+		xy greenXY = Gamut.sRGB.xy(green);
+		assertEquals(srgb.green.x(), greenXY.x(), 0.001f, "Green x coordinate");
+		assertEquals(srgb.green.y(), greenXY.y(), 0.001f, "Green y coordinate");
 
 		RGB blue = new RGB(0, 0, 1);
-		xy blueXY = blue.xy(Gamut.sRGB);
-		assertEquals(Gamut.sRGB.blue.x(), blueXY.x(), 0.001f, "Blue x coordinate");
-		assertEquals(Gamut.sRGB.blue.y(), blueXY.y(), 0.001f, "Blue y coordinate");
+		xy blueXY = Gamut.sRGB.xy(blue);
+		assertEquals(srgb.blue.x(), blueXY.x(), 0.001f, "Blue x coordinate");
+		assertEquals(srgb.blue.y(), blueXY.y(), 0.001f, "Blue y coordinate");
 
 		// Test secondary colors (combinations)
 		RGB yellow = new RGB(1, 1, 0);
-		xy yellowXY = yellow.xy(Gamut.sRGB);
+		xy yellowXY = Gamut.sRGB.xy(yellow);
 		// Yellow should be between red and green
 		assertTrue(yellowXY.x() > Math.min(redXY.x(), greenXY.x()) && yellowXY.x() < Math.max(redXY.x(), greenXY.x()),
 			"Yellow x should be between red and green");
@@ -134,20 +148,20 @@ public class GamutTests {
 			"Yellow y should be between red and green");
 
 		RGB cyan = new RGB(0, 1, 1);
-		xy cyanXY = cyan.xy(Gamut.sRGB);
+		xy cyanXY = Gamut.sRGB.xy(cyan);
 		// Cyan should be between green and blue
 		assertTrue(cyanXY.x() > Math.min(greenXY.x(), blueXY.x()) && cyanXY.x() < Math.max(greenXY.x(), blueXY.x()),
 			"Cyan x should be between green and blue");
 
 		RGB magenta = new RGB(1, 0, 1);
-		xy magentaXY = magenta.xy(Gamut.sRGB);
+		xy magentaXY = Gamut.sRGB.xy(magenta);
 		// Magenta should be between red and blue
 		assertTrue(magentaXY.x() > Math.min(redXY.x(), blueXY.x()) && magentaXY.x() < Math.max(redXY.x(), blueXY.x()),
 			"Magenta x should be between red and blue");
 
 		// Test white - should map to D65 white point
 		RGB white = new RGB(1, 1, 1);
-		xy whiteXY = white.xy(Gamut.sRGB);
+		xy whiteXY = Gamut.sRGB.xy(white);
 		assertEquals(0.3127f, whiteXY.x(), 0.01f, "White x should be near D65");
 		assertEquals(0.3290f, whiteXY.y(), 0.01f, "White y should be near D65");
 
@@ -156,9 +170,9 @@ public class GamutTests {
 		RGB midGray = new RGB(0.5f, 0.5f, 0.5f);
 		RGB lightGray = new RGB(0.75f, 0.75f, 0.75f);
 
-		xy darkGrayXY = darkGray.xy(Gamut.sRGB);
-		xy midGrayXY = midGray.xy(Gamut.sRGB);
-		xy lightGrayXY = lightGray.xy(Gamut.sRGB);
+		xy darkGrayXY = Gamut.sRGB.xy(darkGray);
+		xy midGrayXY = Gamut.sRGB.xy(midGray);
+		xy lightGrayXY = Gamut.sRGB.xy(lightGray);
 
 		assertEquals(whiteXY.x(), darkGrayXY.x(), EPSILON, "Dark gray should have same chromaticity as white");
 		assertEquals(whiteXY.y(), darkGrayXY.y(), EPSILON, "Dark gray should have same chromaticity as white");
@@ -169,20 +183,20 @@ public class GamutTests {
 
 		// Test black - should return NaN when sum is zero
 		RGB black = new RGB(0, 0, 0);
-		xy blackXY = black.xy(Gamut.sRGB);
+		xy blackXY = Gamut.sRGB.xy(black);
 		assertTrue(Float.isNaN(blackXY.x()), "Black x should be NaN");
 		assertTrue(Float.isNaN(blackXY.y()), "Black y should be NaN");
 
 		// Test very small values (near black)
 		RGB nearBlack = new RGB(0.001f, 0.001f, 0.001f);
-		xy nearBlackXY = nearBlack.xy(Gamut.sRGB);
+		xy nearBlackXY = Gamut.sRGB.xy(nearBlack);
 		// Should still map to white point chromaticity
 		assertEquals(whiteXY.x(), nearBlackXY.x(), 0.01f, "Near black should have white point chromaticity");
 		assertEquals(whiteXY.y(), nearBlackXY.y(), 0.01f, "Near black should have white point chromaticity");
 
 		// Test intermediate colors
 		RGB orange = new RGB(1.0f, 0.5f, 0.0f);
-		xy orangeXY = orange.xy(Gamut.sRGB);
+		xy orangeXY = Gamut.sRGB.xy(orange);
 		// Orange should be between red and yellow
 		assertTrue(orangeXY.x() > yellowXY.x() && orangeXY.x() < redXY.x(), "Orange x should be between yellow and red");
 		assertTrue(orangeXY.y() > redXY.y() && orangeXY.y() < yellowXY.y(), "Orange y should be between red and yellow");
@@ -190,7 +204,7 @@ public class GamutTests {
 		// Test that chromaticity coordinates are normalized (x + y <= 1)
 		RGB[] testColors = {new RGB(0.2f, 0.5f, 0.8f), new RGB(0.9f, 0.1f, 0.3f), new RGB(0.4f, 0.6f, 0.2f)};
 		for (RGB color : testColors) {
-			xy colorXY = color.xy(Gamut.sRGB);
+			xy colorXY = Gamut.sRGB.xy(color);
 			assertTrue(colorXY.x() + colorXY.y() <= 1.0f + EPSILON, "Chromaticity coordinates should be normalized for " + color);
 			assertTrue(colorXY.x() >= 0 && colorXY.x() <= 1, "x should be in [0,1] for " + color);
 			assertTrue(colorXY.y() >= 0 && colorXY.y() <= 1, "y should be in [0,1] for " + color);
@@ -210,14 +224,14 @@ public class GamutTests {
 		};
 
 		for (RGB original : testColors) {
-			xy intermediate = original.xy(Gamut.sRGB);
+			xy intermediate = Gamut.sRGB.xy(original);
 
 			// Skip if we got NaN (eg for black)
 			if (Float.isNaN(intermediate.x()) || Float.isNaN(intermediate.y())) {
 				continue;
 			}
 
-			RGB recovered = intermediate.RGB(Gamut.sRGB);
+			RGB recovered = Gamut.sRGB.RGB(intermediate);
 
 			// For colors at maximum saturation (primaries and white), we can expect good round-trip
 			if ((original.r() == 1 || original.r() == 0) && (original.g() == 1 || original.g() == 0)
@@ -234,9 +248,9 @@ public class GamutTests {
 		}
 
 		// Test specifically that gray colors all map to the same xy (D65 white point)
-		xy gray1 = new RGB(0.2f, 0.2f, 0.2f).xy(Gamut.sRGB);
-		xy gray2 = new RGB(0.5f, 0.5f, 0.5f).xy(Gamut.sRGB);
-		xy gray3 = new RGB(0.8f, 0.8f, 0.8f).xy(Gamut.sRGB);
+		xy gray1 = Gamut.sRGB.xy(new RGB(0.2f, 0.2f, 0.2f));
+		xy gray2 = Gamut.sRGB.xy(new RGB(0.5f, 0.5f, 0.5f));
+		xy gray3 = Gamut.sRGB.xy(new RGB(0.8f, 0.8f, 0.8f));
 		assertEquals(gray1.x(), gray2.x(), EPSILON, "All grays should have same x");
 		assertEquals(gray1.y(), gray2.y(), EPSILON, "All grays should have same y");
 		assertEquals(gray2.x(), gray3.x(), EPSILON, "All grays should have same x");
@@ -247,7 +261,7 @@ public class GamutTests {
 	public void testXYToRGBConversion () {
 		// Test converting xy back to RGB
 		xy testPoint = new xy(0.3127f, 0.3290f); // D65 white point
-		RGB rgb = testPoint.RGB(Gamut.sRGB);
+		RGB rgb = Gamut.sRGB.RGB(testPoint);
 
 		// D65 white point doesn't necessarily map to RGB(1,1,1) due to the gamut's
 		// specific transformation. Just check it's valid RGB values.
@@ -259,16 +273,95 @@ public class GamutTests {
 		assertTrue(rgb.g() >= 0 && rgb.g() <= 1, "G should be in [0,1]");
 		assertTrue(rgb.b() >= 0 && rgb.b() <= 1, "B should be in [0,1]");
 
-		// Test edge case: y = 0
-		// Note: the gamut will clamp this to a valid point, so it won't return NaN
+		// Test edge case: y = 0 (will produce infinity/NaN)
+		// Note: conversions do NOT auto-clamp, so invalid inputs produce invalid outputs
 		xy zeroY = new xy(0.3f, 0.0f);
-		RGB clampedResult = zeroY.RGB();
-		assertFalse(Float.isNaN(clampedResult.r()), "Should not be NaN after clamping");
-		assertFalse(Float.isNaN(clampedResult.g()), "Should not be NaN after clamping");
-		assertFalse(Float.isNaN(clampedResult.b()), "Should not be NaN after clamping");
-		// Should be valid RGB values
-		assertTrue(clampedResult.r() >= 0 && clampedResult.r() <= 1, "R should be in [0,1]");
-		assertTrue(clampedResult.g() >= 0 && clampedResult.g() <= 1, "G should be in [0,1]");
-		assertTrue(clampedResult.b() >= 0 && clampedResult.b() <= 1, "B should be in [0,1]");
+		RGB result = Gamut.sRGB.RGB(zeroY);
+		// With y=0, the conversion will produce infinity or NaN
+		assertTrue(Float.isNaN(result.r()) || Float.isInfinite(result.r()) || Float.isNaN(result.g())
+			|| Float.isInfinite(result.g()) || Float.isNaN(result.b()) || Float.isInfinite(result.b()),
+			"Invalid xy should produce invalid RGB");
+	}
+
+	@Test
+	public void testPolygonGamut () {
+		// Test a quadrilateral gamut
+		xy[] vertices = {new xy(0.7f, 0.3f), // Red corner
+			new xy(0.2f, 0.7f), // Green corner
+			new xy(0.15f, 0.05f), // Blue corner
+			new xy(0.5f, 0.5f) // Extra vertex
+		};
+		Gamut.PolygonGamut polygon = new Gamut.PolygonGamut(vertices);
+
+		// Test contains for points clearly inside
+		xy inside = new xy(0.4f, 0.4f);
+		assertTrue(polygon.contains(inside), "Point should be inside polygon gamut");
+
+		// Test contains for points clearly outside
+		xy outside = new xy(0.9f, 0.1f);
+		assertFalse(polygon.contains(outside), "Point should be outside polygon gamut");
+
+		// Test clamp
+		xy clamped = polygon.clamp(outside);
+		// The clamped point should be different from the original
+		assertTrue(clamped.x() != outside.x() || clamped.y() != outside.y(), "Clamped point should differ from original");
+
+		// Test that vertices are contained
+		for (xy vertex : vertices)
+			assertTrue(polygon.contains(vertex), "Vertex should be contained in polygon");
+
+		// Test points on edges are contained
+		// Test midpoint of each edge
+		for (int i = 0; i < vertices.length; i++) {
+			xy v1 = vertices[i];
+			xy v2 = vertices[(i + 1) % vertices.length];
+			xy midpoint = new xy((v1.x() + v2.x()) / 2, (v1.y() + v2.y()) / 2);
+			assertTrue(polygon.contains(midpoint), "Midpoint of edge should be contained");
+		}
+
+		// Test clamp with inside point (should not change)
+		xy clampedInside = polygon.clamp(inside);
+		assertEquals(inside.x(), clampedInside.x(), EPSILON, "Inside point x should not change");
+		assertEquals(inside.y(), clampedInside.y(), EPSILON, "Inside point y should not change");
+
+		// Test that RGB conversions throw UnsupportedOperationException
+		assertThrows(UnsupportedOperationException.class, () -> polygon.XYZ(new LinearRGB(1, 0, 0)));
+		assertThrows(UnsupportedOperationException.class, () -> polygon.LinearRGB(new XYZ(50, 50, 50)));
+
+		// Test uv support
+		uv uvInside = inside.uv();
+		assertTrue(polygon.contains(uvInside), "Should support uv contains");
+
+		// Test that uv vertices are contained
+		for (xy vertex : vertices) {
+			uv uvVertex = vertex.uv();
+			assertTrue(polygon.contains(uvVertex), "uv vertex should be contained in polygon");
+		}
+
+		// Test that uv points on edges are contained
+		for (int i = 0; i < vertices.length; i++) {
+			xy v1 = vertices[i];
+			xy v2 = vertices[(i + 1) % vertices.length];
+			xy midpoint = new xy((v1.x() + v2.x()) / 2, (v1.y() + v2.y()) / 2);
+			uv uvMidpoint = midpoint.uv();
+			assertTrue(polygon.contains(uvMidpoint), "uv midpoint of edge should be contained");
+		}
+
+		uv uvOutside = outside.uv();
+		uv uvClamped = polygon.clamp(uvOutside);
+		assertTrue(uvClamped.u() != uvOutside.u() || uvClamped.v() != uvOutside.v(), "uv clamp should modify outside points");
+		assertTrue(polygon.contains(uvClamped), "uv clamped should be contained");
+	}
+
+	@Test
+	public void testPolygonGamutValidation () {
+		// Test too few vertices
+		xy[] twoPoints = {new xy(0.3f, 0.3f), new xy(0.5f, 0.5f)};
+		assertThrows(IllegalArgumentException.class, () -> new Gamut.PolygonGamut(twoPoints));
+
+		// Test minimum valid polygon (triangle)
+		xy[] triangle = {new xy(0.3f, 0.3f), new xy(0.5f, 0.2f), new xy(0.4f, 0.6f)};
+		Gamut.PolygonGamut triangleGamut = new Gamut.PolygonGamut(triangle);
+		assertNotNull(triangleGamut, "Should create valid triangle polygon");
 	}
 }

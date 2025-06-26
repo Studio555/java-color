@@ -26,6 +26,10 @@ public record YCbCr (
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 
+	public XYZ XYZ (YCbCrColorSpace colorSpace) {
+		return RGB(colorSpace).XYZ();
+	}
+
 	public enum YCbCrColorSpace {
 		ITU_BT_601, ITU_BT_709_HDTV
 	}

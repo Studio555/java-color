@@ -65,6 +65,14 @@ public record Oklab (
 			sRGB(clamp(-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s)));
 	}
 
+	public uv uv () {
+		return XYZ().uv();
+	}
+
+	public xy xy () {
+		return XYZ().xy();
+	}
+
 	public XYZ XYZ () {
 		float l = L + 0.3963377774f * a + 0.2158037573f * b;
 		float m = L - 0.1055613458f * a - 0.0638541728f * b;

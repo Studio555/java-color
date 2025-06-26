@@ -29,12 +29,48 @@ public record CAM16 (
 	}
 
 	/** Uses {@link CAM16.VC#sRGB}. */
+	public Lab Lab () {
+		return XYZ(CAM16.VC.sRGB).Lab();
+	}
+
+	public Lab Lab (CAM16.VC vc) {
+		return XYZ(vc).Lab();
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public LinearRGB LinearRGB () {
+		return XYZ(CAM16.VC.sRGB).LinearRGB();
+	}
+
+	public LinearRGB LinearRGB (CAM16.VC vc) {
+		return XYZ(vc).LinearRGB();
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
 	public RGB RGB () {
 		return XYZ(CAM16.VC.sRGB).RGB();
 	}
 
 	public RGB RGB (CAM16.VC vc) {
 		return XYZ(vc).RGB();
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public uv uv () {
+		return XYZ(CAM16.VC.sRGB).uv();
+	}
+
+	public uv uv (CAM16.VC vc) {
+		return XYZ(vc).uv();
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public xy xy () {
+		return XYZ(CAM16.VC.sRGB).xy();
+	}
+
+	public xy xy (CAM16.VC vc) {
+		return XYZ(vc).xy();
 	}
 
 	/** Uses {@link CAM16.VC#sRGB}. */

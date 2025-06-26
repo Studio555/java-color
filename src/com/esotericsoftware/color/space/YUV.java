@@ -18,4 +18,8 @@ public record YUV (
 		float b = Y + 2.03206343f * U - 0.00000025f * V;
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
+	}
 }

@@ -4,6 +4,8 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Gamut;
+import com.esotericsoftware.color.Illuminant;
+import com.esotericsoftware.color.Illuminant.CIE2;
 import com.esotericsoftware.color.Util;
 
 /** RGB without gamma correction. Values are not clamped. */
@@ -40,8 +42,83 @@ public record LinearRGB (
 		};
 	}
 
+	/** Uses {@link CIE2#D65}. */
+	public Lab Lab () {
+		return Lab(CIE2.D65);
+	}
+
+	/** @param tristimulus See {@link Illuminant}. */
+	public Lab Lab (XYZ tristimulus) {
+		return XYZ().Lab(tristimulus);
+	}
+
+	/** Uses {@link CIE2#D65}. */
+	public LCh LCh () {
+		return LCh(CIE2.D65);
+	}
+
+	/** @param tristimulus See {@link Illuminant}. */
+	public LCh LCh (XYZ tristimulus) {
+		return Lab(tristimulus).LCh();
+	}
+
+	/** Uses {@link CIE2#D65}.
+	 * @return NaN if invalid. */
+	public LCHuv LChuv () {
+		return Luv().LCHuv();
+	}
+
+	/** Uses {@link CIE2#D65}.
+	 * @return NaN if invalid. */
+	public Luv Luv () {
+		return XYZ().Luv(CIE2.D65);
+	}
+
+	/** @return NaN if invalid. */
+	public Luv Luv (XYZ tristimulus) {
+		return XYZ().Luv(tristimulus);
+	}
+
 	public RGB RGB () {
 		return new RGB(sRGB(clamp(r)), sRGB(clamp(g)), sRGB(clamp(b)));
+	}
+
+	/** Convert to RGBW using one calibrated white LED color. Brightness of this RGB is preserved.
+	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr *= wlux / rlux */
+	public RGBW RGBW (LinearRGB w) {
+		// How much of each channel the white LED can provide.
+		float ratioR = r / w.r, ratioG = g / w.g, ratioB = b / w.b;
+		// The white level is limited by the channel that needs the least white contribution.
+		float W = Util.min(ratioR, ratioG, ratioB);
+		W = Math.min(W, 1);
+		// Subtract the white contribution from each channel.
+		return new RGBW(Math.max(0, r - W * w.r), Math.max(0, g - W * w.g), Math.max(0, b - W * w.b), W);
+	}
+
+	/** Convert to RGBWW using two calibrated white LED colors. Brightness of this RGB is preserved.
+	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
+	 * @param w2 Second white LED color. */
+	public RGBWW RGBWW (LinearRGB w1, LinearRGB w2) {
+		// How much of each channel the white LED can provide.
+		float ratioR1 = r / w1.r, ratioG1 = g / w1.g, ratioB1 = b / w1.b;
+		float ratioR2 = r / w2.r, ratioG2 = g / w2.g, ratioB2 = b / w2.b;
+		// The white level is limited by the channel that needs the least white contribution.
+		float W1 = Util.min(ratioR1, ratioG1, ratioB1);
+		float W2 = Util.min(ratioR2, ratioG2, ratioB2);
+		// Subtract the white contribution from each channel.
+		if (W1 > W2) return new RGBWW(Math.max(0, r - W1 * w1.r), Math.max(0, g - W1 * w1.g), Math.max(0, b - W1 * w1.b), W1, 0);
+		return new RGBWW(Math.max(0, r - W2 * w2.r), Math.max(0, g - W2 * w2.g), Math.max(0, b - W2 * w2.b), 0, W2);
+	}
+
+	/** @return NaN if invalid. */
+	public uv uv () {
+		return xy().uv();
+	}
+
+	/** Uses {@link Gamut#sRGB}.
+	 * @return NaN if invalid. */
+	public xy xy () {
+		return Gamut.sRGB.xy(this);
 	}
 
 	public XYZ XYZ () {
@@ -49,14 +126,6 @@ public record LinearRGB (
 			(0.4124564f * r + 0.3575761f * g + 0.1804375f * b) * 100, //
 			(0.2126729f * r + 0.7151522f * g + 0.0721750f * b) * 100, //
 			(0.0193339f * r + 0.1191920f * g + 0.9503041f * b) * 100);
-	}
-
-	public XYZ XYZ (Gamut gamut) {
-		float[][] rgbToXYZ = gamut.RGB_XYZ;
-		float X = rgbToXYZ[0][0] * r + rgbToXYZ[0][1] * g + rgbToXYZ[0][2] * b;
-		float Y = rgbToXYZ[1][0] * r + rgbToXYZ[1][1] * g + rgbToXYZ[1][2] * b;
-		float Z = rgbToXYZ[2][0] * r + rgbToXYZ[2][1] * g + rgbToXYZ[2][2] * b;
-		return new XYZ(X * 100, Y * 100, Z * 100);
 	}
 
 	public LinearRGB add (float value) {

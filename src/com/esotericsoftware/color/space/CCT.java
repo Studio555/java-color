@@ -22,8 +22,8 @@ public record CCT (
 	 * @param brightness [0..1]
 	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
 	 * @return NaN if invalid. */
-	public RGBW RGBW (float brightness, RGB w) {
-		RGB target = RGB();
+	public RGBW RGBW (float brightness, LinearRGB w) {
+		LinearRGB target = xy().LinearRGB();
 		float W = 1;
 		float r = Math.max(0, target.r() - W * w.r());
 		float g = Math.max(0, target.g() - W * w.g());
@@ -61,7 +61,7 @@ public record CCT (
 	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
 	 * @param w2 Second white LED color.
 	 * @return NaN if invalid. */
-	public RGBWW RGBWW (float brightness, RGB w1, RGB w2) {
+	public RGBWW RGBWW (float brightness, LinearRGB w1, LinearRGB w2) {
 		float K1 = w1.uv().CCT().K;
 		float K2 = w2.uv().CCT().K;
 		float W1, W2;

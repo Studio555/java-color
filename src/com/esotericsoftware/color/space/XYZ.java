@@ -175,6 +175,11 @@ public record XYZ (
 	}
 
 	/** @return NaN if invalid. */
+	public uv uv () {
+		return xy().uv();
+	}
+
+	/** @return NaN if invalid. */
 	public xy xy () {
 		float sum = X + Y + Z;
 		if (sum < EPSILON) return new xy(Float.NaN, Float.NaN);

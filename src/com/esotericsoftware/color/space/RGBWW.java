@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color.space;
 
-/** RGB with 2 white channels for LEDs. */
+/** RGB with 2 white channels for LEDs. Values are clamped [0..1]. */
 public record RGBWW (
 	/** Red [0..1]. */
 	float r,

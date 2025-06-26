@@ -4,6 +4,8 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Gamut;
+import com.esotericsoftware.color.Illuminant;
+import com.esotericsoftware.color.Illuminant.CIE2;
 import com.esotericsoftware.color.Util;
 
 /** CIE 1931 chromaticity coordinates. */
@@ -33,6 +35,55 @@ public record xy (
 		return new CCT(K);
 	}
 
+	/** Uses {@link CIE2#D65}. */
+	public Lab Lab () {
+		return Lab(CIE2.D65);
+	}
+
+	/** @param tristimulus See {@link Illuminant}. */
+	public Lab Lab (XYZ tristimulus) {
+		return XYZ().Lab(tristimulus);
+	}
+
+	/** Uses {@link CIE2#D65}. */
+	public LCh LCh () {
+		return LCh(CIE2.D65);
+	}
+
+	/** @param tristimulus See {@link Illuminant}. */
+	public LCh LCh (XYZ tristimulus) {
+		return Lab(tristimulus).LCh();
+	}
+
+	/** Uses {@link CIE2#D65}.
+	 * @return NaN if invalid. */
+	public LCHuv LChuv () {
+		return Luv().LCHuv();
+	}
+
+	/** Uses {@link CIE2#D65}.
+	 * @return NaN if invalid. */
+	public Luv Luv () {
+		return XYZ().Luv(CIE2.D65);
+	}
+
+	/** @return NaN if invalid. */
+	public Luv Luv (XYZ tristimulus) {
+		return XYZ().Luv(tristimulus);
+	}
+
+	/** Uses {@link Gamut#sRGB}.
+	 * @return Normalized or NaN if invalid. */
+	public LinearRGB LinearRGB () {
+		return Gamut.sRGB.LinearRGB(this);
+	}
+
+	/** Uses {@link Gamut#sRGB}.
+	 * @return Normalized or NaN if invalid. */
+	public RGB RGB () {
+		return Gamut.sRGB.RGB(this);
+	}
+
 	/** @return NaN if invalid. */
 	public float Duv () {
 		CCT cct = CCT();
@@ -45,31 +96,6 @@ public record xy (
 	 * @return NaN if invalid. */
 	public float MacAdamSteps (xy xy) {
 		return uv().MacAdamSteps(xy.uv());
-	}
-
-	/** Uses {@link Gamut#sRGB}.
-	 * @return Normalized or NaN if invalid. */
-	public RGB RGB () {
-		return RGB(Gamut.sRGB);
-	}
-
-	/** @return NaN if invalid. */
-	public RGB RGB (Gamut gamut) {
-		xy xy = gamut.clamp(this);
-		if (xy.y < EPSILON) return new RGB(Float.NaN, Float.NaN, Float.NaN);
-		float X = xy.x / xy.y;
-		float Z = (1 - xy.x - xy.y) / xy.y;
-		float[][] xyzToRGB = gamut.XYZ_RGB;
-		float r = xyzToRGB[0][0] * X + xyzToRGB[0][1] + xyzToRGB[0][2] * Z; // Y=1.
-		float g = xyzToRGB[1][0] * X + xyzToRGB[1][1] + xyzToRGB[1][2] * Z;
-		float b = xyzToRGB[2][0] * X + xyzToRGB[2][1] + xyzToRGB[2][2] * Z;
-		float max = max(r, g, b);
-		if (max > 0) {
-			r /= max;
-			g /= max;
-			b /= max;
-		}
-		return new RGB(sRGB(Math.max(0, r)), sRGB(Math.max(0, g)), sRGB(Math.max(0, b)));
 	}
 
 	/** @return NaN if invalid. */

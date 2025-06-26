@@ -24,6 +24,22 @@ public record Oklch (
 		return Oklab().RGB();
 	}
 
+	public LinearRGB LinearRGB () {
+		return Oklab().LinearRGB();
+	}
+
+	public uv uv () {
+		return Oklab().uv();
+	}
+
+	public xy xy () {
+		return Oklab().xy();
+	}
+
+	public XYZ XYZ () {
+		return Oklab().XYZ();
+	}
+
 	public Oklch lerp (Oklch other, float t) {
 		return new Oklch(Util.lerp(L, other.L, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t));
 	}

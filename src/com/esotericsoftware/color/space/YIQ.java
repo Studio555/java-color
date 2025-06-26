@@ -18,4 +18,8 @@ public record YIQ (
 		float b = 1 * Y - 1.10698902f * I + 1.70461500f * Q;
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
+	}
 }

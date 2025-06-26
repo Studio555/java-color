@@ -18,6 +18,7 @@ import com.esotericsoftware.color.space.LCh;
 import com.esotericsoftware.color.space.LMS;
 import com.esotericsoftware.color.space.LMS.CAT;
 import com.esotericsoftware.color.space.Lab;
+import com.esotericsoftware.color.space.LinearRGB;
 import com.esotericsoftware.color.space.O1O2;
 import com.esotericsoftware.color.space.Oklab;
 import com.esotericsoftware.color.space.RGB;
@@ -657,15 +658,15 @@ public class ColorsTest {
 
 	@Test
 	public void testEdgeCases () {
-		// Test NaN handling
+		// Test NaN handling - RGB clamps but still propagates NaN
 		RGB nanRGB = new RGB(Float.NaN, 0.5f, 0.5f);
 		XYZ nanXYZ = nanRGB.XYZ();
 		assertTrue(Float.isNaN(nanXYZ.X()), "NaN propagation in XYZ");
 
-		// Test infinity handling
-		RGB infRGB = new RGB(Float.POSITIVE_INFINITY, 0.5f, 0.5f);
-		XYZ infXYZ = infRGB.XYZ();
-		assertTrue(Float.isInfinite(infXYZ.X()), "Infinity propagation in XYZ");
+		// Test infinity handling - RGB clamps infinity to 1, so use LinearRGB for edge case testing
+		LinearRGB infLinearRGB = new LinearRGB(Float.POSITIVE_INFINITY, 0.5f, 0.5f);
+		XYZ infXYZ = infLinearRGB.XYZ();
+		assertTrue(Float.isInfinite(infXYZ.X()), "Infinity propagation in XYZ from LinearRGB");
 
 		// Test boundary values
 		RGB black = new RGB(0, 0, 0);
@@ -689,11 +690,13 @@ public class ColorsTest {
 		var labAlmostBlack = almostBlack.Lab();
 		assertTrue(labAlmostBlack.L() >= 0, "Lab L must be non-negative");
 
-		// Test values outside [0,1] range
+		// Test values outside [0,1] range - RGB clamps so we get (0, 1, 0.5)
 		RGB outOfRange = new RGB(-0.1f, 1.2f, 0.5f);
+		assertEquals(0, outOfRange.r(), "Negative clamped to 0");
+		assertEquals(1, outOfRange.g(), "Over 1 clamped to 1");
 		var xyzOut = outOfRange.XYZ();
-		// XYZ can represent out-of-gamut colors
-		assertTrue(xyzOut.Y() >= -10 && xyzOut.Y() <= 200, "XYZ Y in reasonable range");
+		// Even with clamped RGB, XYZ is valid
+		assertTrue(xyzOut.Y() >= 0 && xyzOut.Y() <= 200, "XYZ Y in reasonable range");
 
 		// Test extreme Lab values
 		Lab extremeLab = new Lab(100, 127, 127);

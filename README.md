@@ -4,7 +4,7 @@ This Java library provides color space conversions and other color related utili
 
 - **Color space conversions** 40+, bidirectional
 - **Spectral locus** wavelength conversion, dominant wavelength, purity
-- **Gamut management** for multiple display standards
+- **Gamut management** for multiple display standards, triangular and polygonal
 - **RGBW/RGBWW mixing** for LED systems
 - **Color difference** Delta E 2000, MacAdam steps, WCAG contrast
 - **Color utilities** CCT/Duv, gamma, harmony, formatting, lerp
@@ -185,10 +185,10 @@ This library breaks from Java naming conventions to use capitalization that matc
 - **xy** (CIE 1931), **uv** (CIE 1976), **uv1960** (CIE 1960)
   ```java
   xy chromaticity = rgb.xy();
-  xy chromaticity = rgb.xy(gamut);
+  xy chromaticity = gamut.xy(rgb);
   uv1960 uv60 = chromaticity.uv1960();
   RGB rgb = chromaticity.RGB();  // Uses sRGB gamut
-  RGB rgb = chromaticity.RGB(gamut);
+  RGB rgb = gamut.RGB(chromaticity);
   uv uv76 = rgb.uv();
   XYZ xyz = new xyY(chromaticity.x(), chromaticity.y(), 50).XYZ();  // Y=50
   ```
@@ -218,10 +218,10 @@ float duv = rgb.uv().Duv();
 ### RGB + White LEDs
 ```java
 // RGBW (single white channel)
-RGBW rgbw = rgb.RGBW(whitePoint);
+RGBW rgbw = linearRgb.RGBW(whitePoint);
 
 // RGBWW (dual white channels)  
-RGBWW rgbww = rgb.RGBWW(warmWhite, coolWhite);
+RGBWW rgbww = linearRgb.RGBWW(warmWhite, coolWhite);
 
 // Create from color temperature (higher potential brightness)
 CCT cct3000 = new CCT(3000);
@@ -368,8 +368,14 @@ Gamut srgb = Gamut.sRGB;          // Standard RGB
 Gamut p3 = Gamut.DisplayP3;       // Display P3
 Gamut rec2020 = Gamut.Rec2020;    // Rec. 2020
 Gamut full = Gamut.all;           // Full visible spectrum
-Gamut huaA = Gamut.PhilipsHue.A;  // Philips Hue A
-var custom = new Gamut(red, green blue);
+Gamut hueA = Gamut.PhilipsHue.A;  // Philips Hue A
+var triangular = new RGBGamut(red, green blue, Illuminant.CIE2.D65); // Custom
+var polygonal = new PolygonGamut( // Custom
+	new xy(0.68f, 0.32f),  // Red-ish
+	new xy(0.265f, 0.69f), // Green-ish
+	new xy(0.15f, 0.06f),  // Blue-ish
+	new xy(0.50f, 0.40f)   // Yellow-ish
+);
 ```
 
 ### Gamut Operations

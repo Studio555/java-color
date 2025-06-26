@@ -12,6 +12,10 @@ public record HSI (
 	/** Intensity [0..1]. */
 	float I) {
 
+	public LinearRGB LinearRGB () {
+		return RGB().LinearRGB();
+	}
+
 	public RGB RGB () {
 		float H = this.H * degRad;
 		float r, g, b;
@@ -33,5 +37,9 @@ public record HSI (
 			r = 3 * I - g - b;
 		}
 		return new RGB(clamp(r), clamp(g), clamp(b));
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
 	}
 }
