@@ -137,14 +137,4 @@ public class Util {
 			row0 * matrix[1][0] + row1 * matrix[1][1] + row2 * matrix[1][2],
 			row0 * matrix[2][0] + row1 * matrix[2][1] + row2 * matrix[2][2]};
 	}
-
-	@FunctionalInterface
-	public interface FloatOperator {
-		public float apply (float value);
-	}
-
-	@FunctionalInterface
-	public interface FloatIndexOperator {
-		public float apply (int index, float value);
-	}
 }

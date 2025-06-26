@@ -20,15 +20,7 @@ public record uv (
 	/** @return Normalized. */
 	public RGB RGB () {
 		xy xy = xy();
-		RGB rgb = new xyY(xy.x(), xy.y(), 1).XYZ().RGB();
-		float r = rgb.r(), g = rgb.g(), b = rgb.b();
-		float max = max(r, g, b);
-		if (max > 0) {
-			r /= max;
-			g /= max;
-			b /= max;
-		}
-		return new RGB(clamp(r), clamp(g), clamp(b));
+		return new xyY(xy.x(), xy.y(), 1).XYZ().RGB().nor();
 	}
 
 	public uv1960 uv1960 () {
@@ -47,14 +39,56 @@ public record uv (
 		return xy().XYZ();
 	}
 
+	/** @return [0..360] */
+	public float angle (uv origin) {
+		return (float)Math.atan2(v - origin.v(), u - origin.u()) * radDeg;
+	}
+
+	public uv add (float value) {
+		return new uv(u + value, v + value);
+	}
+
+	public uv add (float u, float v) {
+		return new uv(this.u + u, this.v + v);
+	}
+
+	public uv add (uv uv) {
+		return new uv(u + uv.u, v + uv.v);
+	}
+
+	public uv lerp (uv other, float t) {
+		return new uv(Util.lerp(u, other.u, t), Util.lerp(v, other.v, t));
+	}
+
+	public uv mid (uv other) {
+		return lerp(other, 0.5f);
+	}
+
+	public uv sub (float value) {
+		return new uv(u - value, v - value);
+	}
+
+	public uv sub (float u, float v) {
+		return new uv(this.u - u, this.v - v);
+	}
+
+	public uv sub (uv uv) {
+		return new uv(u - uv.u, v - uv.v);
+	}
+
 	/** {@link Lab#deltaE2000(Lab, float, float, float)} with 1 for lightness, chroma, and hue. */
 	public float deltaE2000 (uv other) {
 		return XYZ().Lab().deltaE2000(other.XYZ().Lab(), 1, 1, 1);
 	}
 
-	public float distance (uv other) {
+	public float dst (uv other) {
 		float du = u - other.u, dv = v - other.v;
 		return (float)Math.sqrt(du * du + dv * dv);
+	}
+
+	public float dst2 (uv other) {
+		float du = u - other.u, dv = v - other.v;
+		return du * du + dv * dv;
 	}
 
 	/** @return NaN if invalid. */
@@ -62,12 +96,8 @@ public record uv (
 		return xy().Duv();
 	}
 
-	public uv lerp (uv other, float t) {
-		return new uv(Util.lerp(u, other.u, t), Util.lerp(v, other.v, t));
-	}
-
 	/** Compares perceptual chromaticity. */
 	public float MacAdamSteps (uv uv) {
-		return distance(uv) / 0.0011f;
+		return dst(uv) / 0.0011f;
 	}
 }

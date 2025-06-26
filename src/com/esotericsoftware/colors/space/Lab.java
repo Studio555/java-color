@@ -19,6 +19,24 @@ public record Lab (
 	static public final float k = 24389 / 27f;
 	static public final float e = 216 / 24389f;
 
+	public float get (int index) {
+		return switch (index) {
+		case 0 -> L;
+		case 1 -> a;
+		case 2 -> b;
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Lab set (int index, float value) {
+		return switch (index) {
+		case 0 -> new Lab(value, a, b);
+		case 1 -> new Lab(L, value, b);
+		case 2 -> new Lab(L, a, value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
 	public LCh LCh () {
 		float C = (float)Math.sqrt(a * a + b * b);
 		float h = C < EPSILON ? Float.NaN : (float)Math.atan2(b, a) * radDeg;
@@ -101,8 +119,56 @@ public record Lab (
 		return (float)Math.sqrt(dL * dL + da * da + db * db);
 	}
 
+	public Lab add (float value) {
+		return new Lab(L + value, a + value, b + value);
+	}
+
+	public Lab add (int index, float value) {
+		return switch (index) {
+		case 0 -> new Lab(L + value, a, b);
+		case 1 -> new Lab(L, a + value, b);
+		case 2 -> new Lab(L, a, b + value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Lab add (float L, float a, float b) {
+		return new Lab(this.L + L, this.a + a, this.b + b);
+	}
+
 	public Lab lerp (Lab other, float t) {
 		return new Lab(Util.lerp(L, other.L, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
+	}
+
+	public Lab sub (float value) {
+		return new Lab(L - value, a - value, b - value);
+	}
+
+	public Lab sub (int index, float value) {
+		return switch (index) {
+		case 0 -> new Lab(L - value, a, b);
+		case 1 -> new Lab(L, a - value, b);
+		case 2 -> new Lab(L, a, b - value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Lab sub (float L, float a, float b) {
+		return new Lab(this.L - L, this.a - a, this.b - b);
+	}
+
+	public float dst (Lab other) {
+		float dL = L - other.L, da = a - other.a, db = b - other.b;
+		return (float)Math.sqrt(dL * dL + da * da + db * db);
+	}
+
+	public float dst2 (Lab other) {
+		float dL = L - other.L, da = a - other.a, db = b - other.b;
+		return dL * dL + da * da + db * db;
+	}
+
+	public Lab withL (float L) {
+		return new Lab(L, a, b);
 	}
 
 	/** @return [0..100] */

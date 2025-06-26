@@ -14,6 +14,24 @@ public record CAM16UCS (
 	/** Yellow-blue component (b*) [-50..50]. */
 	float b) {
 
+	public float get (int index) {
+		return switch (index) {
+		case 0 -> J;
+		case 1 -> a;
+		case 2 -> b;
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public CAM16UCS set (int index, float value) {
+		return switch (index) {
+		case 0 -> new CAM16UCS(value, a, b);
+		case 1 -> new CAM16UCS(J, value, b);
+		case 2 -> new CAM16UCS(J, a, value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
 	/** Uses {@link CAM16.VC#sRGB}. */
 	public CAM16 CAM16 () {
 		return CAM16(CAM16.VC.sRGB);
@@ -43,7 +61,55 @@ public record CAM16UCS (
 		return 1.41f * (float)Math.pow(Math.sqrt(dJ * dJ + da * da + db * db), 0.63);
 	}
 
+	public CAM16UCS add (float value) {
+		return new CAM16UCS(J + value, a + value, b + value);
+	}
+
+	public CAM16UCS add (int index, float value) {
+		return switch (index) {
+		case 0 -> new CAM16UCS(J + value, a, b);
+		case 1 -> new CAM16UCS(J, a + value, b);
+		case 2 -> new CAM16UCS(J, a, b + value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public CAM16UCS add (float J, float a, float b) {
+		return new CAM16UCS(this.J + J, this.a + a, this.b + b);
+	}
+
 	public CAM16UCS lerp (CAM16UCS other, float t) {
 		return new CAM16UCS(Util.lerp(J, other.J, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
+	}
+
+	public CAM16UCS sub (float value) {
+		return new CAM16UCS(J - value, a - value, b - value);
+	}
+
+	public CAM16UCS sub (int index, float value) {
+		return switch (index) {
+		case 0 -> new CAM16UCS(J - value, a, b);
+		case 1 -> new CAM16UCS(J, a - value, b);
+		case 2 -> new CAM16UCS(J, a, b - value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public CAM16UCS sub (float J, float a, float b) {
+		return new CAM16UCS(this.J - J, this.a - a, this.b - b);
+	}
+
+	public float dst (CAM16UCS other) {
+		float dJ = J - other.J, da = a - other.a, db = b - other.b;
+		return (float)Math.sqrt(dJ * dJ + da * da + db * db);
+	}
+
+	public float dst2 (CAM16UCS other) {
+		float dJ = J - other.J, da = a - other.a, db = b - other.b;
+		return dJ * dJ + da * da + db * db;
+	}
+
+	public CAM16UCS withJ (float J) {
+		return new CAM16UCS(J, a, b);
 	}
 }

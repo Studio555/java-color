@@ -7,8 +7,6 @@ import com.esotericsoftware.colors.Gamut;
 import com.esotericsoftware.colors.Illuminant;
 import com.esotericsoftware.colors.Illuminant.CIE2;
 import com.esotericsoftware.colors.Util;
-import com.esotericsoftware.colors.Util.FloatIndexOperator;
-import com.esotericsoftware.colors.Util.FloatOperator;
 import com.esotericsoftware.colors.space.LMS.CAT;
 import com.esotericsoftware.colors.space.YCbCr.YCbCrColorSpace;
 
@@ -22,11 +20,35 @@ public record RGB (
 	/** Blue [0..1]. */
 	float b) {
 
+	public RGB {
+		r = clamp(r);
+		g = clamp(g);
+		b = clamp(b);
+	}
+
 	public RGB (int rgb) {
 		this( //
 			((rgb & 0xff0000) >>> 16) / 255f, //
 			((rgb & 0x00ff00) >>> 8) / 255f, //
 			((rgb & 0x0000ff)) / 255f);
+	}
+
+	public float get (int index) {
+		return switch (index) {
+		case 0 -> r;
+		case 1 -> g;
+		case 2 -> b;
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public RGB set (int index, float value) {
+		return switch (index) {
+		case 0 -> new RGB(clamp(value), g, b);
+		case 1 -> new RGB(r, clamp(value), b);
+		case 2 -> new RGB(r, g, clamp(value));
+		default -> throw new IndexOutOfBoundsException(index);
+		};
 	}
 
 	public ACES2065_1 ACES2065_1 () {
@@ -84,7 +106,7 @@ public record RGB (
 	}
 
 	public CMYK CMYK () {
-		float K = 1 - max(r, g, b);
+		float K = 1 - max();
 		if (1 - K < EPSILON) return new CMYK(0, 0, 0, K); // Black
 		return new CMYK( //
 			(1 - r - K) / (1 - K), //
@@ -104,8 +126,7 @@ public record RGB (
 
 	public HSI HSI () {
 		float I = (r + g + b) / 3;
-		float min = min(r, g, b);
-		float S = I < EPSILON ? 0 : 1 - min / I, H = Float.NaN;
+		float min = min(), S = I < EPSILON ? 0 : 1 - min / I, H = Float.NaN;
 		if (S != 0 && I != 0) {
 			float alpha = 0.5f * (2 * r - g - b);
 			float beta = 0.8660254f * (g - b); // sqrt(3) / 2
@@ -117,7 +138,7 @@ public record RGB (
 	}
 
 	public HSL HSL () {
-		float min = min(r, g, b), max = max(r, g, b), delta = max - min, L = (max + min) / 2;
+		float min = min(), max = max(), delta = max - min, L = (max + min) / 2;
 		if (delta < EPSILON) return new HSL(Float.NaN, 0, L); // Gray.
 		float S = L <= 0.5f ? delta / (max + min) : delta / (2 - max - min), H;
 		if (r == max)
@@ -142,7 +163,7 @@ public record RGB (
 	}
 
 	public HSV HSV () {
-		float min = min(r, g, b), max = max(r, g, b), delta = max - min, H = 0;
+		float min = min(), max = max(), delta = max - min, H = 0;
 		if (max == min)
 			H = Float.NaN;
 		else if (max == r) {
@@ -164,7 +185,7 @@ public record RGB (
 	public IHS IHS () {
 		float I = r + g + b;
 		if (I < EPSILON) return new IHS(I, Float.NaN, Float.NaN);
-		float H, S, min = min(r, g, b);
+		float H, S, min = min();
 		if (b == min) {
 			float denom = I - 3 * b;
 			H = Math.abs(denom) < EPSILON ? Float.NaN : (g - b) / denom;
@@ -308,7 +329,7 @@ public record RGB (
 		float T_max = ST_max[1], S_0 = 0.5f, k = 1 - S_0 / ST_max[0], t = T_max / (C + L * T_max);
 		float L_v = t * L, C_v = t * C, L_vt = Okhsv.toeInv(L_v), C_vt = C_v * L_vt / L_v;
 		LinearRGB l_r = new Oklab(L_vt, a_ * C_vt, b_ * C_vt).LinearRGB();
-		L /= (float)Math.cbrt(1.f / Math.max(0, max(l_r.r(), l_r.g(), l_r.b())));
+		L /= (float)Math.cbrt(1.f / Math.max(0, l_r.max()));
 		float Lt = Okhsv.toe(L);
 		return new Okhsv(h, clamp((S_0 + T_max) * C_v / (T_max * S_0 + T_max * k * C_v)), clamp(Lt / L_v));
 	}
@@ -319,7 +340,7 @@ public record RGB (
 		// How much of each channel the white LED can provide.
 		float ratioR = r / w.r, ratioG = g / w.g, ratioB = b / w.b;
 		// The white level is limited by the channel that needs the least white contribution.
-		float W = min(ratioR, ratioG, ratioB);
+		float W = Util.min(ratioR, ratioG, ratioB);
 		W = Math.min(W, 1);
 		// Subtract the white contribution from each channel.
 		return new RGBW(Math.max(0, r - W * w.r), Math.max(0, g - W * w.g), Math.max(0, b - W * w.b), W);
@@ -333,8 +354,8 @@ public record RGB (
 		float ratioR1 = r / w1.r, ratioG1 = g / w1.g, ratioB1 = b / w1.b;
 		float ratioR2 = r / w2.r, ratioG2 = g / w2.g, ratioB2 = b / w2.b;
 		// The white level is limited by the channel that needs the least white contribution.
-		float W1 = min(ratioR1, ratioG1, ratioB1);
-		float W2 = min(ratioR2, ratioG2, ratioB2);
+		float W1 = Util.min(ratioR1, ratioG1, ratioB1);
+		float W2 = Util.min(ratioR2, ratioG2, ratioB2);
 		// Subtract the white contribution from each channel.
 		if (W1 > W2) return new RGBWW(Math.max(0, r - W1 * w1.r), Math.max(0, g - W1 * w1.g), Math.max(0, b - W1 * w1.b), W1, 0);
 		return new RGBWW(Math.max(0, r - W2 * w2.r), Math.max(0, g - W2 * w2.g), Math.max(0, b - W2 * w2.b), 0, W2);
@@ -460,6 +481,84 @@ public record RGB (
 			0.614975f * r - 0.514965f * g - 0.100010f * b);
 	}
 
+	public RGB add (float value) {
+		return new RGB(clamp(r + value), clamp(g + value), clamp(b + value));
+	}
+
+	public RGB add (int index, float value) {
+		return switch (index) {
+		case 0 -> new RGB(clamp(r + value), g, b);
+		case 1 -> new RGB(r, clamp(g + value), b);
+		case 2 -> new RGB(r, g, clamp(b + value));
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public RGB add (float r, float g, float b) {
+		return new RGB(clamp(this.r + r), clamp(this.g + g), clamp(this.b + b));
+	}
+
+	public RGB lerp (RGB other, float t) {
+		return new RGB(clamp(Util.lerp(r, other.r(), t)), clamp(Util.lerp(g, other.g(), t)), clamp(Util.lerp(b, other.b(), t)));
+	}
+
+	public float max () {
+		return Util.max(r, g, b);
+	}
+
+	public float min () {
+		return Util.min(r, g, b);
+	}
+
+	public RGB nor () {
+		float max = max();
+		return max < EPSILON ? this : new RGB(r / max, g / max, b / max);
+	}
+
+	public RGB sub (float value) {
+		return new RGB(clamp(r - value), clamp(g - value), clamp(b - value));
+	}
+
+	public RGB sub (int index, float value) {
+		return switch (index) {
+		case 0 -> new RGB(clamp(r - value), g, b);
+		case 1 -> new RGB(r, clamp(g - value), b);
+		case 2 -> new RGB(r, g, clamp(b - value));
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public RGB sub (float r, float g, float b) {
+		return new RGB(clamp(this.r - r), clamp(this.g - g), clamp(this.b - b));
+	}
+
+	public RGB scl (float value) {
+		return new RGB(clamp(r * value), clamp(g * value), clamp(b * value));
+	}
+
+	public RGB scl (int index, float value) {
+		return switch (index) {
+		case 0 -> new RGB(clamp(r * value), g, b);
+		case 1 -> new RGB(r, clamp(g * value), b);
+		case 2 -> new RGB(r, g, clamp(b * value));
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public RGB scl (float r, float g, float b) {
+		return new RGB(clamp(this.r * r), clamp(this.g * g), clamp(this.b * b));
+	}
+
+	public float dst (RGB other) {
+		float dr = r - other.r, dg = g - other.g, db = b - other.b;
+		return (float)Math.sqrt(dr * dr + dg * dg + db * db);
+	}
+
+	public float dst2 (RGB other) {
+		float dr = r - other.r, dg = g - other.g, db = b - other.b;
+		return dr * dr + dg * dg + db * db;
+	}
+
 	/** {@link Lab#deltaE2000(Lab, float, float, float)} with 1 for lightness, chroma, and hue. */
 	public float deltaE2000 (RGB other) {
 		return Lab().deltaE2000(other.Lab(), 1, 1, 1);
@@ -469,34 +568,8 @@ public record RGB (
 		return r * 0.2125f + g * 0.7154f + b * 0.0721f;
 	}
 
-	public float get (int index) {
-		return switch (index) {
-		case 0 -> r;
-		case 1 -> g;
-		case 2 -> b;
-		default -> throw new IndexOutOfBoundsException(index);
-		};
-	}
-
-	public RGB set (int index, FloatOperator op) {
-		return switch (index) {
-		case 0 -> new RGB(clamp(op.apply(r)), g, b);
-		case 1 -> new RGB(r, clamp(op.apply(g)), b);
-		case 2 -> new RGB(r, g, clamp(op.apply(b)));
-		default -> throw new IndexOutOfBoundsException(index);
-		};
-	}
-
-	public RGB lerp (RGB other, float t) {
-		return new RGB(clamp(Util.lerp(r, other.r(), t)), clamp(Util.lerp(g, other.g(), t)), clamp(Util.lerp(b, other.b(), t)));
-	}
-
-	public RGB set (FloatIndexOperator op) {
-		return new RGB(clamp(op.apply(0, r)), clamp(op.apply(1, g)), clamp(op.apply(2, b)));
-	}
-
 	public boolean achromatic () {
-		return max(r, g, b) - min(r, g, b) < EPSILON;
+		return max() - min() < EPSILON;
 	}
 
 	/** Returns colors opposite on color wheel. */

@@ -28,6 +28,24 @@ public record XYZ (
 	/** Second radiation constant. **/
 	static public float c2 = h * c / k;
 
+	public float get (int index) {
+		return switch (index) {
+		case 0 -> X;
+		case 1 -> Y;
+		case 2 -> Z;
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public XYZ set (int index, float value) {
+		return switch (index) {
+		case 0 -> new XYZ(value, Y, Z);
+		case 1 -> new XYZ(X, value, Z);
+		case 2 -> new XYZ(X, Y, value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
 	/** Uses {@link CAM16.VC#sRGB}. */
 	public CAM16 CAM16 () {
 		return CAM16(CAM16.VC.sRGB);
@@ -170,8 +188,85 @@ public record XYZ (
 		return new xyY(X / sum, Y / sum, Y);
 	}
 
+	public XYZ add (float value) {
+		return new XYZ(X + value, Y + value, Z + value);
+	}
+
+	public XYZ add (int index, float value) {
+		return switch (index) {
+		case 0 -> new XYZ(X + value, Y, Z);
+		case 1 -> new XYZ(X, Y + value, Z);
+		case 2 -> new XYZ(X, Y, Z + value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public XYZ add (float X, float Y, float Z) {
+		return new XYZ(this.X + X, this.Y + Y, this.Z + Z);
+	}
+
 	public XYZ lerp (XYZ other, float t) {
 		return new XYZ(Util.lerp(X, other.X, t), Util.lerp(Y, other.Y, t), Util.lerp(Z, other.Z, t));
+	}
+
+	public float max () {
+		return Util.max(X, Y, Z);
+	}
+
+	public float min () {
+		return Util.min(X, Y, Z);
+	}
+
+	public XYZ nor () {
+		float max = max();
+		return max < EPSILON ? this : new XYZ(X / max, Y / max, Z / max);
+	}
+
+	public XYZ sub (float value) {
+		return new XYZ(X - value, Y - value, Z - value);
+	}
+
+	public XYZ sub (int index, float value) {
+		return switch (index) {
+		case 0 -> new XYZ(X - value, Y, Z);
+		case 1 -> new XYZ(X, Y - value, Z);
+		case 2 -> new XYZ(X, Y, Z - value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public XYZ sub (float X, float Y, float Z) {
+		return new XYZ(this.X - X, this.Y - Y, this.Z - Z);
+	}
+
+	public XYZ scl (float value) {
+		return new XYZ(X * value, Y * value, Z * value);
+	}
+
+	public XYZ scl (int index, float value) {
+		return switch (index) {
+		case 0 -> new XYZ(X * value, Y, Z);
+		case 1 -> new XYZ(X, Y * value, Z);
+		case 2 -> new XYZ(X, Y, Z * value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public XYZ scl (float X, float Y, float Z) {
+		return new XYZ(this.X * X, this.Y * Y, this.Z * Z);
+	}
+
+	public float dst (XYZ other) {
+		return (float)Math.sqrt(dst2(other));
+	}
+
+	public float dst2 (XYZ other) {
+		float dx = X - other.X, dy = Y - other.Y, dz = Z - other.Z;
+		return dx * dx + dy * dy + dz * dz;
+	}
+
+	public XYZ withY (float Y) {
+		return set(1, Y);
 	}
 
 	/** CIE 1931 x-bar color matching function (380-780nm at 5nm intervals). **/

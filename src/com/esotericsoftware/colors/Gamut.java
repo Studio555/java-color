@@ -62,9 +62,7 @@ public class Gamut {
 		xy pAB = closestPointOnSegment(xy, red, green);
 		xy pAC = closestPointOnSegment(xy, red, blue);
 		xy pBC = closestPointOnSegment(xy, green, blue);
-		float dAB = dst2(xy, pAB);
-		float dAC = dst2(xy, pAC);
-		float dBC = dst2(xy, pBC);
+		float dAB = xy.dst2(pAB), dAC = xy.dst2(pAC), dBC = xy.dst2(pBC);
 		float lowest = dAB;
 		xy closestPoint = pAB;
 		if (dAC < lowest) {
@@ -139,11 +137,6 @@ public class Gamut {
 		else if (t > 1) //
 			t = 1;
 		return new xy(a.x() + ABx * t, a.y() + ABy * t);
-	}
-
-	static private float dst2 (xy a, xy b) {
-		float dx = a.x() - b.x(), dy = a.y() - b.y();
-		return dx * dx + dy * dy;
 	}
 
 	static public class PhilipsHue {

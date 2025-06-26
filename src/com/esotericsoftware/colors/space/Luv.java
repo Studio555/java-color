@@ -22,6 +22,24 @@ public record Luv (
 		return new LCHuv(L, C, H < 0 ? H + 360 : H);
 	}
 
+	public float get (int index) {
+		return switch (index) {
+		case 0 -> L;
+		case 1 -> u;
+		case 2 -> v;
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Luv set (int index, float value) {
+		return switch (index) {
+		case 0 -> new Luv(value, u, v);
+		case 1 -> new Luv(L, value, v);
+		case 2 -> new Luv(L, u, value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
 	/** @return NaN if invalid. */
 	public RGB RGB () {
 		return RGB(CIE2.D65);
@@ -57,6 +75,23 @@ public record Luv (
 		return new XYZ(X, Y, Z);
 	}
 
+	public Luv add (float value) {
+		return new Luv(L + value, u + value, v + value);
+	}
+
+	public Luv add (int index, float value) {
+		return switch (index) {
+		case 0 -> new Luv(L + value, u, v);
+		case 1 -> new Luv(L, u + value, v);
+		case 2 -> new Luv(L, u, v + value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Luv add (float L, float u, float v) {
+		return new Luv(this.L + L, this.u + u, this.v + v);
+	}
+
 	public Luv lerp (Luv other, float t) {
 		float u, v;
 		if (Float.isNaN(this.u) && Float.isNaN(other.u))
@@ -76,5 +111,36 @@ public record Luv (
 		else
 			v = Util.lerp(this.v, other.v, t);
 		return new Luv(Util.lerp(L, other.L, t), u, v);
+	}
+
+	public Luv sub (float value) {
+		return new Luv(L - value, u - value, v - value);
+	}
+
+	public Luv sub (int index, float value) {
+		return switch (index) {
+		case 0 -> new Luv(L - value, u, v);
+		case 1 -> new Luv(L, u - value, v);
+		case 2 -> new Luv(L, u, v - value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Luv sub (float L, float u, float v) {
+		return new Luv(this.L - L, this.u - u, this.v - v);
+	}
+
+	public float dst (Luv other) {
+		float dL = L - other.L, du = u - other.u, dv = v - other.v;
+		return (float)Math.sqrt(dL * dL + du * du + dv * dv);
+	}
+
+	public float dst2 (Luv other) {
+		float dL = L - other.L, du = u - other.u, dv = v - other.v;
+		return dL * dL + du * du + dv * dv;
+	}
+
+	public Luv withL (float L) {
+		return new Luv(L, u, v);
 	}
 }

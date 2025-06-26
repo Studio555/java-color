@@ -4,6 +4,7 @@ package com.esotericsoftware.colors.space;
 import static com.esotericsoftware.colors.Util.*;
 
 import com.esotericsoftware.colors.Gamut;
+import com.esotericsoftware.colors.Util;
 
 /** CIE 1931 chromaticity coordinates. */
 public record xy (
@@ -94,8 +95,49 @@ public record xy (
 		return new xyY(x, y, Y).XYZ();
 	}
 
-	public float distance (xy other) {
+	/** @return [0..360] */
+	public float angle (xy origin) {
+		return (float)Math.atan2(y - origin.y(), x - origin.x()) * radDeg;
+	}
+
+	public xy add (float value) {
+		return new xy(x + value, y + value);
+	}
+
+	public xy add (float u, float v) {
+		return new xy(this.x + u, this.y + v);
+	}
+
+	public xy add (xy xy) {
+		return new xy(x + xy.x, y + xy.y);
+	}
+
+	public xy lerp (xy other, float t) {
+		return new xy(Util.lerp(x, other.x, t), Util.lerp(y, other.y, t));
+	}
+
+	public xy mid (xy other) {
+		return lerp(other, 0.5f);
+	}
+
+	public xy sub (float value) {
+		return new xy(x - value, y - value);
+	}
+
+	public xy sub (float u, float v) {
+		return new xy(this.x - u, this.y - v);
+	}
+
+	public xy sub (xy xy) {
+		return new xy(x - xy.x, y - xy.y);
+	}
+
+	public float dst (xy other) {
+		return (float)Math.sqrt(dst2(other));
+	}
+
+	public float dst2 (xy other) {
 		float dx = x - other.x, dy = y - other.y;
-		return (float)Math.sqrt(dx * dx + dy * dy);
+		return dx * dx + dy * dy;
 	}
 }

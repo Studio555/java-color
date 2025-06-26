@@ -14,6 +14,24 @@ public record Oklab (
 	/** Yellow-blue axis [-0.5..0.5]. */
 	float b) {
 
+	public float get (int index) {
+		return switch (index) {
+		case 0 -> L;
+		case 1 -> a;
+		case 2 -> b;
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Oklab set (int index, float value) {
+		return switch (index) {
+		case 0 -> new Oklab(value, a, b);
+		case 1 -> new Oklab(L, value, b);
+		case 2 -> new Oklab(L, a, value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
 	public LinearRGB LinearRGB () {
 		float l = L + 0.3963377774f * a + 0.2158037573f * b;
 		float m = L - 0.1055613458f * a - 0.0638541728f * b;
@@ -63,7 +81,55 @@ public record Oklab (
 			(0.0193339f * r + 0.1191920f * g + 0.9503041f * b) * 100);
 	}
 
+	public Oklab add (float value) {
+		return new Oklab(L + value, a + value, b + value);
+	}
+
+	public Oklab add (int index, float value) {
+		return switch (index) {
+		case 0 -> new Oklab(L + value, a, b);
+		case 1 -> new Oklab(L, a + value, b);
+		case 2 -> new Oklab(L, a, b + value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Oklab add (float L, float a, float b) {
+		return new Oklab(this.L + L, this.a + a, this.b + b);
+	}
+
 	public Oklab lerp (Oklab other, float t) {
 		return new Oklab(Util.lerp(L, other.L, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
+	}
+
+	public Oklab sub (float value) {
+		return new Oklab(L - value, a - value, b - value);
+	}
+
+	public Oklab sub (int index, float value) {
+		return switch (index) {
+		case 0 -> new Oklab(L - value, a, b);
+		case 1 -> new Oklab(L, a - value, b);
+		case 2 -> new Oklab(L, a, b - value);
+		default -> throw new IndexOutOfBoundsException(index);
+		};
+	}
+
+	public Oklab sub (float L, float a, float b) {
+		return new Oklab(this.L - L, this.a - a, this.b - b);
+	}
+
+	public float dst (Oklab other) {
+		float dL = L - other.L, da = a - other.a, db = b - other.b;
+		return (float)Math.sqrt(dL * dL + da * da + db * db);
+	}
+
+	public float dst2 (Oklab other) {
+		float dL = L - other.L, da = a - other.a, db = b - other.b;
+		return dL * dL + da * da + db * db;
+	}
+
+	public Oklab withL (float L) {
+		return new Oklab(L, a, b);
 	}
 }
