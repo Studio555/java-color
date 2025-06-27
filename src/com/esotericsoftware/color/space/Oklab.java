@@ -128,13 +128,20 @@ public record Oklab (
 	}
 
 	public float dst (Oklab other) {
-		float dL = L - other.L, da = a - other.a, db = b - other.b;
-		return (float)Math.sqrt(dL * dL + da * da + db * db);
+		return (float)Math.sqrt(dst2(other));
 	}
 
 	public float dst2 (Oklab other) {
 		float dL = L - other.L, da = a - other.a, db = b - other.b;
 		return dL * dL + da * da + db * db;
+	}
+
+	public float len () {
+		return (float)Math.sqrt(len2());
+	}
+
+	public float len2 () {
+		return L * L + a * a + b * b;
 	}
 
 	public Oklab withL (float L) {

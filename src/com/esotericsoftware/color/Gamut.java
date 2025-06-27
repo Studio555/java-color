@@ -102,8 +102,18 @@ public interface Gamut {
 		public final XYZ whitePoint;
 		public final float[][] RGB_XYZ, XYZ_RGB;
 
+		/** Uses {@link CIE2#D65}. */
+		public RGBGamut (uv red, uv green, uv blue) {
+			this(red.xy(), green.xy(), blue.xy(), CIE2.D65);
+		}
+
+		/** Uses {@link CIE2#D65}. */
 		public RGBGamut (xy red, xy green, xy blue) {
 			this(red, green, blue, CIE2.D65);
+		}
+
+		public RGBGamut (uv red, uv green, uv blue, XYZ whitePoint) {
+			this(red.xy(), green.xy(), blue.xy(), whitePoint);
 		}
 
 		public RGBGamut (xy red, xy green, xy blue, XYZ whitePoint) {
@@ -316,6 +326,10 @@ public interface Gamut {
 		public final GamutVertex[] vertices;
 		public final float[] floats;
 
+		public PolygonGamut (uv... polygon) {
+			this(xy(polygon));
+		}
+
 		public PolygonGamut (xy... polygon) {
 			if (polygon == null) throw new IllegalArgumentException("polygon cannot be null.");
 			int n = polygon.length;
@@ -410,6 +424,14 @@ public interface Gamut {
 
 		public LinearRGB LinearRGB (XYZ XYZ) {
 			throw new UnsupportedOperationException();
+		}
+
+		static private xy[] xy (uv[] uvs) {
+			int n = uvs.length;
+			var xys = new xy[n];
+			for (int i = 0; i < n; i++)
+				xys[i] = uvs[i].xy();
+			return xys;
 		}
 	}
 }

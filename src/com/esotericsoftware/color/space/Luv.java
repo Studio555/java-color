@@ -131,13 +131,20 @@ public record Luv (
 	}
 
 	public float dst (Luv other) {
-		float dL = L - other.L, du = u - other.u, dv = v - other.v;
-		return (float)Math.sqrt(dL * dL + du * du + dv * dv);
+		return (float)Math.sqrt(dst2(other));
 	}
 
 	public float dst2 (Luv other) {
 		float dL = L - other.L, du = u - other.u, dv = v - other.v;
 		return dL * dL + du * du + dv * dv;
+	}
+
+	public float len () {
+		return (float)Math.sqrt(len2());
+	}
+
+	public float len2 () {
+		return L * L + u * u + v * v;
 	}
 
 	public Luv withL (float L) {

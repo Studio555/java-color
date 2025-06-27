@@ -146,6 +146,16 @@ public record xy (
 		return lerp(other, 0.5f);
 	}
 
+	public xy nor () {
+		float length = len();
+		if (length == 0) return this;
+		return new xy(x / length, y / length);
+	}
+
+	public xy scl (float scalar) {
+		return new xy(x * scalar, y * scalar);
+	}
+
 	public xy sub (float value) {
 		return new xy(x - value, y - value);
 	}
@@ -165,5 +175,13 @@ public record xy (
 	public float dst2 (xy other) {
 		float dx = x - other.x, dy = y - other.y;
 		return dx * dx + dy * dy;
+	}
+
+	public float len () {
+		return (float)Math.sqrt(len2());
+	}
+
+	public float len2 () {
+		return x * x + y * y;
 	}
 }

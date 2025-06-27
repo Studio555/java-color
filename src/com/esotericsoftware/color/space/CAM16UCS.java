@@ -145,13 +145,20 @@ public record CAM16UCS (
 	}
 
 	public float dst (CAM16UCS other) {
-		float dJ = J - other.J, da = a - other.a, db = b - other.b;
-		return (float)Math.sqrt(dJ * dJ + da * da + db * db);
+		return (float)Math.sqrt(dst2(other));
 	}
 
 	public float dst2 (CAM16UCS other) {
 		float dJ = J - other.J, da = a - other.a, db = b - other.b;
 		return dJ * dJ + da * da + db * db;
+	}
+
+	public float len () {
+		return (float)Math.sqrt(len2());
+	}
+
+	public float len2 () {
+		return J * J + a * a + b * b;
 	}
 
 	public CAM16UCS withJ (float J) {

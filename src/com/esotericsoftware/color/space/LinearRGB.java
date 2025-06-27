@@ -197,12 +197,19 @@ public record LinearRGB (
 	}
 
 	public float dst (LinearRGB other) {
-		float dr = r - other.r, dg = g - other.g, db = b - other.b;
-		return (float)Math.sqrt(dr * dr + dg * dg + db * db);
+		return (float)Math.sqrt(dst2(other));
 	}
 
 	public float dst2 (LinearRGB other) {
 		float dr = r - other.r, dg = g - other.g, db = b - other.b;
 		return dr * dr + dg * dg + db * db;
+	}
+
+	public float len () {
+		return (float)Math.sqrt(len2());
+	}
+
+	public float len2 () {
+		return r * r + g * g + b * b;
 	}
 }

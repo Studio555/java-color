@@ -101,12 +101,37 @@ public record uv (
 		return new uv(u + uv.u, v + uv.v);
 	}
 
+	/** {@link Lab#deltaE2000(Lab, float, float, float)} with 1 for lightness, chroma, and hue. */
+	public float deltaE2000 (uv other) {
+		return XYZ().Lab().deltaE2000(other.XYZ().Lab(), 1, 1, 1);
+	}
+
+	/** @return NaN if invalid. */
+	public float Duv () {
+		return xy().Duv();
+	}
+
 	public uv lerp (uv other, float t) {
 		return new uv(Util.lerp(u, other.u, t), Util.lerp(v, other.v, t));
 	}
 
+	/** Compares perceptual chromaticity. */
+	public float MacAdamSteps (uv uv) {
+		return dst(uv) / 0.0011f;
+	}
+
 	public uv mid (uv other) {
 		return lerp(other, 0.5f);
+	}
+
+	public uv nor () {
+		float length = len();
+		if (length == 0) return this;
+		return new uv(u / length, v / length);
+	}
+
+	public uv scl (float scalar) {
+		return new uv(u * scalar, v * scalar);
 	}
 
 	public uv sub (float value) {
@@ -121,14 +146,8 @@ public record uv (
 		return new uv(u - uv.u, v - uv.v);
 	}
 
-	/** {@link Lab#deltaE2000(Lab, float, float, float)} with 1 for lightness, chroma, and hue. */
-	public float deltaE2000 (uv other) {
-		return XYZ().Lab().deltaE2000(other.XYZ().Lab(), 1, 1, 1);
-	}
-
 	public float dst (uv other) {
-		float du = u - other.u, dv = v - other.v;
-		return (float)Math.sqrt(du * du + dv * dv);
+		return (float)Math.sqrt(dst2(other));
 	}
 
 	public float dst2 (uv other) {
@@ -136,13 +155,11 @@ public record uv (
 		return du * du + dv * dv;
 	}
 
-	/** @return NaN if invalid. */
-	public float Duv () {
-		return xy().Duv();
+	public float len () {
+		return (float)Math.sqrt(len2());
 	}
 
-	/** Compares perceptual chromaticity. */
-	public float MacAdamSteps (uv uv) {
-		return dst(uv) / 0.0011f;
+	public float len2 () {
+		return u * u + v * v;
 	}
 }

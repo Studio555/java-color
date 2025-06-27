@@ -123,12 +123,6 @@ public record Lab (
 		return deltaE2000(other, 1, 1, 1);
 	}
 
-	/** CIE76 color difference (distance in Lab space). */
-	public float deltaE76 (Lab other) {
-		float dL = L() - other.L(), da = a() - other.a(), db = b() - other.b();
-		return (float)Math.sqrt(dL * dL + da * da + db * db);
-	}
-
 	public Lab add (float value) {
 		return new Lab(L + value, a + value, b + value);
 	}
@@ -167,14 +161,22 @@ public record Lab (
 		return new Lab(this.L - L, this.a - a, this.b - b);
 	}
 
+	/** CIE76 color difference (distance in Lab space). */
 	public float dst (Lab other) {
-		float dL = L - other.L, da = a - other.a, db = b - other.b;
-		return (float)Math.sqrt(dL * dL + da * da + db * db);
+		return (float)Math.sqrt(dst2(other));
 	}
 
 	public float dst2 (Lab other) {
 		float dL = L - other.L, da = a - other.a, db = b - other.b;
 		return dL * dL + da * da + db * db;
+	}
+
+	public float len () {
+		return (float)Math.sqrt(len2());
+	}
+
+	public float len2 () {
+		return L * L + a * a + b * b;
 	}
 
 	public Lab withL (float L) {

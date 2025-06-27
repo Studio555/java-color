@@ -270,6 +270,14 @@ public record XYZ (
 		return dx * dx + dy * dy + dz * dz;
 	}
 
+	public float len () {
+		return (float)Math.sqrt(len2());
+	}
+
+	public float len2 () {
+		return X * X + Y * Y + Z * Z;
+	}
+
 	public XYZ withY (float Y) {
 		return set(1, Y);
 	}
