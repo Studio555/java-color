@@ -71,7 +71,8 @@ public interface Gamut {
 		return LinearRGB(uv.xy().XYZ(1)).RGB();
 	}
 
-	static private xy closestPointOnSegment (xy xy, xy a, xy b) {
+	static private xy closestPointOnSegment (xy xy, GamutVertex av, GamutVertex bv) {
+		xy a = av.xy, b = bv.xy;
 		float xDiff = b.x() - a.x(), yDiff = b.y() - a.y(), length2 = xDiff * xDiff + yDiff * yDiff;
 		if (length2 == 0) return a;
 		float t = ((xy.x() - a.x()) * xDiff + (xy.y() - a.y()) * yDiff) / length2;
@@ -80,8 +81,24 @@ public interface Gamut {
 		return new xy(a.x() + t * xDiff, a.y() + t * yDiff);
 	}
 
+	static private uv closestPointOnSegment (uv uv, GamutVertex av, GamutVertex bv) {
+		uv a = av.uv, b = bv.uv;
+		float xDiff = b.u() - a.u(), yDiff = b.v() - a.v(), length2 = xDiff * xDiff + yDiff * yDiff;
+		if (length2 == 0) return a;
+		float t = ((uv.u() - a.u()) * xDiff + (uv.v() - a.v()) * yDiff) / length2;
+		if (t <= 0) return a;
+		if (t >= 1) return b;
+		return new uv(a.u() + t * xDiff, a.v() + t * yDiff);
+	}
+
+	public record GamutVertex (xy xy, uv uv) {
+		GamutVertex (xy xy) {
+			this(xy, xy.uv());
+		}
+	}
+
 	static public class RGBGamut implements Gamut {
-		public final xy red, green, blue;
+		public final GamutVertex red, green, blue;
 		public final XYZ whitePoint;
 		public final float[][] RGB_XYZ, XYZ_RGB;
 
@@ -94,9 +111,9 @@ public interface Gamut {
 			if (green == null) throw new IllegalArgumentException("green cannot be null.");
 			if (blue == null) throw new IllegalArgumentException("blue cannot be null.");
 			if (whitePoint == null) throw new IllegalArgumentException("whitePoint cannot be null.");
-			this.red = red;
-			this.green = green;
-			this.blue = blue;
+			this.red = new GamutVertex(red);
+			this.green = new GamutVertex(green);
+			this.blue = new GamutVertex(blue);
 			this.whitePoint = whitePoint;
 			RGB_XYZ = RGB_XYZ();
 			XYZ_RGB = invert3x3(RGB_XYZ);
@@ -106,9 +123,9 @@ public interface Gamut {
 			// Check inside.
 			if (below(xy, blue, green) && below(xy, green, red) && above(xy, red, blue)) return true;
 			// Check on vertex.
-			if (red.dst2(xy) < EPSILON * EPSILON) return true;
-			if (green.dst2(xy) < EPSILON * EPSILON) return true;
-			if (blue.dst2(xy) < EPSILON * EPSILON) return true;
+			if (red.xy.dst2(xy) < EPSILON * EPSILON) return true;
+			if (green.xy.dst2(xy) < EPSILON * EPSILON) return true;
+			if (blue.xy.dst2(xy) < EPSILON * EPSILON) return true;
 			// Check on edge.
 			if (segment(xy, red, green)) return true;
 			if (segment(xy, green, blue)) return true;
@@ -121,9 +138,22 @@ public interface Gamut {
 			xy pAB = closestPointOnSegment(xy, red, green);
 			xy pAC = closestPointOnSegment(xy, red, blue);
 			xy pBC = closestPointOnSegment(xy, green, blue);
-			float dAB = xy.dst2(pAB), dAC = xy.dst2(pAC), dBC = xy.dst2(pBC);
-			float lowest = dAB;
+			float dAB = xy.dst2(pAB), dAC = xy.dst2(pAC), dBC = xy.dst2(pBC), lowest = dAB;
 			xy closestPoint = pAB;
+			if (dAC < lowest) {
+				lowest = dAC;
+				closestPoint = pAC;
+			}
+			return dBC < lowest ? pBC : closestPoint;
+		}
+
+		public uv clamp (uv uv) {
+			if (contains(uv.xy())) return uv;
+			uv pAB = closestPointOnSegment(uv, red, green);
+			uv pAC = closestPointOnSegment(uv, red, blue);
+			uv pBC = closestPointOnSegment(uv, green, blue);
+			float dAB = uv.dst2(pAB), dAC = uv.dst2(pAC), dBC = uv.dst2(pBC), lowest = dAB;
+			uv closestPoint = pAB;
 			if (dAC < lowest) {
 				lowest = dAC;
 				closestPoint = pAC;
@@ -153,21 +183,24 @@ public interface Gamut {
 			return new LinearRGB(r, g, b);
 		}
 
-		static private boolean below (xy xy, xy a, xy b) {
+		static private boolean below (xy xy, GamutVertex av, GamutVertex bv) {
+			xy a = av.xy, b = bv.xy;
 			float xDiff = a.x() - b.x();
 			if (Math.abs(xDiff) < EPSILON) return true;
 			float slope = (a.y() - b.y()) / xDiff;
 			return xy.y() <= xy.x() * slope + a.y() - slope * a.x();
 		}
 
-		static private boolean above (xy xy, xy a, xy b) {
+		static private boolean above (xy xy, GamutVertex av, GamutVertex bv) {
+			xy a = av.xy, b = bv.xy;
 			float xDiff = a.x() - b.x();
 			if (Math.abs(xDiff) < EPSILON) return true;
 			float slope = (a.y() - b.y()) / xDiff;
 			return xy.y() >= xy.x() * slope + a.y() - slope * a.x();
 		}
 
-		static private boolean segment (xy p, xy a, xy b) {
+		static private boolean segment (xy p, GamutVertex av, GamutVertex bv) {
+			xy a = av.xy, b = bv.xy;
 			float dx = b.x() - a.x(), dy = b.y() - a.y();
 			float length = dx * dx + dy * dy;
 			if (length < EPSILON * EPSILON) return false;
@@ -179,6 +212,7 @@ public interface Gamut {
 		}
 
 		private float[][] RGB_XYZ () {
+			xy red = this.red.xy, green = this.green.xy, blue = this.blue.xy;
 			float Xr = red.x() / red.y();
 			float Yr = 1;
 			float Zr = (1 - red.x() - red.y()) / red.y();
@@ -279,18 +313,18 @@ public interface Gamut {
 	}
 
 	static public class PolygonGamut implements Gamut {
-		public final xy[] polygon;
+		public final GamutVertex[] vertices;
 		public final float[] floats;
 
 		public PolygonGamut (xy... polygon) {
 			if (polygon == null) throw new IllegalArgumentException("polygon cannot be null.");
-			if (polygon.length < 3) throw new IllegalArgumentException("polygon must have >= 3 points.");
-			this.polygon = polygon;
-
 			int n = polygon.length;
+			if (n < 3) throw new IllegalArgumentException("polygon must have >= 3 points.");
+			vertices = new GamutVertex[n];
 			floats = new float[n << 1];
 			for (int i = 0, f = 0; i < n; i++, f += 2) {
 				xy xy = polygon[i];
+				vertices[i] = new GamutVertex(xy);
 				floats[f] = xy.x();
 				floats[f + 1] = xy.y();
 			}
@@ -339,10 +373,28 @@ public interface Gamut {
 		public xy clamp (xy xy) {
 			if (contains(xy)) return xy;
 			float minDist = Float.MAX_VALUE;
-			xy closest = null, a = polygon[polygon.length - 1];
-			for (xy b : polygon) {
+			xy closest = null;
+			GamutVertex a = vertices[vertices.length - 1];
+			for (GamutVertex b : vertices) {
 				xy pointOnEdge = closestPointOnSegment(xy, a, b);
 				float dist = xy.dst2(pointOnEdge);
+				if (dist < minDist) {
+					minDist = dist;
+					closest = pointOnEdge;
+				}
+				a = b;
+			}
+			return closest;
+		}
+
+		public uv clamp (uv uv) {
+			if (contains(uv.xy())) return uv;
+			float minDist = Float.MAX_VALUE;
+			uv closest = null;
+			GamutVertex a = vertices[vertices.length - 1];
+			for (GamutVertex b : vertices) {
+				uv pointOnEdge = closestPointOnSegment(uv, a, b);
+				float dist = uv.dst2(pointOnEdge);
 				if (dist < minDist) {
 					minDist = dist;
 					closest = pointOnEdge;

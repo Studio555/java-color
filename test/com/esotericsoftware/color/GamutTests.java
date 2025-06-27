@@ -64,17 +64,30 @@ public class GamutTests {
 
 		// Test gamut vertices - they should be on the boundary
 		Gamut.RGBGamut srgb = (Gamut.RGBGamut)Gamut.sRGB;
-		assertTrue(Gamut.sRGB.contains(srgb.red), "Red primary should be in gamut");
-		assertTrue(Gamut.sRGB.contains(srgb.green), "Green primary should be in gamut");
-		assertTrue(Gamut.sRGB.contains(srgb.blue), "Blue primary should be in gamut");
+		assertTrue(Gamut.sRGB.contains(srgb.red.xy()), "Red primary should be in gamut");
+		assertTrue(Gamut.sRGB.contains(srgb.green.xy()), "Green primary should be in gamut");
+		assertTrue(Gamut.sRGB.contains(srgb.blue.xy()), "Blue primary should be in gamut");
+		assertTrue(Gamut.sRGB.contains(srgb.red.uv()), "Red primary should be in gamut");
+		assertTrue(Gamut.sRGB.contains(srgb.green.uv()), "Green primary should be in gamut");
+		assertTrue(Gamut.sRGB.contains(srgb.blue.uv()), "Blue primary should be in gamut");
 
 		// Test points on edges
-		xy redGreenMid = new xy((srgb.red.x() + srgb.green.x()) / 2, (srgb.red.y() + srgb.green.y()) / 2);
-		xy greenBlueMid = new xy((srgb.green.x() + srgb.blue.x()) / 2, (srgb.green.y() + srgb.blue.y()) / 2);
-		xy blueRedMid = new xy((srgb.blue.x() + srgb.red.x()) / 2, (srgb.blue.y() + srgb.red.y()) / 2);
-		assertTrue(Gamut.sRGB.contains(redGreenMid), "Midpoint of red-green edge should be in gamut");
-		assertTrue(Gamut.sRGB.contains(greenBlueMid), "Midpoint of green-blue edge should be in gamut");
-		assertTrue(Gamut.sRGB.contains(blueRedMid), "Midpoint of blue-red edge should be in gamut");
+		{
+			xy redGreenMid = new xy((srgb.red.xy().x() + srgb.green.xy().x()) / 2, (srgb.red.xy().y() + srgb.green.xy().y()) / 2);
+			xy greenBlueMid = new xy((srgb.green.xy().x() + srgb.blue.xy().x()) / 2, (srgb.green.xy().y() + srgb.blue.xy().y()) / 2);
+			xy blueRedMid = new xy((srgb.blue.xy().x() + srgb.red.xy().x()) / 2, (srgb.blue.xy().y() + srgb.red.xy().y()) / 2);
+			assertTrue(Gamut.sRGB.contains(redGreenMid), "Midpoint of red-green edge should be in gamut");
+			assertTrue(Gamut.sRGB.contains(greenBlueMid), "Midpoint of green-blue edge should be in gamut");
+			assertTrue(Gamut.sRGB.contains(blueRedMid), "Midpoint of blue-red edge should be in gamut");
+		}
+		{
+			uv redGreenMid = new uv((srgb.red.uv().u() + srgb.green.uv().u()) / 2, (srgb.red.uv().v() + srgb.green.uv().v()) / 2);
+			uv greenBlueMid = new uv((srgb.green.uv().u() + srgb.blue.uv().u()) / 2, (srgb.green.uv().v() + srgb.blue.uv().v()) / 2);
+			uv blueRedMid = new uv((srgb.blue.uv().u() + srgb.red.uv().u()) / 2, (srgb.blue.uv().v() + srgb.red.uv().v()) / 2);
+			assertTrue(Gamut.sRGB.contains(redGreenMid), "Midpoint of red-green edge should be in gamut");
+			assertTrue(Gamut.sRGB.contains(greenBlueMid), "Midpoint of green-blue edge should be in gamut");
+			assertTrue(Gamut.sRGB.contains(blueRedMid), "Midpoint of blue-red edge should be in gamut");
+		}
 	}
 
 	@Test
@@ -90,14 +103,14 @@ public class GamutTests {
 
 		// They should be close to the gamut's primaries
 		Gamut.RGBGamut srgb = (Gamut.RGBGamut)Gamut.sRGB;
-		assertEquals(srgb.red.x(), redXY.x(), 0.01f, "Pure red should map to red primary x");
-		assertEquals(srgb.red.y(), redXY.y(), 0.01f, "Pure red should map to red primary y");
+		assertEquals(srgb.red.xy().x(), redXY.x(), 0.01f, "Pure red should map to red primary x");
+		assertEquals(srgb.red.xy().y(), redXY.y(), 0.01f, "Pure red should map to red primary y");
 
-		assertEquals(srgb.green.x(), greenXY.x(), 0.01f, "Pure green should map to green primary x");
-		assertEquals(srgb.green.y(), greenXY.y(), 0.01f, "Pure green should map to green primary y");
+		assertEquals(srgb.green.xy().x(), greenXY.x(), 0.01f, "Pure green should map to green primary x");
+		assertEquals(srgb.green.xy().y(), greenXY.y(), 0.01f, "Pure green should map to green primary y");
 
-		assertEquals(srgb.blue.x(), blueXY.x(), 0.01f, "Pure blue should map to blue primary x");
-		assertEquals(srgb.blue.y(), blueXY.y(), 0.01f, "Pure blue should map to blue primary y");
+		assertEquals(srgb.blue.xy().x(), blueXY.x(), 0.01f, "Pure blue should map to blue primary x");
+		assertEquals(srgb.blue.xy().y(), blueXY.y(), 0.01f, "Pure blue should map to blue primary y");
 	}
 
 	@Test
@@ -125,18 +138,18 @@ public class GamutTests {
 		RGB red = new RGB(1, 0, 0);
 		xy redXY = Gamut.sRGB.xy(red);
 		Gamut.RGBGamut srgb = (Gamut.RGBGamut)Gamut.sRGB;
-		assertEquals(srgb.red.x(), redXY.x(), 0.001f, "Red x coordinate");
-		assertEquals(srgb.red.y(), redXY.y(), 0.001f, "Red y coordinate");
+		assertEquals(srgb.red.xy().x(), redXY.x(), 0.001f, "Red x coordinate");
+		assertEquals(srgb.red.xy().y(), redXY.y(), 0.001f, "Red y coordinate");
 
 		RGB green = new RGB(0, 1, 0);
 		xy greenXY = Gamut.sRGB.xy(green);
-		assertEquals(srgb.green.x(), greenXY.x(), 0.001f, "Green x coordinate");
-		assertEquals(srgb.green.y(), greenXY.y(), 0.001f, "Green y coordinate");
+		assertEquals(srgb.green.xy().x(), greenXY.x(), 0.001f, "Green x coordinate");
+		assertEquals(srgb.green.xy().y(), greenXY.y(), 0.001f, "Green y coordinate");
 
 		RGB blue = new RGB(0, 0, 1);
 		xy blueXY = Gamut.sRGB.xy(blue);
-		assertEquals(srgb.blue.x(), blueXY.x(), 0.001f, "Blue x coordinate");
-		assertEquals(srgb.blue.y(), blueXY.y(), 0.001f, "Blue y coordinate");
+		assertEquals(srgb.blue.xy().x(), blueXY.x(), 0.001f, "Blue x coordinate");
+		assertEquals(srgb.blue.xy().y(), blueXY.y(), 0.001f, "Blue y coordinate");
 
 		// Test secondary colors (combinations)
 		RGB yellow = new RGB(1, 1, 0);
