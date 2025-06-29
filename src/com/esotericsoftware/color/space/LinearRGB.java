@@ -42,6 +42,28 @@ public record LinearRGB (
 		};
 	}
 
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public CAM16 CAM16 () {
+		return CAM16(CAM16.VC.sRGB);
+	}
+
+	public CAM16 CAM16 (CAM16.VC vc) {
+		float r = linear(this.r) * 100, g = linear(this.g) * 100, b = linear(this.b) * 100;
+		return new XYZ( //
+			0.41233895f * r + 0.35762064f * g + 0.18051042f * b, //
+			0.2126f * r + 0.7152f * g + 0.0722f * b, //
+			0.01932141f * r + 0.11916382f * g + 0.95034478f * b).CAM16(vc);
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public CAM16UCS CAM16UCS () {
+		return CAM16().CAM16UCS();
+	}
+
+	public CAM16UCS CAM16UCS (CAM16.VC vc) {
+		return CAM16(vc).CAM16UCS();
+	}
+
 	/** Uses {@link CIE2#D65}. */
 	public Lab Lab () {
 		return Lab(CIE2.D65);
@@ -80,7 +102,7 @@ public record LinearRGB (
 	}
 
 	public RGB RGB () {
-		return new RGB(sRGB(clamp(r)), sRGB(clamp(g)), sRGB(clamp(b)));
+		return new RGB(sRGB(Util.clamp(r)), sRGB(Util.clamp(g)), sRGB(Util.clamp(b)));
 	}
 
 	/** Convert to RGBW using one calibrated white LED color. Brightness of this RGB is preserved.
@@ -143,6 +165,10 @@ public record LinearRGB (
 
 	public LinearRGB add (float r, float g, float b) {
 		return new LinearRGB(this.r + r, this.g + g, this.b + b);
+	}
+
+	public LinearRGB clamp () {
+		return new LinearRGB(Util.clamp(r), Util.clamp(g), Util.clamp(b));
 	}
 
 	public LinearRGB lerp (LinearRGB other, float t) {

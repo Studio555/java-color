@@ -14,6 +14,15 @@ public record CAM16UCS (
 	/** Yellow-blue component (b*) [-50..50]. */
 	float b) {
 
+	public float h () {
+		float h = (float)Math.atan2(b, a) * radDeg;
+		return h < 0 ? h + 360 : h;
+	}
+
+	public float C () {
+		return (float)Math.hypot(a, b);
+	}
+
 	public float get (int index) {
 		return switch (index) {
 		case 0 -> J;
