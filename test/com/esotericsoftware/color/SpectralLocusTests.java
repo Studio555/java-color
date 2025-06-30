@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.TestsUtil.*;
+import static com.esotericsoftware.color.Tests.*;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -12,22 +12,22 @@ import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;
 import com.esotericsoftware.color.space.xy;
 
-public class SpectralLocusTests {
+public class SpectralLocusTests extends Tests {
 	@Test
 	public void testWavelengthToUV () {
 		// Test boundary wavelengths
 		uv uv380 = SpectralLocus.uv(380);
-		assertClose(0.2568657f, uv380.u(), "380nm u'", 0.0001f);
-		assertClose(0.016464427f, uv380.v(), "380nm v'", 0.0001f);
+		assertEquals(0.2568657f, uv380.u(), 0.0001f, "380nm u'");
+		assertEquals(0.016464427f, uv380.v(), 0.0001f, "380nm v'");
 
 		uv uv700 = SpectralLocus.uv(700);
-		assertClose(0.6233662f, uv700.u(), "700nm u'", 0.0001f);
-		assertClose(0.5064951f, uv700.v(), "700nm v'", 0.0001f);
+		assertEquals(0.6233662f, uv700.u(), 0.0001f, "700nm u'");
+		assertEquals(0.5064951f, uv700.v(), 0.0001f, "700nm v'");
 
 		// Test exact wavelength in the data
 		uv uv500 = SpectralLocus.uv(500);
-		assertClose(0.0034601416f, uv500.u(), "500nm u'", 0.0001f);
-		assertClose(0.51306874f, uv500.v(), "500nm v'", 0.0001f);
+		assertEquals(0.0034601416f, uv500.u(), 0.0001f, "500nm u'");
+		assertEquals(0.51306874f, uv500.v(), 0.0001f, "500nm v'");
 
 		// Test interpolation between points
 		uv uv550 = SpectralLocus.uv(550);
@@ -59,8 +59,8 @@ public class SpectralLocusTests {
 		assertTrue(xy500.y() >= 0 && xy500.y() <= 1, "xy y coordinate in range");
 
 		// Actual values for 500nm
-		assertClose(0.00817f, xy500.x(), "500nm x", 0.0001f);
-		assertClose(0.53842f, xy500.y(), "500nm y", 0.0001f);
+		assertEquals(0.00817f, xy500.x(), 0.0001f, "500nm x");
+		assertEquals(0.53842f, xy500.y(), 0.0001f, "500nm y");
 	}
 
 	@Test
@@ -97,10 +97,10 @@ public class SpectralLocusTests {
 
 		// Test pure spectral colors
 		float wavelength = SpectralLocus.dominantWavelength(SpectralLocus.uv(500), d65);
-		assertClose(500f, wavelength, "500nm dominant wavelength", 1f);
+		assertEquals(500f, wavelength, 1f, "500nm dominant wavelength");
 
 		wavelength = SpectralLocus.dominantWavelength(SpectralLocus.uv(600), d65);
-		assertClose(600f, wavelength, "600nm dominant wavelength", 1f);
+		assertEquals(600f, wavelength, 1f, "600nm dominant wavelength");
 
 		// Test achromatic (white point itself)
 		uv d65uv = d65.uv();
@@ -124,7 +124,7 @@ public class SpectralLocusTests {
 
 		// Test default white point method
 		wavelength = SpectralLocus.dominantWavelength(SpectralLocus.uv(550));
-		assertClose(550f, wavelength, "550nm default white point", 1f);
+		assertEquals(550f, wavelength, 1f, "550nm default white point");
 	}
 
 	@Test
@@ -162,7 +162,7 @@ public class SpectralLocusTests {
 		uv d65uv = d65.xy().uv();
 
 		// Test achromatic (white point)
-		assertClose(0f, SpectralLocus.excitationPurity(d65uv, d65), "White point purity", 0.0001f);
+		assertEquals(0f, SpectralLocus.excitationPurity(d65uv, d65), 0.0001f, "White point purity");
 
 		// Test pure spectral colors (should be close to 1)
 		float purity = SpectralLocus.excitationPurity(SpectralLocus.uv(500), d65);

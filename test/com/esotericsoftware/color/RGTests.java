@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.rg;
 
-public class RGTests {
+public class RGTests extends Tests {
 	@Test
 	void testFromRGB () {
 		// Test primary colors

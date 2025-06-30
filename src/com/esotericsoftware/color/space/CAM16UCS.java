@@ -5,7 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Util;
 
-/** Uniform Color Space based on CAM16. For color difference calculations. */
+/** Uniform Color Space based on CAM16, for color difference calculations. */
 public record CAM16UCS (
 	/** Lightness (J*) [0..100]. */
 	float J,
@@ -39,6 +39,13 @@ public record CAM16UCS (
 		case 2 -> new CAM16UCS(J, a, value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
+	}
+
+	public CAM02UCS CAM02UCS () { // Based on Luo et al. "Uniform colour spaces based on CIECAM02 colour appearance model".
+		float KL = 0.77f, c1 = 0.007f, c2 = 0.0228f, J02 = J / 1.7f * (1 + c1 * J) / (1 + c1 * J / 1.7f);
+		float M16 = (float)Math.sqrt(a * a + b * b), M02 = (float)(Math.exp(M16 * c2) - 1) / c2;
+		float ratio = M16 > 0 ? M02 / M16 : 0; // Maintain hue angle.
+		return new CAM02UCS(J02 * KL, a * ratio, b * ratio);
 	}
 
 	/** Uses {@link CAM16.VC#sRGB}. */

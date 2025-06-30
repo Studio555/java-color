@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.TestsUtil.*;
+import static com.esotericsoftware.color.Tests.*;
 import static com.esotericsoftware.color.Util.*;
 
 import org.junit.jupiter.api.Assertions;
@@ -37,7 +37,7 @@ import com.esotericsoftware.color.space.xy;
 import com.esotericsoftware.color.space.xyY;
 
 /** @author Nathan Sweet <misc@n4te.com> */
-public class ColorsTest {
+public class ColorsTest extends Tests {
 	@Test
 	public void ACESTest () {
 		RGB rgb = new RGB(0.2f, 0.5f, 0.8f);
@@ -45,17 +45,17 @@ public class ColorsTest {
 		// Test ACES2065-1
 		var aces2065 = rgb.ACES2065_1();
 		RGB rgb2065 = aces2065.RGB();
-		assertRecordClose(rgb, rgb2065, "ACES2065-1 round trip", 0.01f);
+		assertClose(rgb, rgb2065, 0.01f, "ACES2065-1 round trip");
 
 		// Test ACEScg
 		var acesCg = rgb.ACEScg();
 		RGB rgbCg = acesCg.RGB();
-		assertRecordClose(rgb, rgbCg, "ACEScg round trip", 0.01f);
+		assertClose(rgb, rgbCg, 0.01f, "ACEScg round trip");
 
 		// Test ACEScc
 		var acesCc = rgb.ACEScc();
 		RGB rgbCc = acesCc.RGB();
-		assertRecordClose(rgb, rgbCc, "ACEScc round trip", 0.01f);
+		assertClose(rgb, rgbCc, 0.01f, "ACEScc round trip");
 
 		// Test wide gamut - ACES can represent colors outside sRGB
 		var acesWide = new RGB(1.2f, 0.8f, -0.1f).ACES2065_1();
@@ -67,16 +67,16 @@ public class ColorsTest {
 		RGB rgb = new RGB(0.2f, 0.5f, 0.8f);
 		var ITP = rgb.ITP();
 		RGB rgb2 = ITP.RGB();
-		assertRecordClose(rgb, rgb2, "ITP round trip", 0.0005f);
+		assertClose(rgb, rgb2, 0.0005f, "ITP round trip");
 
 		// Test edge cases
-		assertRecordClose(new RGB(0, 0, 0), new RGB(0, 0, 0).ITP().RGB(), "ITP black round trip");
-		assertRecordClose(new RGB(1, 1, 1), new RGB(1, 1, 1).ITP().RGB(), "ITP white round trip", 0.0005f);
+		assertClose(new RGB(0, 0, 0), new RGB(0, 0, 0).ITP().RGB(), "ITP black round trip");
+		assertClose(new RGB(1, 1, 1), new RGB(1, 1, 1).ITP().RGB(), 0.0005f, "ITP white round trip");
 
 		// Test primary colors - slightly higher tolerance for extreme values
-		assertRecordClose(new RGB(1, 0, 0), new RGB(1, 0, 0).ITP().RGB(), "ITP red round trip", 0.0006f);
-		assertRecordClose(new RGB(0, 1, 0), new RGB(0, 1, 0).ITP().RGB(), "ITP green round trip", 0.006f); // Higher tolerance.
-		assertRecordClose(new RGB(0, 0, 1), new RGB(0, 0, 1).ITP().RGB(), "ITP blue round trip", 0.0006f);
+		assertClose(new RGB(1, 0, 0), new RGB(1, 0, 0).ITP().RGB(), 0.0006f, "ITP red round trip");
+		assertClose(new RGB(0, 1, 0), new RGB(0, 1, 0).ITP().RGB(), 0.006f, "ITP green round trip"); // Higher tolerance.
+		assertClose(new RGB(0, 0, 1), new RGB(0, 0, 1).ITP().RGB(), 0.0006f, "ITP blue round trip");
 
 		// Test various colors
 		RGB[] testColors = {new RGB(0.1f, 0.2f, 0.3f), new RGB(0.5f, 0.5f, 0.5f), new RGB(0.7f, 0.3f, 0.1f),
@@ -84,7 +84,7 @@ public class ColorsTest {
 		for (RGB color : testColors) {
 			var ITP_test = color.ITP();
 			RGB back = ITP_test.RGB();
-			assertRecordClose(color, back, "ITP round trip for " + color, 0.001f);
+			assertClose(color, back, 0.001f, "ITP round trip for " + color);
 		}
 
 		// Test that ITP values are reasonable
@@ -118,18 +118,18 @@ public class ColorsTest {
 
 		for (RGB rgb : testColors) {
 			// Already tested conversions (quick verification)
-			roundTripf(rgb, RGB::CMYK, CMYK::RGB, "CMYK");
-			roundTripf(rgb, RGB::IHS, IHS::RGB, "IHS");
-			roundTripf(rgb, RGB::YUV, YUV::RGB, "YUV");
-			roundTripf(rgb, RGB::YIQ, YIQ::RGB, "YIQ");
-			roundTripf(rgb, RGB::HSV, HSV::RGB, "HSV");
-			roundTripf(rgb, RGB::YCoCg, YCoCg::RGB, "YCoCg");
-			roundTripf(rgb, RGB::YES, YES::RGB, "YES");
-			roundTripf(rgb, RGB::XYZ, XYZ::RGB, "XYZ");
-			roundTripf(rgb, RGB::HSL, HSL::RGB, "HSL");
-			roundTripf(rgb, (RGB c) -> c.Lab(), Lab::RGB, "Lab");
-			roundTripf(rgb, RGB::YCC, YCC::RGB, "YCC");
-			roundTripf(rgb, RGB::Oklab, Oklab::RGB, "Oklab");
+			roundTripF(rgb, RGB::CMYK, CMYK::RGB, "CMYK");
+			roundTripF(rgb, RGB::IHS, IHS::RGB, "IHS");
+			roundTripF(rgb, RGB::YUV, YUV::RGB, "YUV");
+			roundTripF(rgb, RGB::YIQ, YIQ::RGB, "YIQ");
+			roundTripF(rgb, RGB::HSV, HSV::RGB, "HSV");
+			roundTripF(rgb, RGB::YCoCg, YCoCg::RGB, "YCoCg");
+			roundTripF(rgb, RGB::YES, YES::RGB, "YES");
+			roundTripF(rgb, RGB::XYZ, XYZ::RGB, "XYZ");
+			roundTripF(rgb, RGB::HSL, HSL::RGB, "HSL");
+			roundTripF(rgb, (RGB c) -> c.Lab(), Lab::RGB, "Lab");
+			roundTripF(rgb, RGB::YCC, YCC::RGB, "YCC");
+			roundTripF(rgb, RGB::Oklab, Oklab::RGB, "Oklab");
 			roundTripYCbCr(rgb, YCbCrColorSpace.ITU_BT_601, EPSILON_F);
 			roundTripYCbCr(rgb, YCbCrColorSpace.ITU_BT_709_HDTV, EPSILON_F);
 		}
@@ -141,7 +141,7 @@ public class ColorsTest {
 		uv1960 uv = new uv1960(0.2f, 0.3f);
 		xy xy = uv.xy();
 		uv1960 uvBack = xy.uv1960();
-		assertRecordClose(uv, uvBack, "CIE 1960 <-> xy round trip");
+		assertClose(uv, uvBack, "CIE 1960 <-> xy round trip");
 
 		// Test CIE 1960 <-> 1976
 		uv uvPrime = uv.uv();
@@ -149,7 +149,7 @@ public class ColorsTest {
 		assertClose(uv.v() * 1.5f, uvPrime.v(), "v' = 1.5v");
 
 		uv1960 uvBack2 = uvPrime.uv1960();
-		assertRecordClose(uv, uvBack2, "CIE 1960 <-> 1976 round trip");
+		assertClose(uv, uvBack2, "CIE 1960 <-> 1976 round trip");
 	}
 
 	@Test
@@ -164,17 +164,17 @@ public class ColorsTest {
 		// Case 1
 		lab1 = new Lab(50.0000f, 2.6772f, -79.7751f);
 		lab2 = new Lab(50.0000f, 0.0000f, -82.7485f);
-		assertClose(2.0425f, lab1.deltaE2000(lab2), "CIEDE2000 test case 1", 0.0001);
+		assertEquals(2.0425f, lab1.deltaE2000(lab2), 0.0001, "CIEDE2000 test case 1");
 
 		// Case 2
 		lab1 = new Lab(50.0000f, 3.1571f, -77.2803f);
 		lab2 = new Lab(50.0000f, 0.0000f, -82.7485f);
-		assertClose(2.8615f, lab1.deltaE2000(lab2), "CIEDE2000 test case 2", 0.0001);
+		assertEquals(2.8615f, lab1.deltaE2000(lab2), 0.0001, "CIEDE2000 test case 2");
 
 		// Case 3
 		lab1 = new Lab(50.0000f, 2.8361f, -74.0200f);
 		lab2 = new Lab(50.0000f, 0.0000f, -82.7485f);
-		assertClose(3.4412f, lab1.deltaE2000(lab2), "CIEDE2000 test case 3", 0.0001);
+		assertEquals(3.4412f, lab1.deltaE2000(lab2), 0.0001, "CIEDE2000 test case 3");
 
 		// Test RGB convenience methods
 		RGB rgb1 = new RGB(1, 0, 0); // Red
@@ -338,7 +338,7 @@ public class ColorsTest {
 		float srgbEncoded = sRGB(testVal);
 		float gammaEncoded = gammaEncode(testVal, 2.4f); // sRGB uses approximately 2.4
 		// They should be close but not exact (sRGB has linear segment near 0)
-		assertClose(srgbEncoded, gammaEncoded, "sRGB vs gamma 2.4", 0.04);
+		assertEquals(srgbEncoded, gammaEncoded, 0.04, "sRGB vs gamma 2.4");
 
 		// Test that gamma=1 is identity
 		for (float value : testValues) {
@@ -355,13 +355,13 @@ public class ColorsTest {
 
 		// Test round trip
 		XYZ xyzBack = hunterLab.XYZ();
-		assertRecordClose(xyz, xyzBack, "Hunter Lab round trip", EPSILON_F);
+		assertClose(xyz, xyzBack, EPSILON_F, "Hunter Lab round trip");
 
 		// Test RGB to Hunter Lab
 		RGB rgb = new RGB(1, 0, 0); // Pure red
 		HunterLab hunterLabFromRgb = rgb.HunterLab();
 		RGB rgbBack = hunterLabFromRgb.RGB();
-		assertRecordClose(rgb, rgbBack, "RGB-HunterLab round trip", EPSILON_F);
+		assertClose(rgb, rgbBack, EPSILON_F, "RGB-HunterLab round trip");
 	}
 
 	@Test
@@ -370,7 +370,7 @@ public class ColorsTest {
 		LCh lch = lab.LCh();
 		Lab labBack = lch.Lab();
 
-		assertRecordClose(lab, labBack, "Lab <-> LCh round trip");
+		assertClose(lab, labBack, "Lab <-> LCh round trip");
 
 		// Test that C = sqrt(a² + b²)
 		float expectedC = (float)Math.sqrt(25 * 25 + 25 * 25);
@@ -385,20 +385,20 @@ public class ColorsTest {
 
 		// Test round trip
 		Lab labBack = lch.Lab();
-		assertRecordClose(lab, labBack, "LCh round trip", EPSILON_F);
+		assertClose(lab, labBack, EPSILON_F, "LCh round trip");
 
 		// Test RGB to LCh with default illuminant
 		RGB rgb = new RGB(1, 0, 0); // Pure red
 		LCh lchFromRgb = rgb.LCh();
 		RGB rgbBack = lchFromRgb.RGB();
-		assertRecordClose(rgb, rgbBack, "RGB-LCh round trip", EPSILON_F);
+		assertClose(rgb, rgbBack, EPSILON_F, "RGB-LCh round trip");
 
 		// Test RGB to LCh with custom illuminant
 		LCh lchFromRgbD50 = rgb.LCh(CIE2.D50);
 		// Convert back through Lab with the same illuminant
 		Lab labFromLch = lchFromRgbD50.Lab();
 		RGB rgbBackD50 = labFromLch.RGB(CIE2.D50);
-		assertRecordClose(rgb, rgbBackD50, "RGB-LCh round trip with D50 illuminant", EPSILON_F);
+		assertClose(rgb, rgbBackD50, EPSILON_F, "RGB-LCh round trip with D50 illuminant");
 	}
 
 	@Test
@@ -411,19 +411,19 @@ public class ColorsTest {
 			// Test XYZ to LMS
 			LMS lms = xyz.LMS(matrix);
 			XYZ xyzBack = lms.XYZ(matrix);
-			assertRecordClose(xyz, xyzBack, "LMS " + matrix + " round trip", EPSILON_F);
+			assertClose(xyz, xyzBack, EPSILON_F, "LMS " + matrix + " round trip");
 
 			// Test RGB to LMS
 			RGB rgb = new RGB(1, 0, 0);
 			LMS lmsFromRgb = rgb.LMS(matrix);
 			RGB rgbBack = lmsFromRgb.RGB(matrix);
-			assertRecordClose(rgb, rgbBack, "RGB-LMS " + matrix + " round trip", EPSILON_F);
+			assertClose(rgb, rgbBack, EPSILON_F, "RGB-LMS " + matrix + " round trip");
 		}
 
 		// Test default (CAT02) conversions
 		LMS lmsDefault = xyz.LMS();
 		LMS lmsCat02 = xyz.LMS(CAT.CAT02);
-		assertRecordClose(lmsDefault, lmsCat02, "Default LMS is CAT02", EPSILON_F);
+		assertClose(lmsDefault, lmsCat02, EPSILON_F, "Default LMS is CAT02");
 	}
 
 	@Test
@@ -432,19 +432,19 @@ public class ColorsTest {
 		float[][] matrix = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
 		float[] result = Util.matrixMultiply(vector[0], vector[1], vector[2], matrix);
-		assertArrayClose(vector, result, "Identity matrix multiply");
+		assertCloseD(vector, result, "Identity matrix multiply");
 
 		// Test with a known transformation
 		float[][] scaleMatrix = {{2, 0, 0}, {0, 2, 0}, {0, 0, 2}};
 		float[] scaled = Util.matrixMultiply(vector[0], vector[1], vector[2], scaleMatrix);
-		assertArrayClose(new float[] {2, 4, 6}, scaled, "Scale matrix multiply");
+		assertCloseD(new float[] {2, 4, 6}, scaled, "Scale matrix multiply");
 
 		// Test matrixMultiply
 		vector = new float[] {1, 2, 3};
 		matrix = new float[][] {{1, 0, 0}, {0, 2, 0}, {0, 0, 3}};
 		result = Util.matrixMultiply(vector[0], vector[1], vector[2], matrix);
 		float[] expected = {1, 4, 9};
-		assertArrayClose(expected, result, "Matrix multiply", EPSILON_F);
+		assertClose(expected, result, EPSILON_F, "Matrix multiply");
 
 		// Test with non-diagonal matrix
 		float[][] matrix2 = {{0.5f, 0.3f, 0.2f}, {0.1f, 0.6f, 0.3f}, {0.2f, 0.2f, 0.6f}};
@@ -453,13 +453,13 @@ public class ColorsTest {
 			1 * 0.1f + 2 * 0.6f + 3 * 0.3f, // 0.1 + 1.2 + 0.9 = 2.2
 			1 * 0.2f + 2 * 0.2f + 3 * 0.6f // 0.2 + 0.4 + 1.8 = 2.4
 		};
-		assertArrayClose(expected, result, "Matrix multiply 2", EPSILON_F);
+		assertClose(expected, result, EPSILON_F, "Matrix multiply 2");
 
 		// Test with identity matrix
 		float[][] identity = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 		result = Util.matrixMultiply(0.5f, 0.3f, 0.7f, identity);
 		expected = new float[] {0.5f, 0.3f, 0.7f};
-		assertArrayClose(expected, result, "Identity matrix multiply", EPSILON_F);
+		assertClose(expected, result, EPSILON_F, "Identity matrix multiply");
 	}
 
 	@Test
@@ -526,12 +526,12 @@ public class ColorsTest {
 
 		// Test expected lightness calculation
 		float expectedL = 0.299f * rgb.r() + 0.587f * rgb.g() + 0.114f * rgb.b();
-		assertClose(expectedL, tsl.L(), "L", EPSILON_F);
+		assertEquals(expectedL, tsl.L(), EPSILON_F, "L");
 
 		// Test grayscale
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		var tslGray = gray.TSL();
-		assertClose(0, tslGray.S(), "S", EPSILON_F);
+		assertEquals(0, tslGray.S(), EPSILON_F, "S");
 
 		// Test that different colors produce different tints
 		var tsl1 = new RGB(1, 0, 0).TSL(); // Red
@@ -544,7 +544,7 @@ public class ColorsTest {
 		// Test Terrillon-Akamatsu S calculation
 		// For pure colors, verify S is calculated correctly
 		// Red (1,0,0): r'=1-1/3=2/3, g'=0-1/3=-1/3, S=sqrt(9/5*(4/9+1/9))=sqrt(9/5*5/9)=1
-		assertClose(1, tsl1.S(), "Red S", 0.001f);
+		assertEquals(1, tsl1.S(), 0.001f, "Red S");
 
 		// Test 2*G = R+B constraint
 		// When 2*G = R+B, in normalized coordinates: 2*g/(r+g+b) = r/(r+g+b) + b/(r+g+b)
@@ -560,7 +560,7 @@ public class ColorsTest {
 		RGB rgb2g = new RGB(0.3f, 0.4f, 0.5f); // 2*0.4 = 0.3+0.5
 		var tsl2g = rgb2g.TSL();
 		// Verify the RGB constraint
-		assertClose(2 * rgb2g.g(), rgb2g.r() + rgb2g.b(), "2*G = R+B", EPSILON_F);
+		assertEquals(2 * rgb2g.g(), rgb2g.r() + rgb2g.b(), EPSILON_F, "2*G = R+B");
 
 		// When 2*G = R+B and r≠b, T should reflect the r'/b' ratio
 		// Calculate expected angle from normalized coordinates
@@ -570,7 +570,7 @@ public class ColorsTest {
 		float b_prime = rgb2g.b() / sum - 1.0f / 3.0f;
 
 		// Verify g' = 0 when 2*G = R+B
-		assertClose(0, g_prime, "g' should be 0 when 2*G = R+B", 0.001f);
+		assertEquals(0, g_prime, 0.001f, "g' should be 0 when 2*G = R+B");
 
 		// Verify TSL values are reasonable
 		assertTrue(tsl2g.T() >= 0 && tsl2g.T() <= 1, "T in range for 2*G = R+B case");
@@ -584,10 +584,10 @@ public class ColorsTest {
 		float expectedAngleDeg = expectedAngleRad * 180 / PI;
 		if (expectedAngleDeg < 0) expectedAngleDeg += 360;
 		float expectedT = expectedAngleDeg / 360;
-		assertClose(expectedT, tsl2g.T(), "T value for 2*G = R+B case", 0.01f);
+		assertEquals(expectedT, tsl2g.T(), 0.01f, "T value for 2*G = R+B case");
 
 		// Verify r' + b' = 0
-		assertClose(0, r_prime + b_prime, "r' + b' = 0 when 2*G = R+B", 0.001f);
+		assertEquals(0, r_prime + b_prime, 0.001f, "r' + b' = 0 when 2*G = R+B");
 	}
 
 	@Test
@@ -613,12 +613,12 @@ public class ColorsTest {
 				if (maxOriginal > 0 && maxBack > 0) {
 					float[] normalizedOrig = {rgb.r() / maxOriginal, rgb.g() / maxOriginal, rgb.b() / maxOriginal};
 					float[] normalizedBack = {rgbBack.r() / maxBack, rgbBack.g() / maxBack, rgbBack.b() / maxBack};
-					assertArrayClose(normalizedOrig, normalizedBack, "RGB chromaticity preservation", EPSILON_F);
+					assertClose(normalizedOrig, normalizedBack, EPSILON_F, "RGB chromaticity preservation");
 				}
 			} else {
 				// For gray colors, just verify we get gray back (though brightness may differ)
-				assertClose(rgbBack.r(), rgbBack.g(), "Gray R=G", EPSILON_F);
-				assertClose(rgbBack.g(), rgbBack.b(), "Gray G=B", EPSILON_F);
+				assertEquals(rgbBack.r(), rgbBack.g(), EPSILON_F, "Gray R=G");
+				assertEquals(rgbBack.g(), rgbBack.b(), EPSILON_F, "Gray G=B");
 			}
 		}
 
@@ -632,7 +632,7 @@ public class ColorsTest {
 		for (uv uv : testUVs) {
 			xy xy = uv.xy();
 			uv uvBack = xy.uv();
-			assertRecordClose(uv, uvBack, "UV1976 <-> xy round trip", EPSILON_F);
+			assertClose(uv, uvBack, EPSILON_F, "UV1976 <-> xy round trip");
 		}
 	}
 
@@ -643,14 +643,14 @@ public class ColorsTest {
 		XYZ xyz = rgb.XYZ();
 		xyY xyy = xyz.xyY();
 		XYZ xyzBack = xyy.XYZ();
-		assertRecordClose(xyz, xyzBack, "XYZ <-> xyY round trip");
+		assertClose(xyz, xyzBack, "XYZ <-> xyY round trip");
 	}
 
 	static void roundTripYCbCr (RGB rgb, YCbCrColorSpace colorSpace, double epsilon) {
 		YCbCr ycbcr = rgb.YCbCr(colorSpace);
 		RGB back = ycbcr.RGB(colorSpace);
 		try {
-			assertRecordClose(rgb, back, "YCbCr " + colorSpace + " round trip", epsilon);
+			assertClose(rgb, back, epsilon, "YCbCr " + colorSpace + " round trip");
 		} catch (AssertionError e) {
 			throw e;
 		}
@@ -674,16 +674,16 @@ public class ColorsTest {
 
 		// Test HSL with achromatic colors (hue undefined)
 		var hslBlack = black.HSL();
-		assertClose(0, hslBlack.S(), "Black has 0 saturation", EPSILON_F);
-		assertClose(0, hslBlack.L(), "Black has 0 lightness", EPSILON_F);
+		assertEquals(0, hslBlack.S(), EPSILON_F, "Black has 0 saturation");
+		assertEquals(0, hslBlack.L(), EPSILON_F, "Black has 0 lightness");
 
 		var hslWhite = white.HSL();
-		assertClose(0, hslWhite.S(), "White has 0 saturation", EPSILON_F);
-		assertClose(1, hslWhite.L(), "White has 1 lightness", EPSILON_F);
+		assertEquals(0, hslWhite.S(), EPSILON_F, "White has 0 saturation");
+		assertEquals(1, hslWhite.L(), EPSILON_F, "White has 1 lightness");
 
 		// Test HSV with achromatic colors
 		var hsvGray = new RGB(0.5f, 0.5f, 0.5f).HSV();
-		assertClose(0, hsvGray.S(), "Gray has 0 saturation", EPSILON_F);
+		assertEquals(0, hsvGray.S(), EPSILON_F, "Gray has 0 saturation");
 
 		// Test division by zero scenarios
 		RGB almostBlack = new RGB(0.00001f, 0.00001f, 0.00001f);
@@ -725,21 +725,21 @@ public class ColorsTest {
 		assertTrue(steps < 10, "Small difference should be few MacAdam steps");
 
 		// Test clamp functions
-		assertClose(0.5f, clamp(0.5f), "Clamp in range", EPSILON_F);
-		assertClose(0.0f, clamp(-0.1f), "Clamp negative", EPSILON_F);
-		assertClose(1.0f, clamp(1.1f), "Clamp over 1", EPSILON_F);
+		assertEquals(0.5f, clamp(0.5f), EPSILON_F, "Clamp in range");
+		assertEquals(0.0f, clamp(-0.1f), EPSILON_F, "Clamp negative");
+		assertEquals(1.0f, clamp(1.1f), EPSILON_F, "Clamp over 1");
 
 		// Test linear/sRGB conversions
 		float srgbValue = 0.5f;
 		float linearValue = linear(srgbValue);
 		float backToSRGB = sRGB(linearValue);
-		assertClose(srgbValue, backToSRGB, "sRGB <-> linear round trip", EPSILON_F);
+		assertEquals(srgbValue, backToSRGB, EPSILON_F, "sRGB <-> linear round trip");
 
 		// Test linear/sRGB edge cases
-		assertClose(0.0f, linear(0.0f), "Linear of 0", EPSILON_F);
-		assertClose(1.0f, linear(1.0f), "Linear of 1", EPSILON_F);
-		assertClose(0.0f, sRGB(0.0f), "sRGB of 0", EPSILON_F);
-		assertClose(1.0f, sRGB(1.0f), "sRGB of 1", EPSILON_F);
+		assertEquals(0.0f, linear(0.0f), EPSILON_F, "Linear of 0");
+		assertEquals(1.0f, linear(1.0f), EPSILON_F, "Linear of 1");
+		assertEquals(0.0f, sRGB(0.0f), EPSILON_F, "sRGB of 0");
+		assertEquals(1.0f, sRGB(1.0f), EPSILON_F, "sRGB of 1");
 
 		// Test linear cutoff point
 		float cutoff = 0.04045f;
@@ -756,7 +756,7 @@ public class ColorsTest {
 		for (RGB rgb : testColors) {
 			var linear = rgb.LinearRGB();
 			RGB back = linear.RGB();
-			assertRecordClose(rgb, back, "LinearRGB round trip", EPSILON_F);
+			assertClose(rgb, back, EPSILON_F, "LinearRGB round trip");
 		}
 
 		// Test LCHuv round trips
@@ -766,7 +766,7 @@ public class ColorsTest {
 			var luvBack = lchuv.Luv();
 			RGB back = luvBack.RGB();
 			if (rgb.r() > 0 || rgb.g() > 0 || rgb.b() > 0) { // Skip black (hue undefined)
-				assertRecordClose(rgb, back, "LCHuv round trip", 0.01f);
+				assertClose(rgb, back, 0.01f, "LCHuv round trip");
 			}
 		}
 
@@ -779,7 +779,7 @@ public class ColorsTest {
 			xy chromaticity = xyz.xy();
 			xyY xyy = new xyY(chromaticity.x(), chromaticity.y(), 50); // arbitrary Y
 			xy xyFromXyy = new xy(xyy.x(), xyy.y());
-			assertRecordClose(chromaticity, xyFromXyy, "xy -> xyY -> xy preserves chromaticity");
+			assertClose(chromaticity, xyFromXyy, "xy -> xyY -> xy preserves chromaticity");
 
 			// Test that different Y values produce different RGB but same chromaticity direction
 			XYZ xyz1 = new xyY(chromaticity.x(), chromaticity.y(), 20).XYZ();
@@ -801,7 +801,7 @@ public class ColorsTest {
 			if (!rgb1Clipped && !rgb2Clipped) {
 				xy chrom1 = rgb1.XYZ().xy();
 				xy chrom2 = rgb2.XYZ().xy();
-				assertRecordClose(chrom1, chrom2, "Same xy with different Y should preserve chromaticity", 0.001f);
+				assertClose(chrom1, chrom2, 0.001f, "Same xy with different Y should preserve chromaticity");
 			}
 		}
 
@@ -812,7 +812,7 @@ public class ColorsTest {
 			xyY xyy = xyz.xyY();
 			XYZ xyzBack = xyy.XYZ();
 			RGB back = xyzBack.RGB();
-			assertRecordClose(rgb, back, "xyY round trip", 0.01f);
+			assertClose(rgb, back, 0.01f, "xyY round trip");
 		}
 	}
 
@@ -823,21 +823,21 @@ public class ColorsTest {
 		var hsl2 = new HSL(350, 0.5f, 0.5f); // Equivalent positive hue
 		RGB rgb1 = hsl1.RGB();
 		RGB rgb2 = hsl2.RGB();
-		assertRecordClose(rgb1, rgb2, "HSL negative hue wraparound", EPSILON_F);
+		assertClose(rgb1, rgb2, EPSILON_F, "HSL negative hue wraparound");
 
 		// Test HSL hue > 360
 		var hsl3 = new HSL(370, 0.5f, 0.5f);
 		var hsl4 = new HSL(10, 0.5f, 0.5f);
 		RGB rgb3 = hsl3.RGB();
 		RGB rgb4 = hsl4.RGB();
-		assertRecordClose(rgb3, rgb4, "HSL hue > 360 wraparound", EPSILON_F);
+		assertClose(rgb3, rgb4, EPSILON_F, "HSL hue > 360 wraparound");
 
 		// Test HSV hue wraparound
 		var hsv1 = new HSV(-10, 0.5f, 0.5f);
 		var hsv2 = new HSV(350, 0.5f, 0.5f);
 		RGB rgbHsv1 = hsv1.RGB();
 		RGB rgbHsv2 = hsv2.RGB();
-		assertRecordClose(rgbHsv1, rgbHsv2, "HSV negative hue wraparound", EPSILON_F);
+		assertClose(rgbHsv1, rgbHsv2, EPSILON_F, "HSV negative hue wraparound");
 	}
 
 	@Test
@@ -878,7 +878,7 @@ public class ColorsTest {
 		float lumBlack = 0.2126f * black.r() + 0.7152f * black.g() + 0.0722f * black.b();
 		float lumWhite = 0.2126f * white.r() + 0.7152f * white.g() + 0.0722f * white.b();
 		float contrast = (lumWhite + 0.05f) / (lumBlack + 0.05f);
-		assertClose(21.0f, contrast, "Black/white contrast ratio", 0.1f);
+		assertEquals(21.0f, contrast, 0.1f, "Black/white contrast ratio");
 
 		// Test WCAG compliance thresholds
 		assertTrue(contrast >= 4.5f, "Black/white passes WCAG AA");
@@ -922,7 +922,7 @@ public class ColorsTest {
 		for (YCbCrColorSpace cs : YCbCrColorSpace.values()) {
 			var ycbcr = testColor.YCbCr(cs);
 			RGB back = ycbcr.RGB(cs);
-			assertRecordClose(testColor, back, "YCbCr " + cs + " round trip", tolerance);
+			assertClose(testColor, back, tolerance, "YCbCr " + cs + " round trip");
 		}
 	}
 
@@ -975,7 +975,7 @@ public class ColorsTest {
 		for (RGB rgb : testColors) {
 			var lms = rgb.LMS();
 			RGB back = lms.RGB();
-			assertRecordClose(rgb, back, "LMS round trip", 0.001f);
+			assertClose(rgb, back, 0.001f, "LMS round trip");
 
 			// LMS values should be non-negative for visible colors
 			assertTrue(lms.L() >= 0, "L >= 0");
@@ -1001,13 +1001,13 @@ public class ColorsTest {
 			Oklab oklab = rgb.Oklab();
 			XYZ xyz = oklab.XYZ();
 			RGB rgbBack = xyz.RGB();
-			assertRecordClose(rgb, rgbBack, "RGB -> Oklab -> XYZ -> RGB round trip", 0.001f);
+			assertClose(rgb, rgbBack, 0.001f, "RGB -> Oklab -> XYZ -> RGB round trip");
 
 			// Test RGB -> XYZ -> Oklab -> RGB round trip
 			XYZ xyz2 = rgb.XYZ();
 			Oklab oklab2 = xyz2.Oklab();
 			RGB rgbBack2 = oklab2.RGB();
-			assertRecordClose(rgb, rgbBack2, "RGB -> XYZ -> Oklab -> RGB round trip", 0.001f);
+			assertClose(rgb, rgbBack2, 0.001f, "RGB -> XYZ -> Oklab -> RGB round trip");
 
 			// Test that Oklab values are reasonable
 			assertTrue(oklab.L() >= 0 && oklab.L() <= 1, "Oklab L in range [0,1]");
@@ -1017,7 +1017,7 @@ public class ColorsTest {
 			// Test that direct conversions match indirect ones
 			Oklab oklabDirect = rgb.Oklab();
 			Oklab oklabViaXYZ = rgb.XYZ().Oklab();
-			assertRecordClose(oklabDirect, oklabViaXYZ, "Direct vs XYZ path to Oklab", 0.001f);
+			assertClose(oklabDirect, oklabViaXYZ, 0.001f, "Direct vs XYZ path to Oklab");
 		}
 
 		// Test wide gamut preservation
@@ -1025,7 +1025,7 @@ public class ColorsTest {
 		XYZ wideGamutXYZ = new XYZ(150, 100, 50); // Bright, outside sRGB
 		Oklab oklabWide = wideGamutXYZ.Oklab();
 		XYZ xyzBack = oklabWide.XYZ();
-		assertRecordClose(wideGamutXYZ, xyzBack, "Wide gamut XYZ -> Oklab -> XYZ preserves values", 0.1f);
+		assertClose(wideGamutXYZ, xyzBack, 0.1f, "Wide gamut XYZ -> Oklab -> XYZ preserves values");
 
 		// Test that Oklab(XYZ) handles edge cases
 		XYZ blackXYZ = new XYZ(0, 0, 0);
@@ -1043,32 +1043,32 @@ public class ColorsTest {
 		// Test YCC
 		var ycc = testColor.YCC();
 		RGB backYCC = ycc.RGB();
-		assertRecordClose(testColor, backYCC, "YCC round trip", 0.001f);
+		assertClose(testColor, backYCC, 0.001f, "YCC round trip");
 
 		// Test YIQ
 		var yiq = testColor.YIQ();
 		RGB backYIQ = yiq.RGB();
-		assertRecordClose(testColor, backYIQ, "YIQ round trip", 0.001f);
+		assertClose(testColor, backYIQ, 0.001f, "YIQ round trip");
 
 		// Test YUV
 		var yuv = testColor.YUV();
 		RGB backYUV = yuv.RGB();
-		assertRecordClose(testColor, backYUV, "YUV round trip", 0.001f);
+		assertClose(testColor, backYUV, 0.001f, "YUV round trip");
 
 		// Test YCoCg
 		var ycocg = testColor.YCoCg();
 		RGB backYCoCg = ycocg.RGB();
-		assertRecordClose(testColor, backYCoCg, "YCoCg round trip", 0.001f);
+		assertClose(testColor, backYCoCg, 0.001f, "YCoCg round trip");
 
 		// Test YES
 		var yes = testColor.YES();
 		RGB backYES = yes.RGB();
-		assertRecordClose(testColor, backYES, "YES round trip", 0.001f);
+		assertClose(testColor, backYES, 0.001f, "YES round trip");
 
 		// Test IHS
 		var ihs = testColor.IHS();
 		RGB backIHS = ihs.RGB();
-		assertRecordClose(testColor, backIHS, "IHS round trip", 0.001f);
+		assertClose(testColor, backIHS, 0.001f, "IHS round trip");
 	}
 
 	@Test
@@ -1081,9 +1081,9 @@ public class ColorsTest {
 		float t = 0.5f;
 		RGB midRGB = new RGB(color1.r() * (1 - t) + color2.r() * t, color1.g() * (1 - t) + color2.g() * t,
 			color1.b() * (1 - t) + color2.b() * t);
-		assertClose(0.5f, midRGB.r(), "Mid RGB R", EPSILON_F);
-		assertClose(0, midRGB.g(), "Mid RGB G", EPSILON_F);
-		assertClose(0.5f, midRGB.b(), "Mid RGB B", EPSILON_F);
+		assertEquals(0.5f, midRGB.r(), EPSILON_F, "Mid RGB R");
+		assertEquals(0, midRGB.g(), EPSILON_F, "Mid RGB G");
+		assertEquals(0.5f, midRGB.b(), EPSILON_F, "Mid RGB B");
 
 		// Test Oklab interpolation preserves perceptual uniformity better
 		var oklab1 = color1.Oklab();
@@ -1105,12 +1105,12 @@ public class ColorsTest {
 		// Test RGB to XYZ and back
 		XYZ xyz = testRGB.XYZ();
 		RGB backRGB = xyz.RGB();
-		assertRecordClose(testRGB, backRGB, "RGB <-> XYZ round trip", 0.001f);
+		assertClose(testRGB, backRGB, 0.001f, "RGB <-> XYZ round trip");
 
 		// Test LMS conversions
 		LMS lms = testRGB.LMS();
 		RGB backFromLMS = lms.RGB();
-		assertRecordClose(testRGB, backFromLMS, "RGB <-> LMS round trip", 0.001f);
+		assertClose(testRGB, backFromLMS, 0.001f, "RGB <-> LMS round trip");
 	}
 
 	@Test
@@ -1132,6 +1132,6 @@ public class ColorsTest {
 		}
 
 		// Error should not accumulate significantly
-		assertRecordClose(start, current, "Lab conversion stability", 0.01f);
+		assertClose(start, current, 0.01f, "Lab conversion stability");
 	}
 }

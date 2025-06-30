@@ -31,7 +31,8 @@ public class SpectralLocus {
 		0.016464427f};
 
 	static public uv uv (float wavelength) {
-		if (wavelength < 380 || wavelength > 700) throw new IllegalArgumentException("wavelength must be 380-700: " + wavelength);
+		if (wavelength < 380 || wavelength > 700)
+			throw new IllegalArgumentException("wavelength must be [380..700]: " + wavelength);
 		int left = 0, right = (points.length / 3) - 2;
 		while (left <= right) {
 			int mid = (left + right) / 2, i = mid * 3;
@@ -43,8 +44,7 @@ public class SpectralLocus {
 			else {
 				float t = (wavelength - w1) / (points[i + 3] - w1);
 				float u1 = points[i + 1], v1 = points[i + 2];
-				float u2 = points[i + 4], v2 = points[i + 5];
-				return new uv(u1 + t * (u2 - u1), v1 + t * (v2 - v1));
+				return new uv(u1 + t * (points[i + 4] - u1), v1 + t * (points[i + 5] - v1));
 			}
 		}
 		return new uv(Float.NaN, Float.NaN);

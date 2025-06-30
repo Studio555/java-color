@@ -153,7 +153,7 @@ public class Gradients {
 		Color backgroundColor = Color.WHITE;
 		Color textColor = Color.BLACK;
 		String fontName = "Arial";
-		String outputFile = "gradients.png";
+		String outputFile = "images/gradients.png";
 		ArrayList<String> colorSpaces = new ArrayList();
 		ArrayList<Gradient> gradients = new ArrayList();
 	}

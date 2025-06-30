@@ -15,6 +15,8 @@ public class Illuminant {
 		/** Daylight. */
 		static public final XYZ D65 = new XYZ(95.047f, 100, 108.883f);
 		static public final XYZ D75 = new XYZ(94.972f, 100, 122.638f);
+		/** Equal energy. */
+		static public final XYZ E = new XYZ(100, 100, 100);
 		/** Fluorescent. */
 		static public final XYZ F2 = new XYZ(99.187f, 100, 67.395f);
 		static public final XYZ F7 = new XYZ(95.044f, 100, 108.755f);
@@ -31,6 +33,8 @@ public class Illuminant {
 		/** Daylight. */
 		static public final XYZ D65 = new XYZ(94.811f, 100, 107.304f);
 		static public final XYZ D75 = new XYZ(94.416f, 100, 120.641f);
+		/** Equal energy. */
+		static public final XYZ E = new XYZ(100, 100, 100);
 		/** Fluorescent. */
 		static public final XYZ F2 = new XYZ(103.280f, 100, 69.026f);
 		static public final XYZ F7 = new XYZ(95.792f, 100, 107.687f);

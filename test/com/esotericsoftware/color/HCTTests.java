@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.TestsUtil.*;
+import static com.esotericsoftware.color.Tests.*;
 import static com.esotericsoftware.color.Util.*;
 
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ import com.esotericsoftware.color.space.CAM16;
 import com.esotericsoftware.color.space.HCT;
 import com.esotericsoftware.color.space.RGB;
 
-public class HCTTests {
+public class HCTTests extends Tests {
 	@Test
 	public void testCAM16 () {
 		// Test 1: Basic forward conversion and attribute ranges
@@ -28,22 +28,22 @@ public class HCTTests {
 
 		// Test 2: Round-trip conversion
 		RGB rgbBack = cam.RGB(CAM16.VC.sRGB);
-		assertRecordClose(rgb, rgbBack, "CAM16 round trip", 0.01f);
+		assertClose(rgb, rgbBack, 0.01f, "CAM16 round trip");
 
 		// Test 3: Known color values (white, black, gray)
 		// White
 		var white = new RGB(1, 1, 1).CAM16();
-		assertClose(100, white.J(), "White lightness J", 0.001);
-		assertClose(2.869f, white.C(), "White chroma C", 0.001);
+		assertEquals(100, white.J(), 0.001, "White lightness J");
+		assertEquals(2.869f, white.C(), 0.001, "White chroma C");
 
 		// Black
 		var black = new RGB(0, 0, 0).CAM16();
-		assertClose(0, black.J(), "Black lightness J", 0.001);
-		assertClose(0, black.C(), "Black chroma C", 0.001);
+		assertEquals(0, black.J(), 0.001, "Black lightness J");
+		assertEquals(0, black.C(), 0.001, "Black chroma C");
 
 		// Gray
 		var gray = new RGB(0.5f, 0.5f, 0.5f).CAM16();
-		assertClose(0, gray.C(), "Gray chroma C", 2.0); // Allow some tolerance for numerical precision
+		assertEquals(0, gray.C(), 2.0, "Gray chroma C"); // Allow some tolerance for numerical precision
 
 		// Test 4: Primary colors
 		var red = new RGB(1, 0, 0).CAM16();
@@ -64,7 +64,7 @@ public class HCTTests {
 
 		// Round trip with custom viewing conditions
 		RGB rgbBack2 = cam2.RGB(vc);
-		assertRecordClose(rgb, rgbBack2, "CAM16 round trip with custom VC", 0.01f);
+		assertClose(rgb, rgbBack2, 0.01f, "CAM16 round trip with custom VC");
 
 		// Test 6: Edge cases - very saturated colors
 		var saturatedRed = new RGB(1, 0, 0.001f).CAM16(); // Slightly off pure red to avoid singularities
@@ -79,7 +79,7 @@ public class HCTTests {
 		var color2 = new RGB(0.6f, 0.15f, 0.15f);
 		var cam1 = color1.CAM16();
 		var cam2test = color2.CAM16();
-		assertClose(cam1.h(), cam2test.h(), "Same hue angle for proportional RGB", 2.0);
+		assertEquals(cam1.h(), cam2test.h(), 2.0, "Same hue angle for proportional RGB");
 	}
 
 	@Test
@@ -95,19 +95,19 @@ public class HCTTests {
 
 		// Test 2: Round-trip conversion
 		RGB rgbBack = ucs.RGB();
-		assertRecordClose(rgb, rgbBack, "CAM16-UCS round trip", 0.01f);
+		assertClose(rgb, rgbBack, 0.01f, "CAM16-UCS round trip");
 
 		// Test 3: Conversion from CAM16
 		var cam16 = rgb.CAM16();
 		var ucsFromCam = cam16.CAM16UCS();
-		assertArrayClose(floats(ucs), floats(ucsFromCam), "CAM16 to CAM16-UCS conversion");
+		assertCloseD(floats(ucs), floats(ucsFromCam), "CAM16 to CAM16-UCS conversion");
 
 		// Test 4: Inverse conversion - UCS to CAM16
 		var cam16Back = ucs.CAM16(CAM16.VC.sRGB);
-		assertClose(cam16.J(), cam16Back.J(), "J preserved through UCS", 0.1);
-		assertClose(cam16.C(), cam16Back.C(), "C preserved through UCS", 0.1);
-		assertClose(cam16.h(), cam16Back.h(), "h preserved through UCS", 0.5);
-		assertClose(cam16.M(), cam16Back.M(), "M preserved through UCS", 0.1);
+		assertEquals(cam16.J(), cam16Back.J(), 0.1, "J preserved through UCS");
+		assertEquals(cam16.C(), cam16Back.C(), 0.1, "C preserved through UCS");
+		assertEquals(cam16.h(), cam16Back.h(), 0.5, "h preserved through UCS");
+		assertEquals(cam16.M(), cam16Back.M(), 0.1, "M preserved through UCS");
 
 		// Test 5: Distance calculation
 		RGB rgb1 = new RGB(0.2f, 0.5f, 0.8f);
@@ -119,18 +119,18 @@ public class HCTTests {
 
 		// Same color should have zero distance
 		float sameDistance = ucs1.deltaE(ucs1);
-		assertClose(0, sameDistance, "Same color has zero distance", 0.0001);
+		assertEquals(0, sameDistance, 0.0001, "Same color has zero distance");
 
 		// Test 6: Gray colors in UCS
 		var grayUCS = new RGB(0.5f, 0.5f, 0.5f).CAM16UCS();
-		assertClose(0, grayUCS.a(), "Gray has a* near 0", 1.5);
-		assertClose(0, grayUCS.b(), "Gray has b* near 0", 1.5);
+		assertEquals(0, grayUCS.a(), 1.5, "Gray has a* near 0");
+		assertEquals(0, grayUCS.b(), 1.5, "Gray has b* near 0");
 
 		// Test 7: Custom viewing conditions
 		var vc = CAM16.VC.with(CIE2.D50, 30, 15, 1, false);
 		var ucsCustom = rgb.CAM16UCS(vc);
 		RGB rgbBackCustom = ucsCustom.RGB(vc);
-		assertRecordClose(rgb, rgbBackCustom, "CAM16-UCS round trip with custom VC", 0.01f);
+		assertClose(rgb, rgbBackCustom, 0.01f, "CAM16-UCS round trip with custom VC");
 	}
 
 	@Test
@@ -138,54 +138,54 @@ public class HCTTests {
 		// Test primary colors CAM16 values
 		// Red
 		CAM16 redCam = new RGB(1, 0, 0).CAM16();
-		assertClose(46.445f, redCam.J(), "Red J", 0.001);
-		assertClose(113.357f, redCam.C(), "Red chroma", 0.001);
-		assertClose(27.408f, redCam.h(), "Red hue", 0.001);
-		assertClose(89.494f, redCam.M(), "Red M", 0.001);
-		assertClose(91.889f, redCam.s(), "Red s", 0.001);
-		assertClose(105.988f, redCam.Q(), "Red Q", 0.001);
+		assertEquals(46.445f, redCam.J(), 0.001, "Red J");
+		assertEquals(113.357f, redCam.C(), 0.001, "Red chroma");
+		assertEquals(27.408f, redCam.h(), 0.001, "Red hue");
+		assertEquals(89.494f, redCam.M(), 0.001, "Red M");
+		assertEquals(91.889f, redCam.s(), 0.001, "Red s");
+		assertEquals(105.988f, redCam.Q(), 0.001, "Red Q");
 
 		// Green
 		CAM16 greenCam = new RGB(0, 1, 0).CAM16();
-		assertClose(79.331f, greenCam.J(), "Green J", 0.001);
-		assertClose(108.410f, greenCam.C(), "Green chroma", 0.001);
-		assertClose(142.139f, greenCam.h(), "Green hue", 0.001);
-		assertClose(85.587f, greenCam.M(), "Green M", 0.001);
-		assertClose(78.604f, greenCam.s(), "Green s", 0.001);
-		assertClose(138.520f, greenCam.Q(), "Green Q", 0.001);
+		assertEquals(79.331f, greenCam.J(), 0.001, "Green J");
+		assertEquals(108.410f, greenCam.C(), 0.001, "Green chroma");
+		assertEquals(142.139f, greenCam.h(), 0.001, "Green hue");
+		assertEquals(85.587f, greenCam.M(), 0.001, "Green M");
+		assertEquals(78.604f, greenCam.s(), 0.001, "Green s");
+		assertEquals(138.520f, greenCam.Q(), 0.001, "Green Q");
 
 		// Blue
 		CAM16 blueCam = new RGB(0, 0, 1).CAM16();
-		assertClose(25.465f, blueCam.J(), "Blue J", 0.001);
-		assertClose(87.230f, blueCam.C(), "Blue chroma", 0.001);
-		assertClose(282.788f, blueCam.h(), "Blue hue", 0.001);
-		assertClose(68.867f, blueCam.M(), "Blue M", 0.001);
-		assertClose(93.674f, blueCam.s(), "Blue s", 0.001);
-		assertClose(78.481f, blueCam.Q(), "Blue Q", 0.001);
+		assertEquals(25.465f, blueCam.J(), 0.001, "Blue J");
+		assertEquals(87.230f, blueCam.C(), 0.001, "Blue chroma");
+		assertEquals(282.788f, blueCam.h(), 0.001, "Blue hue");
+		assertEquals(68.867f, blueCam.M(), 0.001, "Blue M");
+		assertEquals(93.674f, blueCam.s(), 0.001, "Blue s");
+		assertEquals(78.481f, blueCam.Q(), 0.001, "Blue Q");
 
 		// Black
 		CAM16 blackCam = new RGB(0, 0, 0).CAM16();
-		assertClose(0, blackCam.J(), "Black J", 0.001);
-		assertClose(0, blackCam.C(), "Black chroma", 0.001);
-		assertClose(0, blackCam.h(), "Black hue", 0.001);
-		assertClose(0, blackCam.M(), "Black M", 0.001);
-		assertClose(0, blackCam.s(), "Black s", 0.001);
-		assertClose(0, blackCam.Q(), "Black Q", 0.001);
+		assertEquals(0, blackCam.J(), 0.001, "Black J");
+		assertEquals(0, blackCam.C(), 0.001, "Black chroma");
+		assertEquals(0, blackCam.h(), 0.001, "Black hue");
+		assertEquals(0, blackCam.M(), 0.001, "Black M");
+		assertEquals(0, blackCam.s(), 0.001, "Black s");
+		assertEquals(0, blackCam.Q(), 0.001, "Black Q");
 
 		// White
 		CAM16 whiteCam = new RGB(1, 1, 1).CAM16();
-		assertClose(100, whiteCam.J(), "White J", 0.001);
-		assertClose(2.869f, whiteCam.C(), "White chroma", 0.001);
-		assertClose(209.492f, whiteCam.h(), "White hue", 0.001);
-		assertClose(2.265f, whiteCam.M(), "White M", 0.001);
-		assertClose(12.068f, whiteCam.s(), "White s", 0.001);
-		assertClose(155.521f, whiteCam.Q(), "White Q", 0.001);
+		assertEquals(100, whiteCam.J(), 0.001, "White J");
+		assertEquals(2.869f, whiteCam.C(), 0.001, "White chroma");
+		assertEquals(209.492f, whiteCam.h(), 0.001, "White hue");
+		assertEquals(2.265f, whiteCam.M(), 0.001, "White M");
+		assertEquals(12.068f, whiteCam.s(), 0.001, "White s");
+		assertEquals(155.521f, whiteCam.Q(), 0.001, "White Q");
 
 		// Midgray
 		RGB gray = new RGB(0x777777);
 		CAM16 midgrayCam = gray.CAM16();
-		assertRecordClose(new RGB(0x77 / 255f, 0x77 / 255f, 0x77 / 255f), midgrayCam.RGB(), "Midgray round trip");
-		assertClose(39.896146f, midgrayCam.J(), "Midgray J", 0.0001);
+		assertClose(new RGB(0x77 / 255f, 0x77 / 255f, 0x77 / 255f), midgrayCam.RGB(), "Midgray round trip");
+		assertEquals(39.896146f, midgrayCam.J(), 0.0001, "Midgray J");
 	}
 
 	@Test
@@ -206,8 +206,8 @@ public class HCTTests {
 		// Test black under various conditions
 		RGB black = new RGB(0, 0, 0);
 		var cam16Black = black.CAM16();
-		assertClose(0, cam16Black.J(), "Black has J=0", 0.1);
-		assertClose(0, cam16Black.C(), "Black has C=0", 0.1);
+		assertEquals(0, cam16Black.J(), 0.1, "Black has J=0");
+		assertEquals(0, cam16Black.C(), 0.1, "Black has C=0");
 	}
 
 	@Test
@@ -241,14 +241,14 @@ public class HCTTests {
 		HCT posHue = new HCT(330, 50, 50);
 		RGB negHueRgb = negHue.RGB();
 		RGB posHueRgb = posHue.RGB();
-		assertRecordClose(negHueRgb, posHueRgb, "Negative hue wrapping", 0.01f);
+		assertClose(negHueRgb, posHueRgb, 0.01f, "Negative hue wrapping");
 
 		// Test hue > 360 (should wrap)
 		HCT bigHue = new HCT(390, 50, 50);
 		HCT smallHue = new HCT(30, 50, 50);
 		RGB bigHueRgb = bigHue.RGB();
 		RGB smallHueRgb = smallHue.RGB();
-		assertRecordClose(bigHueRgb, smallHueRgb, "Large hue wrapping", 0.01f);
+		assertClose(bigHueRgb, smallHueRgb, 0.01f, "Large hue wrapping");
 
 		// Test very low tone
 		HCT lowTone = new HCT(180, 50, 1);
@@ -275,17 +275,17 @@ public class HCTTests {
 		// Test that white and black work correctly
 		HCT white = new HCT(0, 0, 100);
 		RGB whiteRgb = white.RGB();
-		assertRecordClose(new RGB(1, 1, 1), whiteRgb, "White from HCT", 0.01f);
+		assertClose(new RGB(1, 1, 1), whiteRgb, 0.01f, "White from HCT");
 
 		HCT black = new HCT(0, 0, 0);
 		RGB blackRgb = black.RGB();
-		assertRecordClose(new RGB(0, 0, 0), blackRgb, "Black from HCT", 0.01f);
+		assertClose(new RGB(0, 0, 0), blackRgb, 0.01f, "Black from HCT");
 
 		// Test gray (no chroma)
 		HCT gray = new HCT(0, 0, 50);
 		RGB grayRgb = gray.RGB();
-		assertClose(grayRgb.r(), grayRgb.g(), "Gray R=G", 0.01f);
-		assertClose(grayRgb.g(), grayRgb.b(), "Gray G=B", 0.01f);
+		assertEquals(grayRgb.r(), grayRgb.g(), 0.01f, "Gray R=G");
+		assertEquals(grayRgb.g(), grayRgb.b(), 0.01f, "Gray G=B");
 	}
 
 	@Test
@@ -343,7 +343,7 @@ public class HCTTests {
 					}
 
 					// Verify tone is preserved
-					assertClose(tone, hctResult.T(), desc + " tone preservation", 0.5);
+					assertEquals(tone, hctResult.T(), 0.5, desc + " tone preservation");
 				}
 			}
 		}
@@ -352,13 +352,13 @@ public class HCTTests {
 	private void roundTrip (RGB rgb, String name) {
 		HCT hct = rgb.HCT();
 		RGB rgbBack = hct.RGB();
-		assertRecordClose(rgb, rgbBack, name + " HCT round trip", 0.2f);
+		assertClose(rgb, rgbBack, 0.2f, name + " HCT round trip");
 
 		// Test with custom viewing conditions
 		var vc = CAM16.VC.with(CIE2.D50, 30, 15, 1, false);
 		HCT hctCustom = rgb.HCT(vc);
 		RGB rgbBackCustom = hctCustom.RGB(vc);
-		assertRecordClose(rgb, rgbBackCustom, name + " HCT round trip with custom VC", 0.64f);
+		assertClose(rgb, rgbBackCustom, 0.64f, name + " HCT round trip with custom VC");
 	}
 
 	private void checkMapping (float hue, float chroma, float tone, String name) {
@@ -368,11 +368,11 @@ public class HCTTests {
 
 		// Hue should be preserved (within tolerance)
 		if (chroma > 0) {
-			assertClose(hue, hctBack.h(), name + " hue", 4.0);
+			assertEquals(hue, hctBack.h(), 4.0, name + " hue");
 		}
 
 		// Tone should be preserved closely
-		assertClose(tone, hctBack.T(), name + " tone", 0.5);
+		assertEquals(tone, hctBack.T(), 0.5, name + " tone");
 
 		// Chroma might be reduced if color is out of gamut
 		assertTrue(hctBack.C() <= chroma + 2.5, name + " chroma should not increase significantly");

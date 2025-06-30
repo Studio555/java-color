@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.TestsUtil.*;
+import static com.esotericsoftware.color.Tests.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +14,7 @@ import com.esotericsoftware.color.space.Oklab;
 import com.esotericsoftware.color.space.RGB;
 
 /** Comprehensive tests that systematically test color conversions across the entire color space. */
-public class ColorSpaceTests {
+public class ColorSpaceTests extends Tests {
 	@Test
 	public void testSystematicRGBtoLabConversions () {
 		// Test a grid of RGB values to ensure Lab conversions work across the entire gamut
@@ -99,19 +99,19 @@ public class ColorSpaceTests {
 
 			// Lab should have a*=b*=0 for grays
 			Lab lab = rgb.Lab();
-			assertClose(0, lab.a(), "Gray Lab a* at " + gray, 0.5);
-			assertClose(0, lab.b(), "Gray Lab b* at " + gray, 0.5);
+			assertEquals(0, lab.a(), 0.5, "Gray Lab a* at " + gray);
+			assertEquals(0, lab.b(), 0.5, "Gray Lab b* at " + gray);
 
 			// Oklab should have a=b=0 for grays
 			Oklab oklab = rgb.Oklab();
-			assertClose(0, oklab.a(), "Gray Oklab a at " + gray, 0.001);
-			assertClose(0, oklab.b(), "Gray Oklab b at " + gray, 0.001);
+			assertEquals(0, oklab.a(), 0.001, "Gray Oklab a at " + gray);
+			assertEquals(0, oklab.b(), 0.001, "Gray Oklab b at " + gray);
 
 			// HSL/HSV should have S=0 for grays
 			HSL hsl = rgb.HSL();
 			HSV hsv = rgb.HSV();
-			assertClose(0, hsl.S(), "Gray HSL saturation at " + gray, 0.001);
-			assertClose(0, hsv.S(), "Gray HSV saturation at " + gray, 0.001);
+			assertEquals(0, hsl.S(), 0.001, "Gray HSL saturation at " + gray);
+			assertEquals(0, hsv.S(), 0.001, "Gray HSV saturation at " + gray);
 
 			// Round-trip through all color spaces should preserve gray
 			RGB grayBack = rgb.Lab().RGB();
@@ -182,8 +182,8 @@ public class ColorSpaceTests {
 			// Verify round-trip accuracy
 			Lab labRoundTrip = rgbLabStep.Lab();
 			Oklab oklabRoundTrip = rgbOklabStep.Oklab();
-			assertRecordClose(labStep, labRoundTrip, "Lab round-trip at step " + i, 0.01f);
-			assertRecordClose(oklabStep, oklabRoundTrip, "Oklab round-trip at step " + i, 0.01f);
+			assertClose(labStep, labRoundTrip, 0.01f, "Lab round-trip at step " + i);
+			assertClose(oklabStep, oklabRoundTrip, 0.01f, "Oklab round-trip at step " + i);
 
 			// Calculate perceptual differences
 			if (i > 1) {
@@ -210,20 +210,20 @@ public class ColorSpaceTests {
 	private void assertHueClose (float expected, float actual, String message, float tolerance) {
 		float diff = Math.abs(expected - actual);
 		if (diff > 180) diff = 360 - diff;
-		assertClose(0, diff, message + " (expected " + expected + ", got " + actual + ")", tolerance);
+		assertEquals(0, diff, tolerance, message + " (expected " + expected + ", got " + actual + ")");
 	}
 
 	private void assertGray (RGB rgb, String message) {
 		float max = Math.max(Math.max(rgb.r(), rgb.g()), rgb.b());
 		float min = Math.min(Math.min(rgb.r(), rgb.g()), rgb.b());
-		assertClose(0, max - min, message + " should be gray", 0.01f);
+		assertEquals(0, max - min, 0.01f, message + " should be gray");
 	}
 
 	private <T> void testRoundTrip (RGB original, java.util.function.Function<RGB, T> forward,
 		java.util.function.Function<T, RGB> backward, String name) {
 		T intermediate = forward.apply(original);
 		RGB result = backward.apply(intermediate);
-		assertRecordClose(original, result, name + " " + original, 0.02f);
+		assertClose(original, result, 0.02f, name + " " + original);
 	}
 
 }

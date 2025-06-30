@@ -333,7 +333,7 @@ public interface Gamut {
 		public PolygonGamut (xy... polygon) {
 			if (polygon == null) throw new IllegalArgumentException("polygon cannot be null.");
 			int n = polygon.length;
-			if (n < 3) throw new IllegalArgumentException("polygon must have >= 3 points.");
+			if (n < 3) throw new IllegalArgumentException("polygon must have >= 3 points: " + n);
 			vertices = new GamutVertex[n];
 			floats = new float[n << 1];
 			for (int i = 0, f = 0; i < n; i++, f += 2) {

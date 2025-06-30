@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.TestsUtil.*;
+import static com.esotericsoftware.color.Tests.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -12,20 +12,20 @@ import com.esotericsoftware.color.space.YCbCr.YCbCrColorSpace;
 import com.esotericsoftware.color.space.YIQ;
 import com.esotericsoftware.color.space.YUV;
 
-public class LumaChromaTests {
+public class LumaChromaTests extends Tests {
 	@Test
 	public void testYCbCr () {
 		// Test ITU_BT_601
 		RGB rgb601 = new RGB(0.5f, 0.3f, 0.7f);
 		YCbCr ycbcr601 = rgb601.YCbCr(YCbCrColorSpace.ITU_BT_601);
 		RGB back601 = ycbcr601.RGB(YCbCrColorSpace.ITU_BT_601);
-		assertRecordClose(rgb601, back601, "YCbCr ITU_BT_601 round trip", 0.005);
+		assertClose(rgb601, back601, 0.005, "YCbCr ITU_BT_601 round trip");
 
 		// Test ITU_BT_709_HDTV
 		RGB rgb709 = new RGB(0.5f, 0.3f, 0.7f);
 		YCbCr ycbcr709 = rgb709.YCbCr(YCbCrColorSpace.ITU_BT_709_HDTV);
 		RGB back709 = ycbcr709.RGB(YCbCrColorSpace.ITU_BT_709_HDTV);
-		assertRecordClose(rgb709, back709, "YCbCr ITU_BT_709_HDTV round trip", 0.005);
+		assertClose(rgb709, back709, 0.005, "YCbCr ITU_BT_709_HDTV round trip");
 	}
 
 	@Test
@@ -34,62 +34,62 @@ public class LumaChromaTests {
 		RGB red = new RGB(1, 0, 0);
 		YCC yccRed = red.YCC();
 		RGB redBack = yccRed.RGB();
-		assertRecordClose(red, redBack, "YCC red round trip", 0.001f);
+		assertClose(red, redBack, 0.001f, "YCC red round trip");
 		// Verify Y component for red
-		assertClose(0.213f, yccRed.Y(), "Red Y component", 0.001f);
+		assertEquals(0.213f, yccRed.Y(), 0.001f, "Red Y component");
 
 		RGB green = new RGB(0, 1, 0);
 		YCC yccGreen = green.YCC();
 		RGB greenBack = yccGreen.RGB();
-		assertRecordClose(green, greenBack, "YCC green round trip", 0.001f);
+		assertClose(green, greenBack, 0.001f, "YCC green round trip");
 		// Verify Y component for green
-		assertClose(0.419f, yccGreen.Y(), "Green Y component", 0.001f);
+		assertEquals(0.419f, yccGreen.Y(), 0.001f, "Green Y component");
 
 		RGB blue = new RGB(0, 0, 1);
 		YCC yccBlue = blue.YCC();
 		RGB blueBack = yccBlue.RGB();
-		assertRecordClose(blue, blueBack, "YCC blue round trip", 0.001f);
+		assertClose(blue, blueBack, 0.001f, "YCC blue round trip");
 		// Verify Y component for blue
-		assertClose(0.081f, yccBlue.Y(), "Blue Y component", 0.001f);
+		assertEquals(0.081f, yccBlue.Y(), 0.001f, "Blue Y component");
 
 		// Test black and white
 		RGB black = new RGB(0, 0, 0);
 		YCC yccBlack = black.YCC();
 		RGB blackBack = yccBlack.RGB();
-		assertRecordClose(black, blackBack, "YCC black round trip", 0.001f);
-		assertClose(0, yccBlack.Y(), "Black Y component", 0.001f);
-		assertClose(0.612f, yccBlack.C1(), "Black C1 component", 0.001f);
-		assertClose(0.537f, yccBlack.C2(), "Black C2 component", 0.001f);
+		assertClose(black, blackBack, 0.001f, "YCC black round trip");
+		assertEquals(0, yccBlack.Y(), 0.001f, "Black Y component");
+		assertEquals(0.612f, yccBlack.C1(), 0.001f, "Black C1 component");
+		assertEquals(0.537f, yccBlack.C2(), 0.001f, "Black C2 component");
 
 		RGB white = new RGB(1, 1, 1);
 		YCC yccWhite = white.YCC();
 		RGB whiteBack = yccWhite.RGB();
-		assertRecordClose(white, whiteBack, "YCC white round trip", 0.001f);
-		assertClose(0.213f + 0.419f + 0.081f, yccWhite.Y(), "White Y component", 0.001f);
+		assertClose(white, whiteBack, 0.001f, "YCC white round trip");
+		assertEquals(0.213f + 0.419f + 0.081f, yccWhite.Y(), 0.001f, "White Y component");
 
 		// Test grays - should have neutral chroma
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		YCC yccGray = gray.YCC();
 		RGB grayBack = yccGray.RGB();
-		assertRecordClose(gray, grayBack, "YCC gray round trip", 0.001f);
-		assertClose(0.612f, yccGray.C1(), "Gray C1 should be neutral", 0.001f);
-		assertClose(0.537f, yccGray.C2(), "Gray C2 should be neutral", 0.001f);
+		assertClose(gray, grayBack, 0.001f, "YCC gray round trip");
+		assertEquals(0.612f, yccGray.C1(), 0.001f, "Gray C1 should be neutral");
+		assertEquals(0.537f, yccGray.C2(), 0.001f, "Gray C2 should be neutral");
 
 		// Test secondary colors
 		RGB yellow = new RGB(1, 1, 0);
 		YCC yccYellow = yellow.YCC();
 		RGB yellowBack = yccYellow.RGB();
-		assertRecordClose(yellow, yellowBack, "YCC yellow round trip", 0.001f);
+		assertClose(yellow, yellowBack, 0.001f, "YCC yellow round trip");
 
 		RGB cyan = new RGB(0, 1, 1);
 		YCC yccCyan = cyan.YCC();
 		RGB cyanBack = yccCyan.RGB();
-		assertRecordClose(cyan, cyanBack, "YCC cyan round trip", 0.001f);
+		assertClose(cyan, cyanBack, 0.001f, "YCC cyan round trip");
 
 		RGB magenta = new RGB(1, 0, 1);
 		YCC yccMagenta = magenta.YCC();
 		RGB magentaBack = yccMagenta.RGB();
-		assertRecordClose(magenta, magentaBack, "YCC magenta round trip", 0.001f);
+		assertClose(magenta, magentaBack, 0.001f, "YCC magenta round trip");
 
 		// Test systematic round-trip accuracy
 		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
@@ -99,7 +99,7 @@ public class LumaChromaTests {
 					RGB rgb = new RGB(r, g, b);
 					YCC ycc = rgb.YCC();
 					RGB rgbBack = ycc.RGB();
-					assertRecordClose(rgb, rgbBack, "YCC round trip " + rgb, 0.001f);
+					assertClose(rgb, rgbBack, 0.001f, "YCC round trip " + rgb);
 
 					// Verify Y is in valid range [0..1]
 					assertTrue(ycc.Y() >= 0 && ycc.Y() <= 1, "Y component in range for " + rgb);
@@ -116,27 +116,27 @@ public class LumaChromaTests {
 		RGB darkColor = new RGB(0.01f, 0.02f, 0.03f);
 		YCC yccDark = darkColor.YCC();
 		RGB darkBack = yccDark.RGB();
-		assertRecordClose(darkColor, darkBack, "YCC dark color round trip", 0.001f);
+		assertClose(darkColor, darkBack, 0.001f, "YCC dark color round trip");
 
 		RGB brightColor = new RGB(0.98f, 0.97f, 0.99f);
 		YCC yccBright = brightColor.YCC();
 		RGB brightBack = yccBright.RGB();
-		assertRecordClose(brightColor, brightBack, "YCC bright color round trip", 0.001f);
+		assertClose(brightColor, brightBack, 0.001f, "YCC bright color round trip");
 
 		// Test specific color that was in original test
 		RGB testColor = new RGB(0.5f, 0.3f, 0.7f);
 		YCC yccTest = testColor.YCC();
 		RGB testBack = yccTest.RGB();
-		assertRecordClose(testColor, testBack, "YCC test color round trip", 0.001f);
+		assertClose(testColor, testBack, 0.001f, "YCC test color round trip");
 		// Verify the Y calculation: 0.213*0.5 + 0.419*0.3 + 0.081*0.7 = 0.2887
-		assertClose(0.2887f, yccTest.Y(), "YCC Y component for test color", 0.001f);
+		assertEquals(0.2887f, yccTest.Y(), 0.001f, "YCC Y component for test color");
 
 		// Test that chroma components properly encode color differences
 		// For gray, C1 and C2 should be at their offset values
 		RGB gray1 = new RGB(0.3f, 0.3f, 0.3f);
 		YCC yccGray1 = gray1.YCC();
-		assertClose(0.612f, yccGray1.C1(), "Gray should have neutral C1", 0.001f);
-		assertClose(0.537f, yccGray1.C2(), "Gray should have neutral C2", 0.001f);
+		assertEquals(0.612f, yccGray1.C1(), 0.001f, "Gray should have neutral C1");
+		assertEquals(0.537f, yccGray1.C2(), 0.001f, "Gray should have neutral C2");
 
 		// Colors with same luminance but different chromaticity should have different C1/C2
 		RGB color1 = new RGB(0.5f, 0.3f, 0.2f);
@@ -153,66 +153,66 @@ public class LumaChromaTests {
 		RGB red = new RGB(1, 0, 0);
 		var ycocgRed = red.YCoCg();
 		RGB redBack = ycocgRed.RGB();
-		assertRecordClose(red, redBack, "YCoCg red round trip", 0.0001f);
+		assertClose(red, redBack, 0.0001f, "YCoCg red round trip");
 
 		RGB green = new RGB(0, 1, 0);
 		var ycocgGreen = green.YCoCg();
 		RGB greenBack = ycocgGreen.RGB();
-		assertRecordClose(green, greenBack, "YCoCg green round trip", 0.0001f);
+		assertClose(green, greenBack, 0.0001f, "YCoCg green round trip");
 
 		RGB blue = new RGB(0, 0, 1);
 		var ycocgBlue = blue.YCoCg();
 		RGB blueBack = ycocgBlue.RGB();
-		assertRecordClose(blue, blueBack, "YCoCg blue round trip", 0.0001f);
+		assertClose(blue, blueBack, 0.0001f, "YCoCg blue round trip");
 
 		// Test black and white
 		RGB black = new RGB(0, 0, 0);
 		var ycocgBlack = black.YCoCg();
 		RGB blackBack = ycocgBlack.RGB();
-		assertRecordClose(black, blackBack, "YCoCg black round trip", 0.0001f);
-		assertClose(0, ycocgBlack.Y(), "Black Y", 0.0001f);
-		assertClose(0, ycocgBlack.Co(), "Black Co should be neutral", 0.0001f);
-		assertClose(0, ycocgBlack.Cg(), "Black Cg should be neutral", 0.0001f);
+		assertClose(black, blackBack, 0.0001f, "YCoCg black round trip");
+		assertEquals(0, ycocgBlack.Y(), 0.0001f, "Black Y");
+		assertEquals(0, ycocgBlack.Co(), 0.0001f, "Black Co should be neutral");
+		assertEquals(0, ycocgBlack.Cg(), 0.0001f, "Black Cg should be neutral");
 
 		RGB white = new RGB(1, 1, 1);
 		var ycocgWhite = white.YCoCg();
 		RGB whiteBack = ycocgWhite.RGB();
-		assertRecordClose(white, whiteBack, "YCoCg white round trip", 0.0001f);
-		assertClose(1, ycocgWhite.Y(), "White Y", 0.0001f);
-		assertClose(0, ycocgWhite.Co(), "White Co should be neutral", 0.0001f);
-		assertClose(0, ycocgWhite.Cg(), "White Cg should be neutral", 0.0001f);
+		assertClose(white, whiteBack, 0.0001f, "YCoCg white round trip");
+		assertEquals(1, ycocgWhite.Y(), 0.0001f, "White Y");
+		assertEquals(0, ycocgWhite.Co(), 0.0001f, "White Co should be neutral");
+		assertEquals(0, ycocgWhite.Cg(), 0.0001f, "White Cg should be neutral");
 
 		// Test grays - should have neutral chroma
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		var ycocgGray = gray.YCoCg();
 		RGB grayBack = ycocgGray.RGB();
-		assertRecordClose(gray, grayBack, "YCoCg gray round trip", 0.0001f);
-		assertClose(0.5f, ycocgGray.Y(), "Gray Y", 0.0001f);
-		assertClose(0, ycocgGray.Co(), "Gray Co should be neutral", 0.0001f);
-		assertClose(0, ycocgGray.Cg(), "Gray Cg should be neutral", 0.0001f);
+		assertClose(gray, grayBack, 0.0001f, "YCoCg gray round trip");
+		assertEquals(0.5f, ycocgGray.Y(), 0.0001f, "Gray Y");
+		assertEquals(0, ycocgGray.Co(), 0.0001f, "Gray Co should be neutral");
+		assertEquals(0, ycocgGray.Cg(), 0.0001f, "Gray Cg should be neutral");
 
 		// Test secondary colors
 		RGB yellow = new RGB(1, 1, 0);
 		var ycocgYellow = yellow.YCoCg();
 		RGB yellowBack = ycocgYellow.RGB();
-		assertRecordClose(yellow, yellowBack, "YCoCg yellow round trip", 0.0001f);
+		assertClose(yellow, yellowBack, 0.0001f, "YCoCg yellow round trip");
 
 		RGB cyan = new RGB(0, 1, 1);
 		var ycocgCyan = cyan.YCoCg();
 		RGB cyanBack = ycocgCyan.RGB();
-		assertRecordClose(cyan, cyanBack, "YCoCg cyan round trip", 0.0001f);
+		assertClose(cyan, cyanBack, 0.0001f, "YCoCg cyan round trip");
 
 		RGB magenta = new RGB(1, 0, 1);
 		var ycocgMagenta = magenta.YCoCg();
 		RGB magentaBack = ycocgMagenta.RGB();
-		assertRecordClose(magenta, magentaBack, "YCoCg magenta round trip", 0.0001f);
+		assertClose(magenta, magentaBack, 0.0001f, "YCoCg magenta round trip");
 
 		// YCoCg specific property: Y = (R + 2G + B) / 4
 		// Co = (R - B + 1) / 2, Cg = (-R + 2G - B + 1) / 2
 		RGB testColor = new RGB(0.6f, 0.4f, 0.2f);
 		var ycocgTest = testColor.YCoCg();
 		float expectedY = (0.6f + 2 * 0.4f + 0.2f) / 4;
-		assertClose(expectedY, ycocgTest.Y(), "YCoCg Y calculation", 0.0001f);
+		assertEquals(expectedY, ycocgTest.Y(), 0.0001f, "YCoCg Y calculation");
 
 		// Test systematic round-trip accuracy - YCoCg should be very accurate
 		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
@@ -222,7 +222,7 @@ public class LumaChromaTests {
 					RGB rgb = new RGB(r, g, b);
 					var ycocg = rgb.YCoCg();
 					RGB rgbBack = ycocg.RGB();
-					assertRecordClose(rgb, rgbBack, "YCoCg round trip " + rgb, 0.0001f);
+					assertClose(rgb, rgbBack, 0.0001f, "YCoCg round trip " + rgb);
 
 					// Verify components are in valid range
 					assertTrue(ycocg.Y() >= 0 && ycocg.Y() <= 1, "Y in range for " + rgb);
@@ -247,60 +247,60 @@ public class LumaChromaTests {
 		RGB red = new RGB(1, 0, 0);
 		var yesRed = red.YES();
 		RGB redBack = yesRed.RGB();
-		assertRecordClose(red, redBack, "YES red round trip", 0.001f);
+		assertClose(red, redBack, 0.001f, "YES red round trip");
 
 		RGB green = new RGB(0, 1, 0);
 		var yesGreen = green.YES();
 		RGB greenBack = yesGreen.RGB();
-		assertRecordClose(green, greenBack, "YES green round trip", 0.001f);
+		assertClose(green, greenBack, 0.001f, "YES green round trip");
 
 		RGB blue = new RGB(0, 0, 1);
 		var yesBlue = blue.YES();
 		RGB blueBack = yesBlue.RGB();
-		assertRecordClose(blue, blueBack, "YES blue round trip", 0.001f);
+		assertClose(blue, blueBack, 0.001f, "YES blue round trip");
 
 		// Test black and white
 		RGB black = new RGB(0, 0, 0);
 		var yesBlack = black.YES();
 		RGB blackBack = yesBlack.RGB();
-		assertRecordClose(black, blackBack, "YES black round trip", 0.001f);
-		assertClose(0, yesBlack.Y(), "Black Y", 0.001f);
-		assertClose(0, yesBlack.E(), "Black E should be neutral", 0.001f);
-		assertClose(0, yesBlack.S(), "Black S should be neutral", 0.001f);
+		assertClose(black, blackBack, 0.001f, "YES black round trip");
+		assertEquals(0, yesBlack.Y(), 0.001f, "Black Y");
+		assertEquals(0, yesBlack.E(), 0.001f, "Black E should be neutral");
+		assertEquals(0, yesBlack.S(), 0.001f, "Black S should be neutral");
 
 		RGB white = new RGB(1, 1, 1);
 		var yesWhite = white.YES();
 		RGB whiteBack = yesWhite.RGB();
-		assertRecordClose(white, whiteBack, "YES white round trip", 0.001f);
+		assertClose(white, whiteBack, 0.001f, "YES white round trip");
 		// Y for white should be sum of coefficients
-		assertClose(0.253f + 0.684f + 0.063f, yesWhite.Y(), "White Y", 0.001f);
-		assertClose(0, yesWhite.E(), "White E should be neutral", 0.001f);
-		assertClose(0, yesWhite.S(), "White S should be neutral", 0.001f);
+		assertEquals(0.253f + 0.684f + 0.063f, yesWhite.Y(), 0.001f, "White Y");
+		assertEquals(0, yesWhite.E(), 0.001f, "White E should be neutral");
+		assertEquals(0, yesWhite.S(), 0.001f, "White S should be neutral");
 
 		// Test grays - should have neutral chroma
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		var yesGray = gray.YES();
 		RGB grayBack = yesGray.RGB();
-		assertRecordClose(gray, grayBack, "YES gray round trip", 0.001f);
-		assertClose(0.5f, yesGray.Y(), "Gray Y", 0.001f);
-		assertClose(0, yesGray.E(), "Gray E should be neutral", 0.001f);
-		assertClose(0, yesGray.S(), "Gray S should be neutral", 0.001f);
+		assertClose(gray, grayBack, 0.001f, "YES gray round trip");
+		assertEquals(0.5f, yesGray.Y(), 0.001f, "Gray Y");
+		assertEquals(0, yesGray.E(), 0.001f, "Gray E should be neutral");
+		assertEquals(0, yesGray.S(), 0.001f, "Gray S should be neutral");
 
 		// Test secondary colors
 		RGB yellow = new RGB(1, 1, 0);
 		var yesYellow = yellow.YES();
 		RGB yellowBack = yesYellow.RGB();
-		assertRecordClose(yellow, yellowBack, "YES yellow round trip", 0.001f);
+		assertClose(yellow, yellowBack, 0.001f, "YES yellow round trip");
 
 		RGB cyan = new RGB(0, 1, 1);
 		var yesCyan = cyan.YES();
 		RGB cyanBack = yesCyan.RGB();
-		assertRecordClose(cyan, cyanBack, "YES cyan round trip", 0.001f);
+		assertClose(cyan, cyanBack, 0.001f, "YES cyan round trip");
 
 		RGB magenta = new RGB(1, 0, 1);
 		var yesMagenta = magenta.YES();
 		RGB magentaBack = yesMagenta.RGB();
-		assertRecordClose(magenta, magentaBack, "YES magenta round trip", 0.001f);
+		assertClose(magenta, magentaBack, 0.001f, "YES magenta round trip");
 
 		// Test systematic round-trip accuracy
 		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
@@ -310,7 +310,7 @@ public class LumaChromaTests {
 					RGB rgb = new RGB(r, g, b);
 					var yes = rgb.YES();
 					RGB rgbBack = yes.RGB();
-					assertRecordClose(rgb, rgbBack, "YES round trip " + rgb, 0.001f);
+					assertClose(rgb, rgbBack, 0.001f, "YES round trip " + rgb);
 
 					// Verify components are in valid range
 					assertTrue(yes.Y() >= 0 && yes.Y() <= 1, "Y in range for " + rgb);
@@ -324,12 +324,12 @@ public class LumaChromaTests {
 		RGB darkColor = new RGB(0.01f, 0.02f, 0.03f);
 		var yesDark = darkColor.YES();
 		RGB darkBack = yesDark.RGB();
-		assertRecordClose(darkColor, darkBack, "YES dark color round trip", 0.001f);
+		assertClose(darkColor, darkBack, 0.001f, "YES dark color round trip");
 
 		RGB brightColor = new RGB(0.98f, 0.97f, 0.99f);
 		var yesBright = brightColor.YES();
 		RGB brightBack = yesBright.RGB();
-		assertRecordClose(brightColor, brightBack, "YES bright color round trip", 0.001f);
+		assertClose(brightColor, brightBack, 0.001f, "YES bright color round trip");
 
 		// Test that different colors produce different E/S values
 		RGB color1 = new RGB(0.7f, 0.3f, 0.1f);
@@ -343,7 +343,7 @@ public class LumaChromaTests {
 		RGB testColor = new RGB(0.5f, 0.3f, 0.7f);
 		var yesTest = testColor.YES();
 		float expectedY = 0.253f * 0.5f + 0.684f * 0.3f + 0.063f * 0.7f;
-		assertClose(expectedY, yesTest.Y(), "YES Y calculation", 0.001f);
+		assertEquals(expectedY, yesTest.Y(), 0.001f, "YES Y calculation");
 	}
 
 	@Test
@@ -352,65 +352,65 @@ public class LumaChromaTests {
 		RGB red = new RGB(1, 0, 0);
 		YIQ yiqRed = red.YIQ();
 		RGB redBack = yiqRed.RGB();
-		assertRecordClose(red, redBack, "YIQ red round trip", 0.001f);
+		assertClose(red, redBack, 0.001f, "YIQ red round trip");
 		// Verify Y component for red
-		assertClose(0.299f, yiqRed.Y(), "Red Y component", 0.001f);
+		assertEquals(0.299f, yiqRed.Y(), 0.001f, "Red Y component");
 
 		RGB green = new RGB(0, 1, 0);
 		YIQ yiqGreen = green.YIQ();
 		RGB greenBack = yiqGreen.RGB();
-		assertRecordClose(green, greenBack, "YIQ green round trip", 0.001f);
+		assertClose(green, greenBack, 0.001f, "YIQ green round trip");
 		// Verify Y component for green
-		assertClose(0.587f, yiqGreen.Y(), "Green Y component", 0.001f);
+		assertEquals(0.587f, yiqGreen.Y(), 0.001f, "Green Y component");
 
 		RGB blue = new RGB(0, 0, 1);
 		YIQ yiqBlue = blue.YIQ();
 		RGB blueBack = yiqBlue.RGB();
-		assertRecordClose(blue, blueBack, "YIQ blue round trip", 0.001f);
+		assertClose(blue, blueBack, 0.001f, "YIQ blue round trip");
 		// Verify Y component for blue
-		assertClose(0.114f, yiqBlue.Y(), "Blue Y component", 0.001f);
+		assertEquals(0.114f, yiqBlue.Y(), 0.001f, "Blue Y component");
 
 		// Test black and white
 		RGB black = new RGB(0, 0, 0);
 		YIQ yiqBlack = black.YIQ();
 		RGB blackBack = yiqBlack.RGB();
-		assertRecordClose(black, blackBack, "YIQ black round trip", 0.001f);
-		assertClose(0, yiqBlack.Y(), "Black Y", 0.001f);
-		assertClose(0, yiqBlack.I(), "Black I", 0.001f);
-		assertClose(0, yiqBlack.Q(), "Black Q", 0.001f);
+		assertClose(black, blackBack, 0.001f, "YIQ black round trip");
+		assertEquals(0, yiqBlack.Y(), 0.001f, "Black Y");
+		assertEquals(0, yiqBlack.I(), 0.001f, "Black I");
+		assertEquals(0, yiqBlack.Q(), 0.001f, "Black Q");
 
 		RGB white = new RGB(1, 1, 1);
 		YIQ yiqWhite = white.YIQ();
 		RGB whiteBack = yiqWhite.RGB();
-		assertRecordClose(white, whiteBack, "YIQ white round trip", 0.001f);
-		assertClose(1, yiqWhite.Y(), "White Y", 0.001f);
-		assertClose(0, yiqWhite.I(), "White I", 0.001f);
-		assertClose(0, yiqWhite.Q(), "White Q", 0.001f);
+		assertClose(white, whiteBack, 0.001f, "YIQ white round trip");
+		assertEquals(1, yiqWhite.Y(), 0.001f, "White Y");
+		assertEquals(0, yiqWhite.I(), 0.001f, "White I");
+		assertEquals(0, yiqWhite.Q(), 0.001f, "White Q");
 
 		// Test grays - should have zero I and Q
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		YIQ yiqGray = gray.YIQ();
 		RGB grayBack = yiqGray.RGB();
-		assertRecordClose(gray, grayBack, "YIQ gray round trip", 0.001f);
-		assertClose(0.5f, yiqGray.Y(), "Gray Y", 0.001f);
-		assertClose(0, yiqGray.I(), "Gray I should be zero", 0.001f);
-		assertClose(0, yiqGray.Q(), "Gray Q should be zero", 0.001f);
+		assertClose(gray, grayBack, 0.001f, "YIQ gray round trip");
+		assertEquals(0.5f, yiqGray.Y(), 0.001f, "Gray Y");
+		assertEquals(0, yiqGray.I(), 0.001f, "Gray I should be zero");
+		assertEquals(0, yiqGray.Q(), 0.001f, "Gray Q should be zero");
 
 		// Test secondary colors
 		RGB yellow = new RGB(1, 1, 0);
 		YIQ yiqYellow = yellow.YIQ();
 		RGB yellowBack = yiqYellow.RGB();
-		assertRecordClose(yellow, yellowBack, "YIQ yellow round trip", 0.001f);
+		assertClose(yellow, yellowBack, 0.001f, "YIQ yellow round trip");
 
 		RGB cyan = new RGB(0, 1, 1);
 		YIQ yiqCyan = cyan.YIQ();
 		RGB cyanBack = yiqCyan.RGB();
-		assertRecordClose(cyan, cyanBack, "YIQ cyan round trip", 0.001f);
+		assertClose(cyan, cyanBack, 0.001f, "YIQ cyan round trip");
 
 		RGB magenta = new RGB(1, 0, 1);
 		YIQ yiqMagenta = magenta.YIQ();
 		RGB magentaBack = yiqMagenta.RGB();
-		assertRecordClose(magenta, magentaBack, "YIQ magenta round trip", 0.001f);
+		assertClose(magenta, magentaBack, 0.001f, "YIQ magenta round trip");
 
 		// Test systematic round-trip accuracy
 		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
@@ -420,7 +420,7 @@ public class LumaChromaTests {
 					RGB rgb = new RGB(r, g, b);
 					YIQ yiq = rgb.YIQ();
 					RGB rgbBack = yiq.RGB();
-					assertRecordClose(rgb, rgbBack, "YIQ round trip " + rgb, 0.001f);
+					assertClose(rgb, rgbBack, 0.001f, "YIQ round trip " + rgb);
 
 					// Verify Y is in valid range [0..1]
 					assertTrue(yiq.Y() >= 0 && yiq.Y() <= 1, "Y in range for " + rgb);
@@ -435,18 +435,18 @@ public class LumaChromaTests {
 		RGB darkColor = new RGB(0.01f, 0.02f, 0.03f);
 		YIQ yiqDark = darkColor.YIQ();
 		RGB darkBack = yiqDark.RGB();
-		assertRecordClose(darkColor, darkBack, "YIQ dark color round trip", 0.001f);
+		assertClose(darkColor, darkBack, 0.001f, "YIQ dark color round trip");
 
 		RGB brightColor = new RGB(0.98f, 0.97f, 0.99f);
 		YIQ yiqBright = brightColor.YIQ();
 		RGB brightBack = yiqBright.RGB();
-		assertRecordClose(brightColor, brightBack, "YIQ bright color round trip", 0.001f);
+		assertClose(brightColor, brightBack, 0.001f, "YIQ bright color round trip");
 
 		// Verify Y calculation for specific color
 		RGB testColor = new RGB(0.5f, 0.3f, 0.7f);
 		YIQ yiqTest = testColor.YIQ();
 		float expectedY = 0.299f * 0.5f + 0.587f * 0.3f + 0.114f * 0.7f;
-		assertClose(expectedY, yiqTest.Y(), "YIQ Y calculation", 0.001f);
+		assertEquals(expectedY, yiqTest.Y(), 0.001f, "YIQ Y calculation");
 
 		// Test known color conversions from NTSC standards
 		// Orange should have positive I (reddish)
@@ -474,23 +474,23 @@ public class LumaChromaTests {
 		RGB red = new RGB(1, 0, 0);
 		YUV yuvRed = red.YUV();
 		RGB redBack = yuvRed.RGB();
-		assertRecordClose(red, redBack, "YUV red round trip", 0.001f);
+		assertClose(red, redBack, 0.001f, "YUV red round trip");
 		// Verify Y component for red
-		assertClose(0.299f, yuvRed.Y(), "Red Y component", 0.001f);
+		assertEquals(0.299f, yuvRed.Y(), 0.001f, "Red Y component");
 
 		RGB green = new RGB(0, 1, 0);
 		YUV yuvGreen = green.YUV();
 		RGB greenBack = yuvGreen.RGB();
-		assertRecordClose(green, greenBack, "YUV green round trip", 0.001f);
+		assertClose(green, greenBack, 0.001f, "YUV green round trip");
 		// Verify Y component for green
-		assertClose(0.587f, yuvGreen.Y(), "Green Y component", 0.001f);
+		assertEquals(0.587f, yuvGreen.Y(), 0.001f, "Green Y component");
 
 		RGB blue = new RGB(0, 0, 1);
 		YUV yuvBlue = blue.YUV();
 		RGB blueBack = yuvBlue.RGB();
-		assertRecordClose(blue, blueBack, "YUV blue round trip", 0.001f);
+		assertClose(blue, blueBack, 0.001f, "YUV blue round trip");
 		// Verify Y component for blue
-		assertClose(0.114f, yuvBlue.Y(), "Blue Y component", 0.001f);
+		assertEquals(0.114f, yuvBlue.Y(), 0.001f, "Blue Y component");
 		// Blue should have maximum positive U
 		assertTrue(yuvBlue.U() > 0.4f, "Blue should have large positive U");
 
@@ -498,45 +498,45 @@ public class LumaChromaTests {
 		RGB black = new RGB(0, 0, 0);
 		YUV yuvBlack = black.YUV();
 		RGB blackBack = yuvBlack.RGB();
-		assertRecordClose(black, blackBack, "YUV black round trip", 0.001f);
-		assertClose(0, yuvBlack.Y(), "Black Y", 0.001f);
-		assertClose(0, yuvBlack.U(), "Black U", 0.001f);
-		assertClose(0, yuvBlack.V(), "Black V", 0.001f);
+		assertClose(black, blackBack, 0.001f, "YUV black round trip");
+		assertEquals(0, yuvBlack.Y(), 0.001f, "Black Y");
+		assertEquals(0, yuvBlack.U(), 0.001f, "Black U");
+		assertEquals(0, yuvBlack.V(), 0.001f, "Black V");
 
 		RGB white = new RGB(1, 1, 1);
 		YUV yuvWhite = white.YUV();
 		RGB whiteBack = yuvWhite.RGB();
-		assertRecordClose(white, whiteBack, "YUV white round trip", 0.001f);
-		assertClose(1, yuvWhite.Y(), "White Y", 0.001f);
-		assertClose(0, yuvWhite.U(), "White U", 0.001f);
-		assertClose(0, yuvWhite.V(), "White V", 0.001f);
+		assertClose(white, whiteBack, 0.001f, "YUV white round trip");
+		assertEquals(1, yuvWhite.Y(), 0.001f, "White Y");
+		assertEquals(0, yuvWhite.U(), 0.001f, "White U");
+		assertEquals(0, yuvWhite.V(), 0.001f, "White V");
 
 		// Test grays - should have zero U and V
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		YUV yuvGray = gray.YUV();
 		RGB grayBack = yuvGray.RGB();
-		assertRecordClose(gray, grayBack, "YUV gray round trip", 0.001f);
-		assertClose(0.5f, yuvGray.Y(), "Gray Y", 0.001f);
-		assertClose(0, yuvGray.U(), "Gray U should be zero", 0.001f);
-		assertClose(0, yuvGray.V(), "Gray V should be zero", 0.001f);
+		assertClose(gray, grayBack, 0.001f, "YUV gray round trip");
+		assertEquals(0.5f, yuvGray.Y(), 0.001f, "Gray Y");
+		assertEquals(0, yuvGray.U(), 0.001f, "Gray U should be zero");
+		assertEquals(0, yuvGray.V(), 0.001f, "Gray V should be zero");
 
 		// Test secondary colors
 		RGB yellow = new RGB(1, 1, 0);
 		YUV yuvYellow = yellow.YUV();
 		RGB yellowBack = yuvYellow.RGB();
-		assertRecordClose(yellow, yellowBack, "YUV yellow round trip", 0.001f);
+		assertClose(yellow, yellowBack, 0.001f, "YUV yellow round trip");
 		// Yellow should have negative U
 		assertTrue(yuvYellow.U() < -0.2f, "Yellow should have negative U");
 
 		RGB cyan = new RGB(0, 1, 1);
 		YUV yuvCyan = cyan.YUV();
 		RGB cyanBack = yuvCyan.RGB();
-		assertRecordClose(cyan, cyanBack, "YUV cyan round trip", 0.001f);
+		assertClose(cyan, cyanBack, 0.001f, "YUV cyan round trip");
 
 		RGB magenta = new RGB(1, 0, 1);
 		YUV yuvMagenta = magenta.YUV();
 		RGB magentaBack = yuvMagenta.RGB();
-		assertRecordClose(magenta, magentaBack, "YUV magenta round trip", 0.001f);
+		assertClose(magenta, magentaBack, 0.001f, "YUV magenta round trip");
 
 		// Test systematic round-trip accuracy
 		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
@@ -546,7 +546,7 @@ public class LumaChromaTests {
 					RGB rgb = new RGB(r, g, b);
 					YUV yuv = rgb.YUV();
 					RGB rgbBack = yuv.RGB();
-					assertRecordClose(rgb, rgbBack, "YUV round trip " + rgb, 0.001f);
+					assertClose(rgb, rgbBack, 0.001f, "YUV round trip " + rgb);
 
 					// Verify Y is in valid range [0..1]
 					assertTrue(yuv.Y() >= 0 && yuv.Y() <= 1, "Y in range for " + rgb);
@@ -561,26 +561,26 @@ public class LumaChromaTests {
 		RGB darkColor = new RGB(0.01f, 0.02f, 0.03f);
 		YUV yuvDark = darkColor.YUV();
 		RGB darkBack = yuvDark.RGB();
-		assertRecordClose(darkColor, darkBack, "YUV dark color round trip", 0.001f);
+		assertClose(darkColor, darkBack, 0.001f, "YUV dark color round trip");
 
 		RGB brightColor = new RGB(0.98f, 0.97f, 0.99f);
 		YUV yuvBright = brightColor.YUV();
 		RGB brightBack = yuvBright.RGB();
-		assertRecordClose(brightColor, brightBack, "YUV bright color round trip", 0.001f);
+		assertClose(brightColor, brightBack, 0.001f, "YUV bright color round trip");
 
 		// Verify Y calculation for specific color
 		RGB testColor = new RGB(0.5f, 0.3f, 0.7f);
 		YUV yuvTest = testColor.YUV();
 		float expectedY = 0.299f * 0.5f + 0.587f * 0.3f + 0.114f * 0.7f;
-		assertClose(expectedY, yuvTest.Y(), "YUV Y calculation", 0.001f);
+		assertEquals(expectedY, yuvTest.Y(), 0.001f, "YUV Y calculation");
 
 		// Test YUV specific properties
 		// U = 0.492 * (B - Y), V = 0.877 * (R - Y)
 		float Y = yuvTest.Y();
 		float expectedU = 0.492f * (0.7f - Y);
 		float expectedV = 0.877f * (0.5f - Y);
-		assertClose(expectedU, yuvTest.U(), "YUV U calculation", 0.001f);
-		assertClose(expectedV, yuvTest.V(), "YUV V calculation", 0.001f);
+		assertEquals(expectedU, yuvTest.U(), 0.001f, "YUV U calculation");
+		assertEquals(expectedV, yuvTest.V(), 0.001f, "YUV V calculation");
 
 		// Test that different colors produce different U/V values
 		RGB color1 = new RGB(0.8f, 0.2f, 0.3f);
@@ -598,6 +598,6 @@ public class LumaChromaTests {
 		assertTrue(yuvGreen.V() < -0.2f, "Green should have negative V");
 
 		// Test round trip
-		roundTripf(new RGB(0.5f, 0.3f, 0.7f), (RGB r) -> r.YUV(), YUV::RGB, "YUV");
+		roundTripF(new RGB(0.5f, 0.3f, 0.7f), (RGB r) -> r.YUV(), YUV::RGB, "YUV");
 	}
 }

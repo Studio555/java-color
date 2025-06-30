@@ -42,6 +42,16 @@ public class Util {
 		return result;
 	}
 
+	/** Calculate angle difference in degrees, handling wraparound. */
+	static public float angleDifference (float a1, float a2) {
+		float diff = a2 - a1;
+		while (diff > 180)
+			diff -= 360;
+		while (diff < -180)
+			diff += 360;
+		return diff;
+	}
+
 	/** @param linear [0..1]. */
 	static public float gammaEncode (float linear, float gamma) {
 		if (linear <= 0) return 0;

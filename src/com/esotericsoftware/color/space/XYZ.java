@@ -18,15 +18,17 @@ public record XYZ (
 	float Z) {
 
 	/** Planck constant. **/
-	static public float h = 6.62607015e-34f;
+	static public double h = 6.62607015e-34;
 	/** Speed of light in m/s. **/
-	static public float c = 299792458f;
+	static public double c = 299792458;
 	/** Boltzmann constant. **/
-	static public float k = 1.380649e-23f;
+	static public double k = 1.380649e-23;
 	/** First radiation constant. **/
-	static public float c1 = 2f * (float)Math.PI * h * c * c;
+	static public double c1 = (float)(2.0 * Math.PI * h * c * c);
 	/** Second radiation constant. **/
-	static public float c2 = h * c / k;
+	static public double c2 = (float)(h * c / k);
+	/** Maximum luminous efficacy (lm/W) */
+	static public final float Km = 683;
 
 	public float get (int index) {
 		return switch (index) {
@@ -89,6 +91,15 @@ public record XYZ (
 
 	public CAM16UCS CAM16UCS (CAM16.VC vc) {
 		return CAM16(vc).CAM16UCS();
+	}
+
+	/** Uses {@link CAM16.VC#sRGB}. */
+	public CAM02UCS CAM02UCS () {
+		return CAM16UCS().CAM02UCS();
+	}
+
+	public CAM02UCS CAM02UCS (CAM16.VC vc) {
+		return CAM16UCS(vc).CAM02UCS();
 	}
 
 	/** @return NaN if invalid. */
@@ -177,6 +188,19 @@ public record XYZ (
 	/** @return NaN if invalid. */
 	public uv uv () {
 		return xy().uv();
+	}
+
+	public UVW UVW (XYZ whitePoint) {
+		float denom = X() + 15f * Y + 3f * Z;
+		float denomWhite = whitePoint.X() + 15f * whitePoint.Y() + 3f * whitePoint.Z();
+		if (denom < EPSILON || denomWhite < EPSILON) return new UVW(0, 0, 0);
+		float u = 4f * X / denom, v = 6f * Y / denom;
+		float un = 4f * whitePoint.X() / denomWhite;
+		float vn = 6f * whitePoint.Y() / denomWhite;
+		float yRatio = Y / whitePoint.Y();
+		if (yRatio <= 0) return new UVW(0, 0, -17);
+		float W = 25f * (float)Math.pow(yRatio, 1f / 3f) - 17f;
+		return new UVW(13f * W * (u - un), 13f * W * (v - vn), W);
 	}
 
 	/** @return NaN if invalid. */
@@ -307,4 +331,17 @@ public record XYZ (
 		0.0039f, 0.00275f, 0.0021f, 0.0018f, 0.00165f, 0.0014f, 0.0011f, 0.001f, 0.0008f, 0.0006f, 0.00034f, 0.00024f, 0.00019f,
 		0.0001f, 0.00005f, 0.00003f, 0.00002f, 0.00001f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0};
+
+	/** Uses {@link LMS.CAT#VonKries}. */
+	public XYZ chromaticAdaptation (XYZ sourceIlluminant, XYZ destIlluminant) {
+		return chromaticAdaptation(sourceIlluminant, destIlluminant, LMS.CAT.VonKries);
+	}
+
+	/** @return This color adapted to appear under the target illuminant as it would under the source illuminant. */
+	public XYZ chromaticAdaptation (XYZ sourceIlluminant, XYZ targetIlluminant, LMS.CAT transform) {
+		LMS lms = LMS(transform), sourceLMS = sourceIlluminant.LMS(transform), targetLMS = targetIlluminant.LMS(transform);
+		return new LMS(lms.L() * targetLMS.L() / sourceLMS.L(), //
+			lms.M() * targetLMS.M() / sourceLMS.M(), //
+			lms.S() * targetLMS.S() / sourceLMS.S()).XYZ(transform);
+	}
 }

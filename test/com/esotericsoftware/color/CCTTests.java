@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.TestsUtil.*;
+import static com.esotericsoftware.color.Tests.*;
 import static com.esotericsoftware.color.Util.*;
 
 import org.junit.jupiter.api.Assertions;
@@ -14,7 +14,7 @@ import com.esotericsoftware.color.space.uv;
 import com.esotericsoftware.color.space.uv1960;
 import com.esotericsoftware.color.space.xy;
 
-public class CCTTests {
+public class CCTTests extends Tests {
 	@Test
 	public void testCCTConversions () {
 		// Test known CCT values
@@ -98,11 +98,11 @@ public class CCTTests {
 			float duvBelow = belowLocus.Duv();
 
 			// Points on the locus should have Duv ≈ 0
-			assertClose(0, duvOn, "Point on blackbody locus has Duv ≈ 0 for CCT " + cct, 0.0001);
+			assertEquals(0, duvOn, 0.0001, "Point on blackbody locus has Duv ≈ 0 for CCT " + cct);
 
 			// Points off the locus should have the expected Duv, roughly
-			assertClose(0.005f, duvAbove, "Point above locus has correct Duv for CCT " + cct, 0.003);
-			assertClose(-0.005f, duvBelow, "Point below locus has correct Duv for CCT " + cct, 0.003);
+			assertEquals(0.005f, duvAbove, 0.003, "Point above locus has correct Duv for CCT " + cct);
+			assertEquals(-0.005f, duvBelow, 0.003, "Point below locus has correct Duv for CCT " + cct);
 
 			// Verify colors with different Duv look different
 			RGB rgbOn = onLocus.RGB();
@@ -173,7 +173,7 @@ public class CCTTests {
 			if (!Float.isNaN(duvCalculated)) {
 				// Higher tolerance for very low CCT values
 				float duvTolerance = cct <= 1200 ? 0.003f : 0.001f;
-				assertClose(0.005f, duvCalculated, "Duv accuracy for low CCT " + cct, duvTolerance);
+				assertEquals(0.005f, duvCalculated, duvTolerance, "Duv accuracy for low CCT " + cct);
 			}
 		}
 
@@ -233,23 +233,23 @@ public class CCTTests {
 		// Test with D65 white point (should be near 0)
 		xy d65 = new xy(0.3127f, 0.3290f);
 		float duvD65 = d65.Duv();
-		assertClose(0, duvD65, "D65 white point Duv should be near 0", 0.005);
+		assertEquals(0, duvD65, 0.005, "D65 white point Duv should be near 0");
 
 		// Test with colors on the blackbody locus (should be ~0)
 		// 2700K on blackbody locus
 		xy cct2700 = new CCT(2700).xy();
 		float duv2700 = cct2700.Duv();
-		assertClose(0, duv2700, "2700K on blackbody locus should have Duv ~0", 0.003);
+		assertEquals(0, duv2700, 0.003, "2700K on blackbody locus should have Duv ~0");
 
 		// 4000K on blackbody locus
 		xy cct4000 = new CCT(4000).xy();
 		float duv4000 = cct4000.Duv();
-		assertClose(0, duv4000, "4000K on blackbody locus should have Duv ~0", 0.001);
+		assertEquals(0, duv4000, 0.001, "4000K on blackbody locus should have Duv ~0");
 
 		// 6500K on blackbody locus
 		xy cct6500 = new CCT(6500).xy();
 		float duv6500 = cct6500.Duv();
-		assertClose(0, duv6500, "6500K on blackbody locus should have Duv ~0", 0.001);
+		assertEquals(0, duv6500, 0.001, "6500K on blackbody locus should have Duv ~0");
 
 		// Test with colors off the locus (should have non-zero Duv)
 		// Create a point above the blackbody locus (greenish)
@@ -276,7 +276,7 @@ public class CCTTests {
 
 				// The calculated Duv should be close to the expected value
 				// Some error is expected due to conversions and approximations
-				assertClose(expectedDuv, calculatedDuv, "Duv for CCT " + cct + " with offset " + expectedDuv, 0.003);
+				assertEquals(expectedDuv, calculatedDuv, 0.003, "Duv for CCT " + cct + " with offset " + expectedDuv);
 			}
 		}
 
@@ -284,12 +284,12 @@ public class CCTTests {
 		// Very low CCT
 		xy lowCCT = new CCT(1667).xy();
 		float duvLow = lowCCT.Duv();
-		assertClose(0, duvLow, "Very low CCT on locus should have Duv ~0", 0.001);
+		assertEquals(0, duvLow, 0.001, "Very low CCT on locus should have Duv ~0");
 
 		// Very high CCT
 		xy highCCT = new CCT(20000).xy();
 		float duvHigh = highCCT.Duv();
-		assertClose(0, duvHigh, "Very high CCT on locus should have Duv ~0", 0.001);
+		assertEquals(0, duvHigh, 0.001, "Very high CCT on locus should have Duv ~0");
 
 		// Test that Duv sign convention is correct
 		// Points above the locus (more green) should have positive Duv
@@ -303,8 +303,8 @@ public class CCTTests {
 		float duvBelow = belowLocus.Duv();
 
 		// Verify the calculated Duv values match what we specified
-		assertClose(0.002f, duvAbove, "Duv above locus", 0.0001);
-		assertClose(-0.002f, duvBelow, "Duv below locus", 0.0001);
+		assertEquals(0.002f, duvAbove, 0.0001, "Duv above locus");
+		assertEquals(-0.002f, duvBelow, 0.0001, "Duv below locus");
 
 		// The key is that points on opposite sides of the locus have opposite sign Duv
 		assertTrue(Math.abs(duvAbove - duvBelow) > 0.001,
@@ -329,7 +329,7 @@ public class CCTTests {
 
 		// Test symmetry - distance should be the same regardless of order
 		float stepsD50toD65 = d50.MacAdamSteps(d65);
-		assertClose(stepsD65toD50, stepsD50toD65, "MacAdamSteps should be symmetric", 0.0001);
+		assertEquals(stepsD65toD50, stepsD50toD65, 0.0001, "MacAdamSteps should be symmetric");
 
 		// Test with colors one MacAdam step apart
 		// Create a color approximately 1 MacAdam step from D65
@@ -338,14 +338,14 @@ public class CCTTests {
 		xy xy1Step = uv1Step.xy();
 
 		float stepsTo1 = d65.MacAdamSteps(xy1Step);
-		assertClose(1.0f, stepsTo1, "Color 0.0011 units away should be ~1 MacAdam step", 0.1);
+		assertEquals(1.0f, stepsTo1, 0.1, "Color 0.0011 units away should be ~1 MacAdam step");
 
 		// Test with colors multiple MacAdam steps apart
 		uv1960 uv5Steps = new uv1960(uvD65.u() + 0.0055f, uvD65.v());
 		xy xy5Steps = uv5Steps.xy();
 
 		float stepsTo5 = d65.MacAdamSteps(xy5Steps);
-		assertClose(5.0f, stepsTo5, "Color 0.0055 units away should be ~5 MacAdam steps", 0.1);
+		assertEquals(5.0f, stepsTo5, 0.1, "Color 0.0055 units away should be ~5 MacAdam steps");
 
 		// Test triangle inequality
 		xy colorA = new xy(0.31f, 0.32f);

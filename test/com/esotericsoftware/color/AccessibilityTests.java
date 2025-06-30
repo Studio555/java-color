@@ -1,29 +1,29 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.TestsUtil.*;
+import static com.esotericsoftware.color.Tests.*;
 
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.RGB;
 
-public class AccessibilityTests {
+public class AccessibilityTests extends Tests {
 	@Test
 	public void testContrastRatio () {
 		// Test black on white (should be 21:1)
 		RGB black = new RGB(0, 0, 0);
 		RGB white = new RGB(1, 1, 1);
 		float blackWhiteRatio = black.contrastRatio(white);
-		assertClose(21, blackWhiteRatio, "Black on white contrast ratio", 0.1);
+		assertEquals(21, blackWhiteRatio, 0.1, "Black on white contrast ratio");
 
 		// Test white on black (should be 21:1)
 		float whiteBlackRatio = white.contrastRatio(black);
-		assertClose(21, whiteBlackRatio, "White on black contrast ratio", 0.1);
+		assertEquals(21, whiteBlackRatio, 0.1, "White on black contrast ratio");
 
 		// Test identical colors (should be 1:1)
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		float grayGrayRatio = gray.contrastRatio(gray);
-		assertClose(1, grayGrayRatio, "Identical colors contrast ratio", 0.01);
+		assertEquals(1, grayGrayRatio, 0.01, "Identical colors contrast ratio");
 
 		// Test known color pairs
 		// Dark gray on light gray
@@ -35,7 +35,7 @@ public class AccessibilityTests {
 
 		// Test that order doesn't matter
 		float reverseGrayRatio = darkGray.contrastRatio(lightGray);
-		assertClose(grayRatio, reverseGrayRatio, "Contrast ratio should be same regardless of order", 0.01);
+		assertEquals(grayRatio, reverseGrayRatio, 0.01, "Contrast ratio should be same regardless of order");
 
 		// Test some color pairs with known approximate ratios
 		RGB red = new RGB(1, 0, 0);

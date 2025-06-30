@@ -3,9 +3,41 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-public record CCT (
-	/** [427..100000K] */
-	float K) {
+import com.esotericsoftware.color.Spectrum;
+
+public record CCT (/** [427..100000K] */
+float K) {
+
+	/** Returns a reference illuminant spectrum for this CCT. Uses Planckian radiator for CCT < 5000K, CIE daylight for >= 5000K.
+	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. */
+	public Spectrum illuminant () {
+		if (K < 5000) return Planckian(380, 780, 5);
+		xy xy = xy();
+		float x = xy.x(), y = xy.y();
+		float M1 = (-1.3515f - 1.7703f * x + 5.9114f * y) / (0.0241f + 0.2562f * x - 0.7341f * y);
+		float M2 = (0.0300f - 31.4424f * x + 30.0717f * y) / (0.0241f + 0.2562f * x - 0.7341f * y);
+		float[] values = new float[81];
+		for (int i = 0; i < 81; i++)
+			values[i] = S0[i] + M1 * S1[i] + M2 * S2[i];
+		return new Spectrum(values, 5).normalize();
+	}
+
+	public boolean invalid () {
+		return Float.isNaN(K);
+	}
+
+	/** @return Normalized to Y=100. */
+	public Spectrum Planckian (int start, int end, int step) {
+		int length = ((end - start) / step) + 1;
+		float[] values = new float[length];
+		for (int i = 0; i < length; i++) {
+			double lambda = (start + i * step) * 1e-9; // nm to meters.
+			double exponent = XYZ.c2 / (lambda * K);
+			values[i] = (float)(exponent > 80 ? 0
+				: XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1)));
+		}
+		return new Spectrum(values, step, start).normalize();
+	}
 
 	/** {@link #RGB(float)} with 0 Duv.
 	 * @return NaN if invalid. */
@@ -123,21 +155,21 @@ public record CCT (
 	 * @return Normalized with Y=100 or NaN if invalid. */
 	public XYZ XYZ () {
 		if (K < 100 || K > 100000) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
-		float X = 0, Y = 0, Z = 0;
+		double X = 0, Y = 0, Z = 0;
 		for (int i = 0; i < 81; i++) {
-			float lambda = (380 + i * 5) * 1e-9f; // nm to meters.
-			float exponent = XYZ.c2 / (lambda * K);
-			float B = exponent > 80 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * ((float)Math.exp(exponent) - 1f));
+			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
+			double exponent = XYZ.c2 / (lambda * K);
+			double B = exponent > 80 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
 			X += B * XYZ.Xbar[i];
 			Y += B * XYZ.Ybar[i];
 			Z += B * XYZ.Zbar[i];
 		}
 		if (Y > 0) {
-			float scale = 100f / Y;
+			double scale = 100f / Y;
 			X *= scale;
 			Z *= scale;
 		}
-		return new XYZ(X, 100, Z);
+		return new XYZ((float)X, 100, (float)Z);
 	}
 
 	/** {@link #xy(float)} with 0 Duv. Worst case accuracy is 0.00058 [1667-100000K] else uses exact Planck calculation
@@ -156,10 +188,48 @@ public record CCT (
 				y = -1.1063814f * xx * x - 1.34811020f * xx + 2.18555832f * x - 0.20219683f;
 			else if (K > 2222 && K <= 4000)
 				y = -0.9549476f * xx * x - 1.37418593f * xx + 2.09137015f * x - 0.16748867f;
-			else // CCT > 4000 && CCT <= 25000
+			else // CCT > 4000
 				y = 3.0817580f * xx * x - 5.87338670f * xx + 3.75112997f * x - 0.37001483f;
 			return new xy(x, y);
 		}
+// if (K >= 1000) {
+// float x, t = 1000f / K, t2 = t * t, t3 = t2 * t; // Use reciprocal temperature for better numerical stability
+// if (K >= 1667 && K <= 4000) {
+// // Standard Krystek approximation
+// x = -0.2661239f * t3 - 0.2343589f * t2 + 0.8776956f * t + 0.179910f;
+// } else if (K > 4000 && K <= 25000) {
+// // Standard Krystek approximation
+// x = -3.0258469f * t3 + 2.1070379f * t2 + 0.2226347f * t + 0.240390f;
+// } else if (K > 25000 && K <= 50000) {
+// // Extended approximation for high temperatures
+// x = -4.6070f * t3 + 2.9678f * t2 + 0.09911f * t + 0.244063f;
+// } else if (K > 50000) {
+// // Very high temperature approximation
+// x = -2.0064f * t3 + 1.9018f * t2 + 0.24748f * t + 0.237040f;
+// } else {
+// // K < 1667 - use polynomial fit
+// float t4 = t3 * t;
+// x = -0.0803f * t4 - 0.3903f * t3 - 0.2887f * t2 + 0.8810f * t + 0.17991f;
+// }
+// float y, xx = x * x, xxx = xx * x;
+// if (K >= 1667 && K <= 2222) {
+// y = -1.1063814f * xxx - 1.34811020f * xx + 2.18555832f * x - 0.20219683f;
+// } else if (K > 2222 && K <= 4000) {
+// y = -0.9549476f * xxx - 1.37418593f * xx + 2.09137015f * x - 0.16748867f;
+// } else if (K > 4000 && K <= 25000) {
+// y = 3.0817580f * xxx - 5.87338670f * xx + 3.75112997f * x - 0.37001483f;
+// } else if (K > 25000 && K <= 50000) {
+// // Extended approximation for high temperatures
+// y = 2.870f * xxx - 5.503f * xx + 3.583f * x - 0.35986f;
+// } else if (K > 50000) {
+// // Very high temperature approximation
+// y = 2.511f * xxx - 4.894f * xx + 3.234f * x - 0.33684f;
+// } else {
+// // K < 1667 - use polynomial fit
+// y = -0.9267f * xxx - 1.2481f * xx + 2.1532f * x - 0.19834f;
+// }
+// return new xy(x, y);
+// }
 		return XYZ().xy();
 	}
 
@@ -203,4 +273,27 @@ public record CCT (
 		}
 		return new uv1960(perp_u, perp_v);
 	}
+
+	/** CIE daylight basis function S0, 380-780nm @ 5nm. */
+	static public final float[] S0 = {63.4f, 65.8f, 94.8f, 104.8f, 105.9f, 96.8f, 113.9f, 125.6f, 125.5f, 121.3f, 121.3f, 113.5f,
+		113.1f, 110.8f, 106.5f, 108.8f, 105.3f, 104.4f, 100.0f, 96.0f, 95.1f, 89.1f, 90.5f, 90.3f, 88.4f, 84.0f, 85.1f, 81.9f,
+		82.6f, 84.9f, 81.3f, 71.9f, 74.3f, 76.4f, 63.3f, 71.7f, 77.0f, 65.2f, 47.7f, 68.6f, 65.0f, 66.0f, 61.0f, 53.3f, 58.9f,
+		61.9f, 62.0f, 62.0f, 58.0f, 52.0f, 55.0f, 56.0f, 58.0f, 60.0f, 56.0f, 55.0f, 52.0f, 50.0f, 49.0f, 50.0f, 53.0f, 54.0f,
+		53.0f, 51.0f, 50.0f, 48.0f, 46.0f, 46.0f, 47.0f, 47.0f, 46.0f, 45.0f, 44.0f, 44.0f, 44.0f, 44.0f, 44.0f, 43.0f, 43.0f,
+		43.0f, 42.0f};
+
+	/** CIE daylight basis function S1, 380-780nm @ 5nm. */
+	static public final float[] S1 = {38.5f, 35.0f, 43.4f, 46.3f, 43.9f, 37.1f, 36.7f, 35.9f, 32.6f, 27.9f, 24.3f, 20.1f, 16.2f,
+		13.2f, 8.6f, 6.1f, 4.2f, 1.9f, 0.0f, -1.6f, -3.5f, -3.5f, -5.8f, -7.2f, -8.6f, -9.5f, -10.9f, -10.7f, -12.0f, -14.0f,
+		-13.6f, -12.0f, -13.3f, -12.9f, -10.6f, -11.6f, -12.2f, -10.2f, -7.8f, -11.2f, -10.4f, -10.6f, -9.7f, -8.3f, -9.3f, -9.8f,
+		-9.0f, -9.2f, -8.6f, -7.4f, -8.0f, -8.1f, -8.4f, -8.7f, -8.0f, -7.9f, -7.4f, -7.0f, -6.9f, -7.0f, -7.4f, -7.6f, -7.5f,
+		-7.2f, -7.1f, -6.7f, -6.4f, -6.4f, -6.5f, -6.5f, -6.4f, -6.2f, -6.1f, -6.1f, -6.1f, -6.1f, -6.0f, -6.0f, -6.0f, -5.9f,
+		-5.8f};
+
+	/** CIE daylight basis function S2, 380-780nm @ 5nm. */
+	static public final float[] S2 = {3.0f, 1.2f, -1.1f, -0.5f, -0.7f, -1.2f, -2.6f, -2.9f, -2.8f, -2.6f, -2.6f, -1.8f, -1.5f,
+		-1.3f, -1.2f, -1.0f, -0.5f, -0.3f, 0.0f, 0.2f, 0.5f, 2.1f, 3.2f, 4.1f, 4.7f, 5.1f, 6.7f, 7.3f, 8.6f, 9.8f, 10.2f, 8.3f,
+		9.6f, 8.5f, 7.0f, 7.6f, 8.0f, 6.7f, 5.2f, 7.4f, 6.8f, 7.0f, 6.4f, 5.5f, 6.1f, 6.5f, 6.5f, 6.4f, 6.0f, 5.4f, 5.7f, 5.8f,
+		6.0f, 6.2f, 5.8f, 5.7f, 5.4f, 5.2f, 5.1f, 5.2f, 5.5f, 5.6f, 5.5f, 5.3f, 5.2f, 5.0f, 4.8f, 4.8f, 4.9f, 4.9f, 4.8f, 4.7f,
+		4.6f, 4.6f, 4.6f, 4.6f, 4.6f, 4.5f, 4.5f, 4.5f, 4.4f, 4.3f};
 }

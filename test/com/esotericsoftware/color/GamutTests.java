@@ -12,7 +12,7 @@ import com.esotericsoftware.color.space.uv;
 import com.esotericsoftware.color.space.xy;
 
 /** @author Nathan Sweet <misc@n4te.com> */
-public class GamutTests {
+public class GamutTests extends Tests {
 	private static final float EPSILON = 0.00001f;
 
 	@Test

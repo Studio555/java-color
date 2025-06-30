@@ -1,14 +1,14 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.TestsUtil.*;
+import static com.esotericsoftware.color.Tests.*;
 
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.HSL;
 import com.esotericsoftware.color.space.RGB;
 
-public class ColorHarmonyTests {
+public class ColorHarmonyTests extends Tests {
 	@Test
 	public void testAnalogous () {
 		// Test with various angles
@@ -17,7 +17,7 @@ public class ColorHarmonyTests {
 		// Test with 15° angle
 		RGB[] analogous15 = baseColor.analogous(15);
 		assertEquals(3, analogous15.length, "Analogous should return 3 colors");
-		assertRecordClose(baseColor, analogous15[1], "Middle color should be base color");
+		assertClose(baseColor, analogous15[1], "Middle color should be base color");
 
 		HSL base = baseColor.HSL();
 		HSL left15 = analogous15[0].HSL();
@@ -29,8 +29,8 @@ public class ColorHarmonyTests {
 		float expectedRight = base.H() + 15;
 		if (expectedRight >= 360) expectedRight -= 360;
 
-		assertClose(expectedLeft, left15.H(), "Left analogous hue (15°)", 1);
-		assertClose(expectedRight, right15.H(), "Right analogous hue (15°)", 1);
+		assertEquals(expectedLeft, left15.H(), 1, "Left analogous hue (15°)");
+		assertEquals(expectedRight, right15.H(), 1, "Right analogous hue (15°)");
 
 		// Test with 30° angle
 		RGB[] analogous30 = baseColor.analogous(30);
@@ -42,8 +42,8 @@ public class ColorHarmonyTests {
 		expectedRight = base.H() + 30;
 		if (expectedRight >= 360) expectedRight -= 360;
 
-		assertClose(expectedLeft, left30.H(), "Left analogous hue (30°)", 1);
-		assertClose(expectedRight, right30.H(), "Right analogous hue (30°)", 1);
+		assertEquals(expectedLeft, left30.H(), 1, "Left analogous hue (30°)");
+		assertEquals(expectedRight, right30.H(), 1, "Right analogous hue (30°)");
 
 		// Test with 45° angle
 		RGB[] analogous45 = baseColor.analogous(45);
@@ -55,22 +55,22 @@ public class ColorHarmonyTests {
 		expectedRight = base.H() + 45;
 		if (expectedRight >= 360) expectedRight -= 360;
 
-		assertClose(expectedLeft, left45.H(), "Left analogous hue (45°)", 1);
-		assertClose(expectedRight, right45.H(), "Right analogous hue (45°)", 1);
+		assertEquals(expectedLeft, left45.H(), 1, "Left analogous hue (45°)");
+		assertEquals(expectedRight, right45.H(), 1, "Right analogous hue (45°)");
 
 		// Test edge cases with 0° angle (all three should be the same)
 		RGB[] analogous0 = baseColor.analogous(0);
-		assertRecordClose(baseColor, analogous0[0], "0° analogous left should equal base");
-		assertRecordClose(baseColor, analogous0[1], "0° analogous middle should equal base");
-		assertRecordClose(baseColor, analogous0[2], "0° analogous right should equal base");
+		assertClose(baseColor, analogous0[0], "0° analogous left should equal base");
+		assertClose(baseColor, analogous0[1], "0° analogous middle should equal base");
+		assertClose(baseColor, analogous0[2], "0° analogous right should equal base");
 
 		// Test with 360° angle (should wrap around)
 		RGB greenBase = new RGB(0, 1, 0);
 		RGB[] analogous360 = greenBase.analogous(360);
 		// All three should be the same since 360° is a full circle
-		assertRecordClose(greenBase, analogous360[0], "360° analogous left should equal base");
-		assertRecordClose(greenBase, analogous360[1], "360° analogous middle should equal base");
-		assertRecordClose(greenBase, analogous360[2], "360° analogous right should equal base");
+		assertClose(greenBase, analogous360[0], "360° analogous left should equal base");
+		assertClose(greenBase, analogous360[1], "360° analogous middle should equal base");
+		assertClose(greenBase, analogous360[2], "360° analogous right should equal base");
 
 		// Test saturation and lightness preservation
 		RGB[] testColors = new RGB(0.7f, 0.3f, 0.5f).analogous(20);
@@ -78,10 +78,10 @@ public class ColorHarmonyTests {
 		HSL testLeft = testColors[0].HSL();
 		HSL testRight = testColors[2].HSL();
 
-		assertClose(testBase.S(), testLeft.S(), "Left analogous should preserve saturation", 0.01);
-		assertClose(testBase.S(), testRight.S(), "Right analogous should preserve saturation", 0.01);
-		assertClose(testBase.L(), testLeft.L(), "Left analogous should preserve lightness", 0.01);
-		assertClose(testBase.L(), testRight.L(), "Right analogous should preserve lightness", 0.01);
+		assertEquals(testBase.S(), testLeft.S(), 0.01, "Left analogous should preserve saturation");
+		assertEquals(testBase.S(), testRight.S(), 0.01, "Right analogous should preserve saturation");
+		assertEquals(testBase.L(), testLeft.L(), 0.01, "Left analogous should preserve lightness");
+		assertEquals(testBase.L(), testRight.L(), 0.01, "Right analogous should preserve lightness");
 	}
 
 	@Test
@@ -91,19 +91,19 @@ public class ColorHarmonyTests {
 		RGB redComplement = red.complementary();
 		// Red (0°) complement should be cyan (180°)
 		HSL redComplementHSL = redComplement.HSL();
-		assertClose(180, redComplementHSL.H(), "Red complement hue", 1);
+		assertEquals(180, redComplementHSL.H(), 1, "Red complement hue");
 
 		RGB green = new RGB(0, 1, 0);
 		RGB greenComplement = green.complementary();
 		// Green (120°) complement should be magenta (300°)
 		HSL greenComplementHSL = greenComplement.HSL();
-		assertClose(300, greenComplementHSL.H(), "Green complement hue", 1);
+		assertEquals(300, greenComplementHSL.H(), 1, "Green complement hue");
 
 		RGB blue = new RGB(0, 0, 1);
 		RGB blueComplement = blue.complementary();
 		// Blue (240°) complement should be yellow (60°)
 		HSL blueComplementHSL = blueComplement.HSL();
-		assertClose(60, blueComplementHSL.H(), "Blue complement hue", 1);
+		assertEquals(60, blueComplementHSL.H(), 1, "Blue complement hue");
 
 		// Test with secondary colors
 		RGB cyan = new RGB(0, 1, 1);
@@ -118,24 +118,24 @@ public class ColorHarmonyTests {
 		RGB magentaComplement = magenta.complementary();
 		// Magenta (300°) complement should be green (120°)
 		HSL magentaComplementHSL = magentaComplement.HSL();
-		assertClose(120, magentaComplementHSL.H(), "Magenta complement hue", 1);
+		assertEquals(120, magentaComplementHSL.H(), 1, "Magenta complement hue");
 
 		RGB yellow = new RGB(1, 1, 0);
 		RGB yellowComplement = yellow.complementary();
 		// Yellow (60°) complement should be blue (240°)
 		HSL yellowComplementHSL = yellowComplement.HSL();
-		assertClose(240, yellowComplementHSL.H(), "Yellow complement hue", 1);
+		assertEquals(240, yellowComplementHSL.H(), 1, "Yellow complement hue");
 
 		// Test with gray (should return gray)
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		RGB grayComplement = gray.complementary();
-		assertRecordClose(gray, grayComplement, "Gray complement should be gray", 0.01);
+		assertClose(gray, grayComplement, 0.01, "Gray complement should be gray");
 
 		// Verify that applying complementary twice returns original color
 		RGB testColor = new RGB(0.7f, 0.3f, 0.5f);
 		RGB complement = testColor.complementary();
 		RGB doubleComplement = complement.complementary();
-		assertRecordClose(testColor, doubleComplement, "Double complement should return original", 0.01);
+		assertClose(testColor, doubleComplement, 0.01, "Double complement should return original");
 	}
 
 	@Test
@@ -145,7 +145,7 @@ public class ColorHarmonyTests {
 		RGB[] splitComp = red.splitComplementary();
 
 		assertEquals(3, splitComp.length, "Split complementary should return 3 colors");
-		assertRecordClose(red, splitComp[0], "First color should be base color");
+		assertClose(red, splitComp[0], "First color should be base color");
 
 		HSL base = red.HSL();
 		HSL split1 = splitComp[1].HSL();
@@ -157,8 +157,8 @@ public class ColorHarmonyTests {
 		if (expected1 >= 360) expected1 -= 360;
 		if (expected2 >= 360) expected2 -= 360;
 
-		assertClose(expected1, split1.H(), "First split complementary hue", 1);
-		assertClose(expected2, split2.H(), "Second split complementary hue", 1);
+		assertEquals(expected1, split1.H(), 1, "First split complementary hue");
+		assertEquals(expected2, split2.H(), 1, "Second split complementary hue");
 
 		// Test that splits are equidistant from true complement
 		float complement = base.H() + 180;
@@ -166,7 +166,7 @@ public class ColorHarmonyTests {
 
 		float dist1 = Math.abs(split1.H() - complement);
 		float dist2 = Math.abs(complement - split2.H());
-		assertClose(dist1, dist2, "Splits should be equidistant from complement", 1);
+		assertEquals(dist1, dist2, 1, "Splits should be equidistant from complement");
 
 		// Test with different base colors
 		RGB green = new RGB(0, 1, 0);
@@ -180,8 +180,8 @@ public class ColorHarmonyTests {
 		if (expected1 >= 360) expected1 -= 360;
 		if (expected2 >= 360) expected2 -= 360;
 
-		assertClose(expected1, greenSplit1.H(), "Green first split hue", 1);
-		assertClose(expected2, greenSplit2.H(), "Green second split hue", 1);
+		assertEquals(expected1, greenSplit1.H(), 1, "Green first split hue");
+		assertEquals(expected2, greenSplit2.H(), 1, "Green second split hue");
 
 		// Test saturation and lightness preservation
 		RGB testColor = new RGB(0.7f, 0.3f, 0.5f);
@@ -190,10 +190,10 @@ public class ColorHarmonyTests {
 		HSL testSplit1 = testSplit[1].HSL();
 		HSL testSplit2 = testSplit[2].HSL();
 
-		assertClose(testBase.S(), testSplit1.S(), "Split 1 should preserve saturation", 0.01);
-		assertClose(testBase.S(), testSplit2.S(), "Split 2 should preserve saturation", 0.01);
-		assertClose(testBase.L(), testSplit1.L(), "Split 1 should preserve lightness", 0.01);
-		assertClose(testBase.L(), testSplit2.L(), "Split 2 should preserve lightness", 0.01);
+		assertEquals(testBase.S(), testSplit1.S(), 0.01, "Split 1 should preserve saturation");
+		assertEquals(testBase.S(), testSplit2.S(), 0.01, "Split 2 should preserve saturation");
+		assertEquals(testBase.L(), testSplit1.L(), 0.01, "Split 1 should preserve lightness");
+		assertEquals(testBase.L(), testSplit2.L(), 0.01, "Split 2 should preserve lightness");
 	}
 
 	@Test
@@ -203,7 +203,7 @@ public class ColorHarmonyTests {
 		RGB[] triadicRed = red.triadic();
 
 		assertEquals(3, triadicRed.length, "Triadic should return 3 colors");
-		assertRecordClose(red, triadicRed[0], "First color should be base color");
+		assertClose(red, triadicRed[0], "First color should be base color");
 
 		HSL base = red.HSL();
 		HSL color2 = triadicRed[1].HSL();
@@ -215,22 +215,22 @@ public class ColorHarmonyTests {
 		if (expected2 >= 360) expected2 -= 360;
 		if (expected3 >= 360) expected3 -= 360;
 
-		assertClose(expected2, color2.H(), "Second triadic hue", 1);
-		assertClose(expected3, color3.H(), "Third triadic hue", 1);
+		assertEquals(expected2, color2.H(), 1, "Second triadic hue");
+		assertEquals(expected3, color3.H(), 1, "Third triadic hue");
 
 		// Test that it forms the RGB primary triad
 		RGB[] rgbTriad = red.triadic();
 		// Red (0°) -> Green (120°) -> Blue (240°)
-		assertClose(0, rgbTriad[0].HSL().H(), "Red hue", 1);
-		assertClose(120, rgbTriad[1].HSL().H(), "Green hue", 1);
-		assertClose(240, rgbTriad[2].HSL().H(), "Blue hue", 1);
+		assertEquals(0, rgbTriad[0].HSL().H(), 1, "Red hue");
+		assertEquals(120, rgbTriad[1].HSL().H(), 1, "Green hue");
+		assertEquals(240, rgbTriad[2].HSL().H(), 1, "Blue hue");
 
 		// Test with green
 		RGB green = new RGB(0, 1, 0);
 		RGB[] triadicGreen = green.triadic();
 		// Green (120°) -> Blue (240°) -> Red (360°/0°)
-		assertClose(120, triadicGreen[0].HSL().H(), "Green hue", 1);
-		assertClose(240, triadicGreen[1].HSL().H(), "Blue hue", 1);
+		assertEquals(120, triadicGreen[0].HSL().H(), 1, "Green hue");
+		assertEquals(240, triadicGreen[1].HSL().H(), 1, "Blue hue");
 		float redHue = triadicGreen[2].HSL().H();
 		assertTrue(redHue < 1 || redHue > 359, "Red hue should be ~0° (was " + redHue + ")");
 
@@ -241,10 +241,10 @@ public class ColorHarmonyTests {
 		HSL test2 = testTriadic[1].HSL();
 		HSL test3 = testTriadic[2].HSL();
 
-		assertClose(testBase.S(), test2.S(), "Triadic 2 should preserve saturation", 0.01);
-		assertClose(testBase.S(), test3.S(), "Triadic 3 should preserve saturation", 0.01);
-		assertClose(testBase.L(), test2.L(), "Triadic 2 should preserve lightness", 0.01);
-		assertClose(testBase.L(), test3.L(), "Triadic 3 should preserve lightness", 0.01);
+		assertEquals(testBase.S(), test2.S(), 0.01, "Triadic 2 should preserve saturation");
+		assertEquals(testBase.S(), test3.S(), 0.01, "Triadic 3 should preserve saturation");
+		assertEquals(testBase.L(), test2.L(), 0.01, "Triadic 2 should preserve lightness");
+		assertEquals(testBase.L(), test3.L(), 0.01, "Triadic 3 should preserve lightness");
 
 		// Test with various hues to ensure correct spacing
 		for (float hue = 0; hue < 360; hue += 45) {
@@ -266,9 +266,9 @@ public class ColorHarmonyTests {
 			if (diff23 < 0) diff23 += 360;
 			if (diff31 < 0) diff31 += 360;
 
-			assertClose(120, diff12, "Triadic spacing 1->2 at hue " + hue, 2);
-			assertClose(120, diff23, "Triadic spacing 2->3 at hue " + hue, 2);
-			assertClose(120, diff31, "Triadic spacing 3->1 at hue " + hue, 2);
+			assertEquals(120, diff12, 2, "Triadic spacing 1->2 at hue " + hue);
+			assertEquals(120, diff23, 2, "Triadic spacing 2->3 at hue " + hue);
+			assertEquals(120, diff31, 2, "Triadic spacing 3->1 at hue " + hue);
 		}
 
 		// Test with gray (should handle achromatic case)
@@ -277,8 +277,8 @@ public class ColorHarmonyTests {
 		// All three should remain gray since there's no hue
 		for (RGB color : triadicGray) {
 			HSL hsl = color.HSL();
-			assertClose(0, hsl.S(), "Triadic gray should have no saturation", 0.01);
-			assertClose(0.5f, hsl.L(), "Triadic gray should preserve lightness", 0.01);
+			assertEquals(0, hsl.S(), 0.01, "Triadic gray should have no saturation");
+			assertEquals(0.5f, hsl.L(), 0.01, "Triadic gray should preserve lightness");
 		}
 	}
 }
