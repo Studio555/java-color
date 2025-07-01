@@ -180,6 +180,31 @@ public record CCT ( //
 		return new XYZ((float)X, 100, (float)Z);
 	}
 
+	public uv1960 uv1960 () {
+		if (K < 1000 || K > 100000) return new uv1960(Float.NaN, Float.NaN);
+		float[] Robertson = CCT.Robertson;
+		float pr = Robertson[0], mired = 1e6f / K;
+		for (int i = 5; i < 645; i += 5) {
+			float cr = Robertson[i];
+			if (mired >= pr && mired <= cr) {
+				float t = (mired - pr) / (cr - pr), u = Robertson[i - 4], v = Robertson[i - 3];
+				u += (Robertson[i + 1] - u) * t;
+				v += (Robertson[i + 2] - v) * t;
+				if (Duv != 0) {
+					float du = Robertson[i - 2], dv = Robertson[i - 1];
+					du += t * (Robertson[i + 3] - du);
+					dv += t * (Robertson[i + 4] - dv);
+					u -= du * Duv;
+					v -= dv * Duv;
+				}
+				return new uv1960(u, v);
+			}
+			pr = cr;
+		}
+		if (mired < Robertson[0]) return new uv1960(Robertson[1] - Robertson[4] * Duv, Robertson[2] + Robertson[3] * Duv);
+		return new uv1960(Robertson[646] - Robertson[649] * Duv, Robertson[647] + Robertson[648] * Duv);
+	}
+
 	/** {@link #xy(float)} with 0 Duv. Worst case accuracy is 0.00058 [1667-100000K] else uses exact Planck calculation
 	 * [427..1667].
 	 * @return NaN if invalid. */

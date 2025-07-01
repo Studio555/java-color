@@ -15,6 +15,12 @@ import com.esotericsoftware.color.space.xy;
 
 public class CCTTests extends Tests {
 	@Test
+	public void testCCTtouv () {
+		System.out.println(new CCT(6500, 0.03f).uv1960());
+		System.out.println(new CCT(6500, 0.03f).xy().uv1960());
+	}
+
+	@Test
 	public void testDuvSigns () {
 		for (CCT.Method method : CCT.Method.values())
 			checkDuvSigns(method);
