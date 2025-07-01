@@ -5,8 +5,14 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Spectrum;
 
-public record CCT (/** [427..100000K] */
-float K) {
+public record CCT ( //
+	/** [427..100000K] */
+	float K,
+	float Duv) {
+
+	public CCT (float K) {
+		this(K, 0);
+	}
 
 	/** Returns a reference illuminant spectrum for this CCT. Uses Planckian radiator for CCT < 5000K, CIE daylight for >= 5000K.
 	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. */
@@ -151,10 +157,10 @@ float K) {
 		return xy(Duv).uv();
 	}
 
-	/** Uses exact Planck calculation [427..1667].
+	/** Uses exact Planck calculation [427..100000].
 	 * @return Normalized with Y=100 or NaN if invalid. */
 	public XYZ XYZ () {
-		if (K < 100 || K > 100000) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		if (K < 427 || K > 100000) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		double X = 0, Y = 0, Z = 0;
 		for (int i = 0; i < 81; i++) {
 			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
@@ -176,7 +182,7 @@ float K) {
 	 * [427..1667].
 	 * @return NaN if invalid. */
 	public xy xy () {
-		if (K < 100 || K > 100000) return new xy(Float.NaN, Float.NaN);
+		if (K < 427 || K > 100000) return new xy(Float.NaN, Float.NaN);
 		if (K >= 1667) {
 			float x, t2 = K * K; // Krystek's approximation.
 			if (K >= 1667 && K <= 4000)
@@ -237,9 +243,9 @@ float K) {
 	public xy xy (float Duv) {
 		if (K < 1667 || K > 25000) return new xy(Float.NaN, Float.NaN);
 		xy xy = xy();
-		if (Duv == 0) return xy;
-		uv1960 perp = perpendicular(K, xy), uvBB = xy.uv1960();
-		return new uv1960(uvBB.u() + perp.u() * Duv, uvBB.v() + perp.v() * Duv).xy();
+		if (Duv == 0 || Duv == this.Duv) return xy;
+		uv1960 perp = perpendicular(K, xy), uv = xy.uv1960();
+		return new uv1960(uv.u() + perp.u() * Duv, uv.v() + perp.v() * Duv).xy();
 	}
 
 	static uv1960 perpendicular (float K, xy xyPoint) {

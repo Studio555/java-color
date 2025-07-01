@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.Tests.*;
-
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.RGB;

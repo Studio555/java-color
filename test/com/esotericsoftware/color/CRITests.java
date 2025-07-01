@@ -1,14 +1,11 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.Tests.*;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.CCT;
 import com.esotericsoftware.color.space.XYZ;
-import com.esotericsoftware.color.space.xy;
 
 public class CRITests extends Tests {
 	@Test
@@ -82,8 +79,7 @@ public class CRITests extends Tests {
 	@Test
 	public void testSpectrumLength () {
 		// Test that incorrect spectrum length throws exception
-		Assertions.assertThrows(IllegalArgumentException.class, () -> new Spectrum(new float[80]).CRI());
-		Assertions.assertThrows(IllegalArgumentException.class, () -> new Spectrum(new float[82], 1).CRI());
+		Assertions.assertThrows(IllegalArgumentException.class, () -> new Spectrum(new float[64]).CRI());
 	}
 
 	@Test

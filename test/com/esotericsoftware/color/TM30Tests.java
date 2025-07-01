@@ -1,14 +1,11 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.Tests.*;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.CCT;
 import com.esotericsoftware.color.space.XYZ;
-import com.esotericsoftware.color.space.xy;
 
 public class TM30Tests extends Tests {
 	@Test

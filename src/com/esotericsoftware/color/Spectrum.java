@@ -32,16 +32,17 @@ public record Spectrum (float[] values, int step, int start) {
 		this(values, 5, 380);
 	}
 
-	/** @return CCT [1667..25000K] or NaN out of range. */
+	/** @return [1000..100000K] or NaN out of range.
+	 * @see uv#CCT() */
 	public CCT CCT () {
-		return xy().CCT();
+		return uv().CCT();
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm. */
 	public CRI CRI () {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
-		CCT cct = testXYZ.xy().CCT();
+		CCT cct = testXYZ.uv().CCT();
 		Spectrum reference = (cct.invalid() ? new CCT(6500) : cct).illuminant();
 		XYZ refXYZ = reference.XYZ();
 		float[] samples = new float[14];
@@ -54,11 +55,6 @@ public record Spectrum (float[] values, int step, int start) {
 			if (i < 8) sumRa += samples[i];
 		}
 		return new CRI(sumRa / 8, samples);
-	}
-
-	/** @return NaN if invalid. */
-	public float Duv () {
-		return xy().Duv();
 	}
 
 	/** Uses {@link CIE2#D65}. */
@@ -80,7 +76,7 @@ public record Spectrum (float[] values, int step, int start) {
 	public TM30 TM30 (boolean useCAM02) {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
-		CCT cct = testXYZ.xy().CCT();
+		CCT cct = testXYZ.uv().CCT();
 		Spectrum reference = (cct.invalid() ? new CCT(6500) : cct).illuminant();
 		float sum = 0;
 		float[] colorSamples = new float[99];
@@ -287,10 +283,9 @@ public record Spectrum (float[] values, int step, int start) {
 
 	/** Throw if spectrum is not 380nm @ 5nm to [700..780+]nm. */
 	private void checkVisibleRange () {
+		if (values.length < 65) throw new IllegalArgumentException("Spectrum must extend to at least 700nm, ends at: " + end());
 		if (start != 380) throw new IllegalArgumentException("start must be 380: " + start);
 		if (step != 5) throw new IllegalArgumentException("step must be 5: " + step);
-		int end = end();
-		if (end < 700) throw new IllegalArgumentException("Spectrum must extend to at least 700nm, ends at: " + end);
 	}
 
 	private void checkSame (Spectrum other) {

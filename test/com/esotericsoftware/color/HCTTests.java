@@ -1,7 +1,6 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.Tests.*;
 import static com.esotericsoftware.color.Util.*;
 
 import org.junit.jupiter.api.Test;

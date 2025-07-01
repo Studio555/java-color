@@ -14,9 +14,59 @@ public record uv (
 	/** v' chromaticity [0..1]. */
 	float v) {
 
-	/** @return [1667..25000K] or NaN if invalid. */
+	static private float[] KPlanckian;
+	static private float[] uvPlanckian;
+
+	/** Maximum error 1K [1000..7000], 2.7K [7000..20000], 3.52K [20000-100000].
+	 * @return [1000..100000K] or NaN out of range. */
 	public CCT CCT () {
-		return xy().CCT();
+		if (KPlanckian == null) PlanckianTable();
+		float min = Float.MAX_VALUE;
+		int i = 0;
+		for (int t = 0; t < 1030; t += 2) {
+			float dx = uvPlanckian[t] - u, dy = uvPlanckian[t + 1] - v, dist = dx * dx + dy * dy;
+			if (dist < min) {
+				min = dist;
+				i = t;
+			}
+		}
+		if (i == 0)
+			i = 2;
+		else if (i == 1028) //
+			i = 1026;
+		int k = i >> 1;
+		float Kp = KPlanckian[k - 1], up = uvPlanckian[i - 2], vp = uvPlanckian[i - 1]; // 3 points.
+		float Kn = KPlanckian[k + 1], un = uvPlanckian[i + 2], vn = uvPlanckian[i + 3];
+		float dx = u - up, dy = v - vp, dp = (float)Math.sqrt(dx * dx + dy * dy);
+		dx = u - un;
+		dy = v - vn;
+		float dn = (float)Math.sqrt(dx * dx + dy * dy);
+		dx = up - un;
+		dy = vp - vn;
+		float side = (float)Math.sqrt(dx * dx + dy * dy), iside = 1f / side; // Triangular solution.
+		float dist = (dp * dp - dn * dn + side * side) * 0.5f * iside, ds = dist * iside, Duv = dp * dp - dist * dist, K;
+		if (Duv >= 0.000004f) { // 0.002^2
+			float Ki = KPlanckian[k], ui = uvPlanckian[i], vi = uvPlanckian[i + 1];
+			float denom = (Kn - Ki) * (Kp - Kn) * (Ki - Kp); // Parabolic solution.
+			if (Math.abs(denom) < EPSILON) {
+				K = Kp + (Kn - Kp) * ds;
+				Duv = (float)Math.sqrt(Math.max(0, Duv));
+			} else {
+				dx = u - ui;
+				dy = v - vi;
+				float di = (float)Math.sqrt(dx * dx + dy * dy);
+				float a = (Kp * (dn - di) + Ki * (dp - dn) + Kn * (di - dp)) / denom;
+				float b = -(Kp * Kp * (dn - di) + Ki * Ki * (dp - dn) + Kn * Kn * (di - dp)) / denom;
+				float c = -(dp * (Kn - Ki) * Ki * Kn + di * (Kp - Kn) * Kp * Kn + dn * (Ki - Kp) * Kp * Ki) / denom;
+				K = -b / (2 * a);
+				Duv = a * K * K + b * K + c;
+			}
+		} else {
+			K = Kp + (Kn - Kp) * ds;
+			Duv = (float)Math.sqrt(Duv);
+		}
+		if (K < 1000 || K > 100000) return new CCT(Float.NaN, Float.NaN);
+		return new CCT(K, Duv * Math.signum(v - (vp + (vn - vp) * ds)));
 	}
 
 	/** Uses {@link CIE2#D65}. */
@@ -106,11 +156,6 @@ public record uv (
 		return XYZ().Lab().deltaE2000(other.XYZ().Lab(), 1, 1, 1);
 	}
 
-	/** @return NaN if invalid. */
-	public float Duv () {
-		return xy().Duv();
-	}
-
 	public uv lerp (uv other, float t) {
 		return new uv(Util.lerp(u, other.u, t), Util.lerp(v, other.v, t));
 	}
@@ -161,5 +206,35 @@ public record uv (
 
 	public float len2 () {
 		return u * u + v * v;
+	}
+
+	/** Ohno with 1.0134 spacing. */
+	static private void PlanckianTable () {
+		if (KPlanckian == null) {
+			synchronized (uv.class) {
+				if (KPlanckian == null) {
+					float[] kTable = new float[515];
+					float[] uvTable = new float[1030];
+					kTable[0] = 1000;
+					kTable[1] = 1001;
+					float K = 1001, next = 1.0134f;
+					for (int i = 2; i < 513; i++) {
+						K *= next;
+						kTable[i] = K;
+						float D = clamp((K - 1000) / 99000);
+						next = 1.0134f * (1 - D) + (1 + (1.0134f - 1) / 10) * D;
+					}
+					kTable[513] = 99999f;
+					kTable[514] = 100000f;
+					for (int i = 0; i < 515; i++) {
+						uv uv = new CCT(kTable[i]).XYZ().uv();
+						uvTable[i * 2] = uv.u();
+						uvTable[i * 2 + 1] = uv.v();
+					}
+					KPlanckian = kTable;
+					uvPlanckian = uvTable;
+				}
+			}
+		}
 	}
 }

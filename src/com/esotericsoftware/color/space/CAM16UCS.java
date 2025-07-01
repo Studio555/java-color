@@ -20,7 +20,7 @@ public record CAM16UCS (
 	}
 
 	public float C () {
-		return (float)Math.hypot(a, b);
+		return (float)Math.sqrt(a * a + b * b);
 	}
 
 	public float get (int index) {
@@ -43,7 +43,7 @@ public record CAM16UCS (
 
 	public CAM02UCS CAM02UCS () { // Based on Luo et al. "Uniform colour spaces based on CIECAM02 colour appearance model".
 		float KL = 0.77f, c1 = 0.007f, c2 = 0.0228f, J02 = J / 1.7f * (1 + c1 * J) / (1 + c1 * J / 1.7f);
-		float M16 = (float)Math.sqrt(a * a + b * b), M02 = (float)(Math.exp(M16 * c2) - 1) / c2;
+		float M16 = C(), M02 = (float)(Math.exp(M16 * c2) - 1) / c2;
 		float ratio = M16 > 0 ? M02 / M16 : 0; // Maintain hue angle.
 		return new CAM02UCS(J02 * KL, a * ratio, b * ratio);
 	}
@@ -54,7 +54,7 @@ public record CAM16UCS (
 	}
 
 	public CAM16 CAM16 (CAM16.VC vc) { // Based on Copyright 2021 Google LLC (Apache 2.0).
-		float C = (float)(Math.expm1(Math.hypot(a, b) * 0.0228) / 0.0228) / vc.FLRoot();
+		float C = (float)(Math.expm1(C() * 0.0228) / 0.0228) / vc.FLRoot();
 		float h = (float)Math.atan2(b, a) * radDeg;
 		if (h < 0) h += 360;
 		float J = this.J / (1 - (this.J - 100) * 0.007f), sqrtJ = (float)Math.sqrt(J / 100);

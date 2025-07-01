@@ -1,7 +1,6 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.Tests.*;
 import static com.esotericsoftware.color.Util.*;
 
 import org.junit.jupiter.api.Assertions;
@@ -710,11 +709,11 @@ public class ColorsTest extends Tests {
 	@Test
 	public void testOtherMethods () {
 		RGB d65 = new RGB(1, 1, 1);
-		float duvD65 = d65.xy().Duv();
-		assertTrue(Math.abs(duvD65) < 0.1f, "D65 should be close to Planckian locus: " + duvD65);
+		float duvD65 = d65.CCT().Duv();
+		assertEquals(0.0032, Math.abs(duvD65), 0.001f, "D65 should be close to Planckian locus: " + duvD65);
 
 		uv uvPoint = new uv(0.2105f, 0.4737f); // D65 in u'v'
-		float duvDirect = uvPoint.xy().Duv();
+		float duvDirect = uvPoint.CCT().Duv();
 		assertTrue(Math.abs(duvDirect) < 0.1f, "D65 UV should be close to Planckian locus");
 
 		// Test MacAdamSteps - method not implemented yet

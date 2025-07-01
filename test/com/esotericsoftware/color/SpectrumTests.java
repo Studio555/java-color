@@ -3,6 +3,7 @@ package com.esotericsoftware.color;
 
 import org.junit.jupiter.api.Test;
 
+import com.esotericsoftware.color.space.CCT;
 import com.esotericsoftware.color.space.XYZ;
 
 public class SpectrumTests extends Tests {
@@ -61,14 +62,14 @@ public class SpectrumTests extends Tests {
 
 		Spectrum spectrum = new Spectrum(values);
 
-		assertEquals(exK, spectrum.CCT().K(), 0.1f, "CCT#K: " + name);
+		CCT cct = spectrum.CCT();
+		assertEquals(exK, cct.K(), 0.1f, "CCT#K: " + name);
+		assertEquals(exDuv, cct.Duv(), 0.0001f, "Spectrum Duv: " + name);
 
 		XYZ xyz = spectrum.XYZ();
 		assertEquals(exX, xyz.X(), 0.0001f, "Spectrum XYZ#X: " + name);
 		assertEquals(exY, xyz.Y(), 0.0001f, "Spectrum XYZ#Y: " + name);
 		assertEquals(exZ, xyz.Z(), 0.0001f, "Spectrum XYZ#Z: " + name);
-
-		assertEquals(exDuv, xyz.xy().Duv(), 0.0001f, "Spectrum Duv: " + name);
 
 		assertEquals(exLER, spectrum.LER(), 0.01f, "Spectrum LER: " + name);
 

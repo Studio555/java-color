@@ -77,7 +77,7 @@ public record XYZ (
 		float huePrime = (h < 20.14f) ? h + 360 : h; // CAM16 chroma, colorfulness, and saturation.
 		float eHue = 0.25f * ((float)Math.cos(huePrime * degRad + 2) + 3.8f);
 		float p1 = 50000 / 13f * eHue * vc.Nc() * vc.Ncb();
-		float t = p1 * (float)Math.hypot(a, b) / (u + 0.305f);
+		float t = p1 * (float)Math.sqrt(a * a + b * b) / (u + 0.305f);
 		float alpha = (float)Math.pow(1.64 - Math.pow(0.29, vc.n()), 0.73) * (float)Math.pow(t, 0.9);
 		float C = alpha * (float)Math.sqrt(J / 100); // CAM16 chroma, colorfulness, saturation.
 		return new CAM16(J, C, h, 4 / vc.c() * (float)Math.sqrt(J / 100) * (vc.Aw() + 4) * vc.FLRoot(), C * vc.FLRoot(),

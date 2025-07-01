@@ -100,9 +100,10 @@ public record RGB (
 			(float)Math.atan(b / Math.max(r, g)));
 	}
 
-	/** @return [1667..25000K] or NaN if invalid. */
+	/** @return [1000..100000K] or NaN out of range.
+	 * @see uv#CCT() */
 	public CCT CCT () {
-		return xy().CCT();
+		return uv().CCT();
 	}
 
 	public CMYK CMYK () {
