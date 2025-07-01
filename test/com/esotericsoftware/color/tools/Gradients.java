@@ -1,5 +1,5 @@
 
-package com.esotericsoftware.color;
+package com.esotericsoftware.color.tools;
 
 import static com.esotericsoftware.color.Util.*;
 

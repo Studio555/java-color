@@ -33,7 +33,8 @@ public class Tests extends Assertions {
 					String stripped = line.stripLeading();
 					return stripped.isEmpty() || !stripped.startsWith("at ") || stripped.startsWith("at com.esotericsoftware");
 				}).collect(Collectors.joining("\n"));
-			System.out.println(context.getTestClass().get().getSimpleName() + "#" + context.getTestMethod().get().getName() + ":");
+			System.out.println(
+				"--- " + context.getTestClass().get().getSimpleName() + ": " + context.getTestMethod().get().getName() + " ---");
 			System.out.println(trimmed);
 			System.out.println();
 		}

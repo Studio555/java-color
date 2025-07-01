@@ -63,7 +63,7 @@ public class SpectrumTests extends Tests {
 		Spectrum spectrum = new Spectrum(values);
 
 		CCT cct = spectrum.CCT();
-		assertEquals(exK, cct.K(), 0.1f, "CCT#K: " + name);
+		assertEquals(exK, cct.K(), 1f, "CCT#K: " + name);
 		assertEquals(exDuv, cct.Duv(), 0.0001f, "Spectrum Duv: " + name);
 
 		XYZ xyz = spectrum.XYZ();

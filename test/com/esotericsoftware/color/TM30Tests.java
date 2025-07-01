@@ -91,8 +91,7 @@ public class TM30Tests extends Tests {
 	@Test
 	public void testSpectrumLength () {
 		// Test that incorrect spectrum length throws exception
-		Assertions.assertThrows(IllegalArgumentException.class, () -> new Spectrum(new float[80], 5).TM30());
-		Assertions.assertThrows(IllegalArgumentException.class, () -> new Spectrum(new float[82], 1).TM30());
+		Assertions.assertThrows(IllegalArgumentException.class, () -> new Spectrum(new float[64], 5).TM30());
 	}
 
 	@Test

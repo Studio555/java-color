@@ -33,7 +33,14 @@ public record Spectrum (float[] values, int step, int start) {
 	}
 
 	/** @return [1000..100000K] or NaN out of range.
-	 * @see uv#CCT() */
+	 * @see uv#CCT(CCT.Method) */
+	public CCT CCT (CCT.Method method) {
+		return uv().CCT(method);
+	}
+
+	/** Uses {@link CCT.Method#Robertson}.
+	 * @return [1000..100000K] or NaN out of range. */
+	@SuppressWarnings("javadoc")
 	public CCT CCT () {
 		return uv().CCT();
 	}
@@ -156,9 +163,10 @@ public record Spectrum (float[] values, int step, int start) {
 		checkVisibleRange();
 		float X = 0, Y = 0, Z = 0;
 		for (int i = 0, n = Math.min(values.length, 81); i < n; i++) {
-			X += values[i] * XYZ.Xbar[i];
-			Y += values[i] * XYZ.Ybar[i];
-			Z += values[i] * XYZ.Zbar[i];
+			float value = values[i];
+			X += value * XYZ.Xbar[i];
+			Y += value * XYZ.Ybar[i];
+			Z += value * XYZ.Zbar[i];
 		}
 		float normalize = XYZ.Km * 5 / 100;
 		return new XYZ(X * normalize, Y * normalize, Z * normalize);

@@ -16,7 +16,13 @@ public record xy (
 	float y) {
 
 	/** @return [1000..100000K] or NaN out of range.
-	 * @see uv#CCT() */
+	 * @see uv#CCT(CCT.Method) */
+	public CCT CCT (CCT.Method method) {
+		return uv().CCT(method);
+	}
+
+	/** Uses {@link CCT.Method#Robertson}.
+	 * @return [1000..100000K] or NaN out of range. */
 	public CCT CCT () {
 		return uv().CCT();
 	}
