@@ -14,9 +14,9 @@ public record uv (
 	/** v' chromaticity [0..1]. */
 	float v) {
 
-	/** Uses {@link CCT.Method#Robertson}. Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2.5K [20000-60000K], 2.6K
+	/** Uses {@link CCT.Method#Robertson}. Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.5K
 	 * [60000-100000K].
-	 * @return [1000..100000K] or NaN out of range. Duv accuracy is poor below 1030K. */
+	 * @return [1000..100000K] or NaN out of range. */
 	public CCT CCT () {
 		float[] Robertson = CCT.Robertson;
 		uv1960 uv = uv1960();

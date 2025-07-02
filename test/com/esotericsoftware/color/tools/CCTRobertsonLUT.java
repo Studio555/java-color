@@ -18,9 +18,8 @@ public class CCTRobertsonLUT {
 		// 1000.0..2000.0: 0.10083008 @ 1014.89636
 		// 2000.0..7000.0: 0.106933594 @ 5157.622
 		// 7000.0..20000.0: 1.09375 @ 19936.904
-		// 20000.0..40000.0: 2.03125 @ 39637.82
-		// 40000.0..60000.0: 2.0390625 @ 59691.14
-		// 60000.0..100000.0: 2.578125 @ 99653.45
+		// 20000.0..60000.0: 2.0429688 @ 59769.133
+		// 60000.0..100000.0: 2.5390625 @ 94223.31
 		for (double K = 971.56535f;;) {
 			double mired = 1e6f / K;
 			float[] entry = entry(K, mired);
@@ -36,7 +35,7 @@ public class CCTRobertsonLUT {
 			else if (K < 60000)
 				K *= Util.lerp(1.048f, 1.0432f, (float)(K - 40000) / (60000 - 40000));
 			else if (K < 100000)
-				K *= Util.lerp(1.0432f, 1.03105f, (float)(K - 60000) / (80000 - 60000));
+				K *= Util.lerp(1.0432f, 1.03106657f, (float)(K - 60000) / (80000 - 60000));
 			else
 				K *= 1.025f;
 			K *= 0.996f;
@@ -80,48 +79,22 @@ public class CCTRobertsonLUT {
 		return new float[] {(float)mired, u, v, (float)slope};
 	}
 
-	static private double[] CCT2uv (double K) {
-		if (K < 427 || K > 100000) return new double[] {Double.NaN, Double.NaN};
-		double X = 0, Y = 0, Z = 0;
-		for (int i = 0; i < 81; i++) {
-			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
-			double exponent = XYZ.c2 / (lambda * K);
-			double B = XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
-			X += B * XYZ.Xbar[i];
-			Y += B * XYZ.Ybar[i];
-			Z += B * XYZ.Zbar[i];
-		}
-		if (Y > 0) {
-			double scale = 100 / Y;
-			X *= scale;
-			Z *= scale;
-		}
-		// XYZ to xy
-		double sum = X + 100 + Z;
-		double x = X / sum, y = 100 / sum;
-		// xy to u'v'
-		double denom = -2 * x + 12 * y + 3;
-		if (Math.abs(denom) < EPSILON) return new double[] {Double.NaN, Double.NaN};
-		return new double[] {4 * x / denom, 6 * y / denom};
-	}
-
 	static private double calculateSlope (double K) {
 		double deltaK;
-		if (K >= 1620 && K <= 1700) {
+		if (K >= 1620 && K <= 1700)
 			deltaK = 0.001;
-		} else if (K >= 1550 && K <= 1750) {
+		else if (K >= 1550 && K <= 1750)
 			deltaK = 0.01;
-		} else if (K >= 1400 && K <= 1800) {
+		else if (K >= 1400 && K <= 1800)
 			deltaK = 0.1;
-		} else if (K >= 1000 && K <= 2000) {
+		else if (K >= 1000 && K <= 2000)
 			deltaK = 1;
-		} else if (K >= 50000) {
+		else if (K >= 50000)
 			deltaK = K * 0.00001;
-		} else if (K >= 20000) {
+		else if (K >= 20000)
 			deltaK = K * 0.0001;
-		} else {
+		else
 			deltaK = Math.min(10, K * 0.001);
-		}
 		double slope = calculateSlopeWithStep(K, deltaK, 0);
 		if (Math.abs(slope) > 100) {
 			deltaK *= 0.01;
@@ -139,5 +112,30 @@ public class CCTRobertsonLUT {
 		double dv_dK = (uv2[1] - uv1[1]) / (2 * deltaK);
 		if (Math.abs(dv_dK) < 1e-10) throw new RuntimeException();
 		return -du_dK / dv_dK;
+	}
+
+	static private double[] CCT2uv (double K) {
+		if (K < 427) throw new RuntimeException();
+		double X = 0, Y = 0, Z = 0;
+		for (int i = 0; i < 81; i++) {
+			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
+			double exponent = XYZ.c2 / (lambda * K);
+			double B = exponent > 700 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
+			X += B * XYZ.Xbar[i];
+			Y += B * XYZ.Ybar[i];
+			Z += B * XYZ.Zbar[i];
+		}
+		if (Y > 0) {
+			double scale = 100 / Y;
+			X *= scale;
+			Z *= scale;
+		}
+		// XYZ to xy
+		double sum = X + 100 + Z;
+		double x = X / sum, y = 100 / sum;
+		// xy to u'v'
+		double denom = -2 * x + 12 * y + 3;
+		if (Math.abs(denom) < EPSILON) return new double[] {Double.NaN, Double.NaN};
+		return new double[] {4 * x / denom, 6 * y / denom};
 	}
 }

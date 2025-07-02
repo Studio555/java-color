@@ -49,7 +49,7 @@ public class CCTTests extends Tests {
 		checkMaxError(CCT.Method.Robertson, 2000, 7000, 0.1f, 0.106933594f);
 		checkMaxError(CCT.Method.Robertson, 7000, 20000, 0.1f, 1.09375f);
 		checkMaxError(CCT.Method.Robertson, 20000, 60000, 0.1f, 2.0429688f);
-		checkMaxError(CCT.Method.Robertson, 60000, 100000, 0.1f, 23.554688f);
+		checkMaxError(CCT.Method.Robertson, 60000, 100000, 0.1f, 2.5390625f);
 
 		checkMaxError(CCT.Method.Ohno, 1000, 2000, 0.1f, 0.3104248f);
 		checkMaxError(CCT.Method.Ohno, 2000, 7000, 0.1f, 1.0024414f);
@@ -62,7 +62,7 @@ public class CCTTests extends Tests {
 		float max = 0, maxK = 0;
 		for (float K = start; K < end; K += step) {
 			CCT roundTrip = new CCT(K).XYZ().uv().CCT(method);
-			// assertEquals(0, roundTrip.Duv(), 0.0001f, "Wrong Duv: " + K + " K, " + method);
+			assertEquals(0, roundTrip.Duv(), 0.0001f, "Wrong Duv: " + K + " K, " + method);
 			float error = Math.abs(K - roundTrip.K());
 			if (error > max) {
 				max = error;
