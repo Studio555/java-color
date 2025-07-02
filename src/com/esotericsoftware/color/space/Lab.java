@@ -42,9 +42,9 @@ public record Lab (
 		return XYZ(CIE2.D65).LinearRGB();
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public LinearRGB LinearRGB (XYZ tristimulus) {
-		return XYZ(tristimulus).LinearRGB();
+	/** @param whitePoint See {@link Illuminant}. */
+	public LinearRGB LinearRGB (XYZ whitePoint) {
+		return XYZ(whitePoint).LinearRGB();
 	}
 
 	public LCh LCh () {
@@ -59,13 +59,13 @@ public record Lab (
 		return XYZ(CIE2.D65).RGB();
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public RGB RGB (XYZ tristimulus) {
-		return XYZ(tristimulus).RGB();
+	/** @param whitePoint See {@link Illuminant}. */
+	public RGB RGB (XYZ whitePoint) {
+		return XYZ(whitePoint).RGB();
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public XYZ XYZ (XYZ tristimulus) {
+	/** @param whitePoint See {@link Illuminant}. */
+	public XYZ XYZ (XYZ whitePoint) {
 		float Y = (L + 16) / 116;
 		float X = a / 500 + Y;
 		float Z = Y - b / 200;
@@ -74,7 +74,7 @@ public record Lab (
 		Y = Lab.LstarToYn(L);
 		float Z3 = Z * Z * Z;
 		Z = Z3 > Lab.e ? Z3 : (116 * Z - 16) / Lab.k;
-		return new XYZ(X * tristimulus.X(), Y * tristimulus.Y(), Z * tristimulus.Z());
+		return new XYZ(X * whitePoint.X(), Y * whitePoint.Y(), Z * whitePoint.Z());
 	}
 
 	/** CIEDE2000 color difference, considering lightness, chromaticity, and hue.

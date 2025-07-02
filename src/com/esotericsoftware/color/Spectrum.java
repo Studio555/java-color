@@ -47,7 +47,7 @@ public record Spectrum (float[] values, int step, int start) {
 		return uv().CCT();
 	}
 
-	/** Requires 380nm @ 5nm to [700..780+]nm. */
+	/** CIE 13.3-1995. Requires 380nm @ 5nm to [700..780+]nm. */
 	public CRI CRI () {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
@@ -59,7 +59,7 @@ public record Spectrum (float[] values, int step, int start) {
 		float sumRa = 0;
 		for (int i = 0; i < 14; i++) {
 			float[] tcs = CRI.TCS[i];
-			Lab testLab = illuminate(tcs).chromaticAdaptation(testXYZ, refXYZ, CAT.CAT16).Lab(refXYZ);
+			Lab testLab = illuminate(tcs).chromaticAdaptation(testXYZ, refXYZ, CAT.VonKries).Lab(refXYZ);
 			Lab refLab = reference.illuminate(tcs).Lab(refXYZ);
 			samples[i] = 100 - 4.6f * testLab.dst(refLab);
 			if (i < 8) sumRa += samples[i];
@@ -253,7 +253,7 @@ public record Spectrum (float[] values, int step, int start) {
 		}
 		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		float normalize = 100 / Y;
-		return new XYZ(X * normalize, Y * normalize, Z * normalize);
+		return new XYZ(X * normalize, 100, Z * normalize);
 	}
 
 	/** Resamples to new wavelength range and interval using linear interpolation and zero padding. */

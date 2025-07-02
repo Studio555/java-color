@@ -32,9 +32,9 @@ public record xy (
 		return Lab(CIE2.D65);
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public Lab Lab (XYZ tristimulus) {
-		return XYZ().Lab(tristimulus);
+	/** @param whitePoint See {@link Illuminant}. */
+	public Lab Lab (XYZ whitePoint) {
+		return XYZ().Lab(whitePoint);
 	}
 
 	/** Uses {@link CIE2#D65}. */
@@ -42,9 +42,9 @@ public record xy (
 		return LCh(CIE2.D65);
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public LCh LCh (XYZ tristimulus) {
-		return Lab(tristimulus).LCh();
+	/** @param whitePoint See {@link Illuminant}. */
+	public LCh LCh (XYZ whitePoint) {
+		return Lab(whitePoint).LCh();
 	}
 
 	/** Uses {@link CIE2#D65}.
@@ -60,8 +60,8 @@ public record xy (
 	}
 
 	/** @return NaN if invalid. */
-	public Luv Luv (XYZ tristimulus) {
-		return XYZ().Luv(tristimulus);
+	public Luv Luv (XYZ whitePoint) {
+		return XYZ().Luv(whitePoint);
 	}
 
 	/** Uses {@link Gamut#sRGB}.

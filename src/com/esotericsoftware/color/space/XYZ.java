@@ -114,9 +114,9 @@ public record XYZ (
 		return Lab(CIE2.D65);
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public Lab Lab (XYZ tristimulus) {
-		float X = this.X / tristimulus.X, Y = this.Y / tristimulus.Y, Z = this.Z / tristimulus.Z;
+	/** @param whitePoint See {@link Illuminant}. */
+	public Lab Lab (XYZ whitePoint) {
+		float X = this.X / whitePoint.X, Y = this.Y / whitePoint.Y, Z = this.Z / whitePoint.Z;
 		X = X > Lab.e ? (float)Math.pow(X, 1 / 3d) : (Lab.k * X + 16) / 116;
 		Y = Y > Lab.e ? (float)Math.pow(Y, 1 / 3d) : (Lab.k * Y + 16) / 116;
 		Z = Z > Lab.e ? (float)Math.pow(Z, 1 / 3d) : (Lab.k * Z + 16) / 116;
@@ -130,8 +130,8 @@ public record XYZ (
 	}
 
 	/** @return NaN if invalid. */
-	public Luv Luv (XYZ tristimulus) {
-		float Xn = tristimulus.X, Yn = tristimulus.Y, Zn = tristimulus.Z;
+	public Luv Luv (XYZ whitePoint) {
+		float Xn = whitePoint.X, Yn = whitePoint.Y, Zn = whitePoint.Z;
 		float yr = Y / Yn, L = yr > Lab.e ? 116 * (float)Math.cbrt(yr) - 16 : Lab.k * yr;
 		float divisor = X + 15 * Y + 3 * Z, divisorN = Xn + 15 * Yn + 3 * Zn;
 		if (divisor < EPSILON || divisorN < EPSILON) return new Luv(L, Float.NaN, Float.NaN);

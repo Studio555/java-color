@@ -45,10 +45,10 @@ public record Luv (
 		return RGB(CIE2.D65);
 	}
 
-	/** @param tristimulus See {@link Illuminant}.
+	/** @param whitePoint See {@link Illuminant}.
 	 * @return NaN if invalid. */
-	public RGB RGB (XYZ tristimulus) {
-		return XYZ(tristimulus).RGB();
+	public RGB RGB (XYZ whitePoint) {
+		return XYZ(whitePoint).RGB();
 	}
 
 	/** Uses {@link CIE2#D65}.
@@ -57,11 +57,11 @@ public record Luv (
 		return XYZ(CIE2.D65);
 	}
 
-	/** @param tristimulus See {@link Illuminant}.
+	/** @param whitePoint See {@link Illuminant}.
 	 * @return NaN if invalid. */
-	public XYZ XYZ (XYZ tristimulus) {
+	public XYZ XYZ (XYZ whitePoint) {
 		if (L < EPSILON) return new XYZ(0, 0, 0);
-		float Xn = tristimulus.X(), Yn = tristimulus.Y(), Zn = tristimulus.Z();
+		float Xn = whitePoint.X(), Yn = whitePoint.Y(), Zn = whitePoint.Z();
 		float divisorN = Xn + 15 * Yn + 3 * Zn;
 		if (divisorN < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		float un_prime = 4 * Xn / divisorN;

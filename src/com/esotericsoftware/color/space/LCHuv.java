@@ -26,9 +26,9 @@ public record LCHuv (
 		return XYZ(CIE2.D65).RGB();
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public RGB RGB (XYZ tristimulus) {
-		return XYZ(tristimulus).RGB();
+	/** @param whitePoint See {@link Illuminant}. */
+	public RGB RGB (XYZ whitePoint) {
+		return XYZ(whitePoint).RGB();
 	}
 
 	/** Uses {@link CIE2#D65}. */
@@ -36,9 +36,9 @@ public record LCHuv (
 		return XYZ(CIE2.D65).LinearRGB();
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public LinearRGB LinearRGB (XYZ tristimulus) {
-		return XYZ(tristimulus).LinearRGB();
+	/** @param whitePoint See {@link Illuminant}. */
+	public LinearRGB LinearRGB (XYZ whitePoint) {
+		return XYZ(whitePoint).LinearRGB();
 	}
 
 	/** Uses {@link CIE2#D65}. */
@@ -46,9 +46,9 @@ public record LCHuv (
 		return XYZ(CIE2.D65).uv();
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public uv uv (XYZ tristimulus) {
-		return XYZ(tristimulus).uv();
+	/** @param whitePoint See {@link Illuminant}. */
+	public uv uv (XYZ whitePoint) {
+		return XYZ(whitePoint).uv();
 	}
 
 	/** Uses {@link CIE2#D65}. */
@@ -56,9 +56,9 @@ public record LCHuv (
 		return XYZ(CIE2.D65).xy();
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public xy xy (XYZ tristimulus) {
-		return XYZ(tristimulus).xy();
+	/** @param whitePoint See {@link Illuminant}. */
+	public xy xy (XYZ whitePoint) {
+		return XYZ(whitePoint).xy();
 	}
 
 	/** Uses {@link CIE2#D65}. */
@@ -66,8 +66,8 @@ public record LCHuv (
 		return XYZ(CIE2.D65);
 	}
 
-	/** @param tristimulus See {@link Illuminant}. */
-	public XYZ XYZ (XYZ tristimulus) {
-		return Luv().XYZ(tristimulus);
+	/** @param whitePoint See {@link Illuminant}. */
+	public XYZ XYZ (XYZ whitePoint) {
+		return Luv().XYZ(whitePoint);
 	}
 }
