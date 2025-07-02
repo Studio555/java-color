@@ -14,14 +14,14 @@ public class CCTRobertsonLUT {
 	static public void main (String[] args) throws Exception {
 		List<float[]> entries = new ArrayList();
 
-		// 130 entries:
+		// 131 entries:
 		// 1000.0..2000.0: 0.10083008 @ 1014.89636
 		// 2000.0..7000.0: 0.106933594 @ 5157.622
 		// 7000.0..20000.0: 1.09375 @ 19936.904
 		// 20000.0..40000.0: 2.03125 @ 39637.82
 		// 40000.0..60000.0: 2.0390625 @ 59691.14
 		// 60000.0..100000.0: 2.578125 @ 99653.45
-		for (double K = 1000;;) {
+		for (double K = 971.56535f;;) {
 			double mired = 1e6f / K;
 			float[] entry = entry(K, mired);
 			entries.add(entry);

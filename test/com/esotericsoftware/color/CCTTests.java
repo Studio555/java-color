@@ -30,11 +30,13 @@ public class CCTTests extends Tests {
 	@Test
 	public void testxyErrorOhno () {
 		float max = 0;
-		for (float K = 1000; K < 25000; K += 0.1f) {
-			float roundTripK = new CCT(K).xy().CCT(CCT.Method.Ohno).K();
+		for (float K = 1000; K < 3000; K += 0.1f) {
+			xy xy = new CCT(K).xy();
+			float roundTripK = xy.CCT(CCT.Method.Ohno).K();
 			if (Float.isNaN(roundTripK)) System.out.println();
 			max = Math.max(max, K - roundTripK);
 		}
+		assertTrue(max < 1, "Max error: " + max);
 		for (float K = 25000; K < 100000; K += 0.1f) {
 			float roundTripK = new CCT(K).xy().CCT(CCT.Method.Ohno).K();
 			if (Float.isNaN(roundTripK)) System.out.println();
@@ -48,8 +50,8 @@ public class CCTTests extends Tests {
 		checkMaxError(CCT.Method.Robertson, 1000, 2000, 0.1f, 0.10083008f);
 		checkMaxError(CCT.Method.Robertson, 2000, 7000, 0.1f, 0.106933594f);
 		checkMaxError(CCT.Method.Robertson, 7000, 20000, 0.1f, 1.09375f);
-		checkMaxError(CCT.Method.Robertson, 20000, 60000, 0.1f, 2.046875f);
-		checkMaxError(CCT.Method.Robertson, 60000, 100000, 0.1f, 23.5625f);
+		checkMaxError(CCT.Method.Robertson, 20000, 60000, 0.1f, 2.0429688f);
+		checkMaxError(CCT.Method.Robertson, 60000, 100000, 0.1f, 23.554688f);
 
 		checkMaxError(CCT.Method.Ohno, 1000, 2000, 0.1f, 0.3104248f);
 		checkMaxError(CCT.Method.Ohno, 2000, 7000, 0.1f, 1.0024414f);
@@ -203,7 +205,7 @@ public class CCTTests extends Tests {
 		}
 
 		// Test round-trip accuracy specifically for new lower range
-		float[] lowCCTs = {1000, 1030, 1100, 1200, 1300, 1400, 1500, 1600, 2700, 3000, 4000, 5000, 6500, 10000};
+		float[] lowCCTs = {1000, 1001, 1030, 1100, 1200, 1300, 1400, 1500, 1600, 2700, 3000, 4000, 5000, 6500, 10000};
 		for (float cct : lowCCTs) {
 			// Test xy(CCT) -> CCT(xy) round trip
 			xy xyFromCCT = new CCT(cct).xy();
@@ -218,11 +220,7 @@ public class CCTTests extends Tests {
 			// Test with Duv offsets
 			xy xyWithDuv = new CCT(cct, 0.005f).xy();
 			float duvCalculated = xyWithDuv.CCT().Duv();
-			if (!Float.isNaN(duvCalculated)) {
-				// <1030K Robertson cannot accurately calculate Duv
-				if (cct < 1030) continue;
-				assertEquals(0.005f, duvCalculated, 0.001f, "Duv accuracy for low CCT " + cct);
-			}
+			if (!Float.isNaN(duvCalculated)) assertEquals(0.005f, duvCalculated, 0.001f, "Duv accuracy for low CCT " + cct);
 		}
 
 		// Test uv to CCT conversions

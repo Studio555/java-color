@@ -21,10 +21,10 @@ public record uv (
 		float[] Robertson = CCT.Robertson;
 		uv1960 uv = uv1960();
 		float u = uv.u(), v = uv.v(), pu = Robertson[1], pv = Robertson[2], pDt = 0, pDu = 0, pDv = 0;
-		for (int i = 5; i < 650; i += 5) {
+		for (int i = 5; i < 655; i += 5) {
 			float cu = Robertson[i + 1], cv = Robertson[i + 2], du = Robertson[i + 3], dv = Robertson[i + 4];
 			float dt = -(u - cu) * dv + (v - cv) * du;
-			if (dt <= 0 || i == 645) {
+			if (dt <= 0 || i == 650) {
 				dt = -Math.min(dt, 0);
 				float f = i == 5 ? 0 : dt / (pDt + dt), fc = 1 - f;
 				du = du * fc + pDu * f;
