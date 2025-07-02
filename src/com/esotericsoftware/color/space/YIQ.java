@@ -14,8 +14,8 @@ public record YIQ (
 
 	public RGB RGB () {
 		float r = 1 * Y + 0.95629572f * I + 0.62102442f * Q;
-		float g = 1 * Y - 0.27212210f * I - 0.64738060f * Q;
-		float b = 1 * Y - 1.10698902f * I + 1.70461500f * Q;
+		float g = 1 * Y - 0.2721221f * I - 0.6473806f * Q;
+		float b = 1 * Y - 1.10698902f * I + 1.704615f * Q;
 		return new RGB(clamp(r), clamp(g), clamp(b));
 	}
 

@@ -30,20 +30,20 @@ public class OklabTests extends Tests {
 	public void testKnownOklabValues () {
 		// Test white
 		Oklab white = new RGB(1, 1, 1).Oklab();
-		assertClose(white.L(), 1.0f, "White L");
-		assertClose(white.a(), 0.0f, "White a");
-		assertClose(white.b(), 0.0f, "White b");
+		assertClose(white.L(), 1f, "White L");
+		assertClose(white.a(), 0f, "White a");
+		assertClose(white.b(), 0f, "White b");
 
 		// Test black
 		Oklab black = new RGB(0, 0, 0).Oklab();
-		assertClose(black.L(), 0.0f, "Black L");
-		assertClose(black.a(), 0.0f, "Black a");
-		assertClose(black.b(), 0.0f, "Black b");
+		assertClose(black.L(), 0f, "Black L");
+		assertClose(black.a(), 0f, "Black a");
+		assertClose(black.b(), 0f, "Black b");
 
 		// Test gray (should have a=0, b=0)
 		Oklab gray = new RGB(0.5f, 0.5f, 0.5f).Oklab();
-		assertClose(gray.a(), 0.0f, "Gray a");
-		assertClose(gray.b(), 0.0f, "Gray b");
+		assertClose(gray.a(), 0f, "Gray a");
+		assertClose(gray.b(), 0f, "Gray b");
 	}
 
 	@Test
@@ -61,16 +61,16 @@ public class OklabTests extends Tests {
 
 		// Test that white has l=1
 		Okhsl white = new RGB(1, 1, 1).Okhsl();
-		assertClose(1.0f, white.l(), "White Okhsl lightness");
-		assertEquals(0.0f, white.s(), 0.01f, "White Okhsl saturation");
+		assertClose(1f, white.l(), "White Okhsl lightness");
+		assertEquals(0f, white.s(), 0.01f, "White Okhsl saturation");
 
 		// Test that black has l=0
 		Okhsl black = new RGB(0, 0, 0).Okhsl();
-		assertClose(0.0f, black.l(), "Black Okhsl lightness");
+		assertClose(0f, black.l(), "Black Okhsl lightness");
 
 		// Test that grays have s=0
 		Okhsl gray = new RGB(0.5f, 0.5f, 0.5f).Okhsl();
-		assertEquals(0.0f, gray.s(), 0.01f, "Gray Okhsl saturation");
+		assertEquals(0f, gray.s(), 0.01f, "Gray Okhsl saturation");
 
 		// Test hue angles for primary colors
 		Okhsl red = new RGB(1, 0, 0).Okhsl();
@@ -109,16 +109,16 @@ public class OklabTests extends Tests {
 
 		// Test that white has v=1
 		Okhsv white = new RGB(1, 1, 1).Okhsv();
-		assertEquals(1.0f, white.v(), 0.1f, "White Okhsv value");
-		assertEquals(0.0f, white.s(), 0.01f, "White Okhsv saturation");
+		assertEquals(1f, white.v(), 0.1f, "White Okhsv value");
+		assertEquals(0f, white.s(), 0.01f, "White Okhsv saturation");
 
 		// Test that black has v=0
 		Okhsv black = new RGB(0, 0, 0).Okhsv();
-		assertEquals(0.0f, black.v(), 0.01f, "Black Okhsv value");
+		assertEquals(0f, black.v(), 0.01f, "Black Okhsv value");
 
 		// Test that grays have s=0
 		Okhsv gray = new RGB(0.5f, 0.5f, 0.5f).Okhsv();
-		assertEquals(0.0f, gray.s(), 0.01f, "Gray Okhsv saturation");
+		assertEquals(0f, gray.s(), 0.01f, "Gray Okhsv saturation");
 
 		// Test hue angles for primary colors
 		Okhsv red = new RGB(1, 0, 0).Okhsv();
@@ -149,7 +149,7 @@ public class OklabTests extends Tests {
 	@Test
 	public void testOklabConversions () {
 		// Test Oklab to Oklch conversions, gray (should have C=0)
-		Oklab[] testLabs = {new Oklab(0.5f, 0.1f, 0.1f), new Oklab(0.8f, -0.05f, 0.05f), new Oklab(0.3f, 0.0f, 0.0f)};
+		Oklab[] testLabs = {new Oklab(0.5f, 0.1f, 0.1f), new Oklab(0.8f, -0.05f, 0.05f), new Oklab(0.3f, 0f, 0f)};
 		for (Oklab lab : testLabs) {
 			Oklch lch = lab.Oklch();
 			Oklab labBack = lch.Oklab();
@@ -294,8 +294,8 @@ public class OklabTests extends Tests {
 		assertClose(lab.b(), labBack.b(), "b channel");
 
 		// Test hue angle wrapping
-		Oklab labResult = new Oklch(0.5f, 0.1f, 370f).Oklab(); // 370° = 10°
-		Oklab labExpected = new Oklch(0.5f, 0.1f, 10f).Oklab();
+		Oklab labResult = new Oklch(0.5f, 0.1f, 370).Oklab(); // 370° = 10°
+		Oklab labExpected = new Oklch(0.5f, 0.1f, 10).Oklab();
 		assertClose(labResult.a(), labExpected.a(), "Hue wrap a");
 		assertClose(labResult.b(), labExpected.b(), "Hue wrap b");
 	}

@@ -77,7 +77,7 @@ public class SpectralLocusTests extends Tests {
 		assertTrue(SpectralLocus.contains(d65), "D65 inside locus");
 
 		// Test points outside
-		Assertions.assertFalse(SpectralLocus.contains(new uv(0.0f, 0.0f)), "(0,0) outside locus");
+		Assertions.assertFalse(SpectralLocus.contains(new uv(0f, 0f)), "(0,0) outside locus");
 		Assertions.assertFalse(SpectralLocus.contains(new uv(0.8f, 0.8f)), "(0.8,0.8) outside locus");
 
 		// Test boundary conditions

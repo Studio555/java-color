@@ -15,7 +15,7 @@ public record CAM02UCS (
 	}
 
 	public float h () {
-		float h = (float)Math.atan2(b, a) * 180f / (float)Math.PI;
+		float h = (float)Math.atan2(b, a) * 180 / (float)Math.PI;
 		return h < 0 ? h + 360 : h;
 	}
 

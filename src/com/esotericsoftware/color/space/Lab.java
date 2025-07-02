@@ -87,7 +87,7 @@ public record Lab (
 		float L1 = L(), a1 = a(), b1 = b();
 		float L2 = other.L(), a2 = other.a(), b2 = other.b();
 		float C1 = (float)Math.sqrt(a1 * a1 + b1 * b1), C2 = (float)Math.sqrt(a2 * a2 + b2 * b2); // Chroma.
-		float Cab = (C1 + C2) / 2, Cab7 = (float)Math.pow(Cab, 7), G = 0.5f * (1 - (float)Math.sqrt(Cab7 / (Cab7 + 6103515625f)));
+		float Cab = (C1 + C2) / 2, Cab7 = (float)Math.pow(Cab, 7), G = 0.5f * (1 - (float)Math.sqrt(Cab7 / (Cab7 + 6103515625d)));
 		float a1p = (1 + G) * a1, a2p = (1 + G) * a2;
 		float C1p = (float)Math.sqrt(a1p * a1p + b1 * b1), C2p = (float)Math.sqrt(a2p * a2p + b2 * b2);
 		float h1p = (float)Math.atan2(b1, a1p) * radDeg, h2p = (float)Math.atan2(b2, a2p) * radDeg; // Hue angle.
@@ -104,12 +104,12 @@ public record Lab (
 		hp /= 2;
 		float hpRad = hp * degRad;
 		float T = 1 - 0.17f * (float)Math.cos(hpRad - 30 * degRad) + 0.24f * (float)Math.cos(2 * hpRad)
-			+ 0.32f * (float)Math.cos(3 * hpRad + 6 * degRad) - 0.20f * (float)Math.cos(4 * hpRad - 63 * degRad);
+			+ 0.32f * (float)Math.cos(3 * hpRad + 6 * degRad) - 0.2f * (float)Math.cos(4 * hpRad - 63 * degRad);
 		float SL = 1 + 0.015f * (Lp - 50) * (Lp - 50) / (float)Math.sqrt(20 + (Lp - 50) * (Lp - 50));
 		float SC = 1 + 0.045f * Cp;
 		float SH = 1 + 0.015f * Cp * T;
 		float dTheta = 30 * (float)Math.exp(-((hp - 275) / 25) * ((hp - 275) / 25));
-		float Cp7 = (float)Math.pow(Cp, 7), RC = 2 * (float)Math.sqrt(Cp7 / (Cp7 + 6103515625f)); // 25^7
+		float Cp7 = (float)Math.pow(Cp, 7), RC = 2 * (float)Math.sqrt(Cp7 / (Cp7 + 6103515625d)); // 25^7
 		float RT = -RC * (float)Math.sin(2 * dTheta * degRad);
 		float dLpKlSl = kL == 0 ? 0 : dLp / (kL * SL);
 		float dCpKcSc = kC == 0 ? 0 : dCp / (kC * SC);

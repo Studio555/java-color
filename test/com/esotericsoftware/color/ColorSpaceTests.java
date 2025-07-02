@@ -20,9 +20,9 @@ public class ColorSpaceTests extends Tests {
 		StringBuilder failures = new StringBuilder();
 
 		// Test with 10% increments for reasonable coverage
-		for (float r = 0; r <= 1.0f; r += 0.1f) {
-			for (float g = 0; g <= 1.0f; g += 0.1f) {
-				for (float b = 0; b <= 1.0f; b += 0.1f) {
+		for (float r = 0; r <= 1f; r += 0.1f) {
+			for (float g = 0; g <= 1f; g += 0.1f) {
+				for (float b = 0; b <= 1f; b += 0.1f) {
 					RGB rgb = new RGB(r, g, b);
 					Lab lab = rgb.Lab();
 					RGB rgbBack = lab.RGB();
@@ -50,7 +50,7 @@ public class ColorSpaceTests extends Tests {
 	public void testHuePreservation () {
 		// Test that hue is preserved across different color space conversions
 		for (float hue = 15; hue < 360; hue += 15) {
-			for (float sat = 0.2f; sat <= 1.0f; sat += 0.2f) {
+			for (float sat = 0.2f; sat <= 1f; sat += 0.2f) {
 				for (float light = 0.2f; light <= 0.8f; light += 0.2f) {
 					HSL hsl = new HSL(hue, sat, light);
 					RGB rgb = hsl.RGB();
@@ -92,7 +92,7 @@ public class ColorSpaceTests extends Tests {
 	@Test
 	public void testGrayAxisConsistency () {
 		// Test that grays remain gray through all color space conversions
-		for (float gray = 0; gray <= 1.0f; gray += 0.05f) {
+		for (float gray = 0; gray <= 1f; gray += 0.05f) {
 			RGB rgb = new RGB(gray, gray, gray);
 
 			// Lab should have a*=b*=0 for grays

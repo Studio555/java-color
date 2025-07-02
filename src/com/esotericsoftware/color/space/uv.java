@@ -52,7 +52,7 @@ public record uv (
 	}
 
 	/** Maximum error 1K [1000..7000K], 2.7K [7000..20000K], 3.52K [20000-100000K].
-	 * @return [1000..100000K] or NaN out of range. */
+	 * @return [1000K+] or NaN out of range. */
 	private CCT CCT_Ohno () {
 		CCT.PlanckianTable();
 		float[] KPlanckian = CCT.KPlanckian, uvPlanckian = CCT.uvPlanckian;
@@ -78,7 +78,7 @@ public record uv (
 		float dn = (float)Math.sqrt(dx * dx + dy * dy);
 		dx = up - un;
 		dy = vp - vn;
-		float side = (float)Math.sqrt(dx * dx + dy * dy), iside = 1f / side; // Triangular solution.
+		float side = (float)Math.sqrt(dx * dx + dy * dy), iside = 1 / side; // Triangular solution.
 		float dist = (dp * dp - dn * dn + side * side) * 0.5f * iside, ds = dist * iside, Duv = dp * dp - dist * dist, K;
 		if (Duv >= 0.000004f) { // 0.002^2
 			float Ki = KPlanckian[k], ui = uvPlanckian[i], vi = uvPlanckian[i + 1];
@@ -100,7 +100,7 @@ public record uv (
 			K = Kp + (Kn - Kp) * ds;
 			Duv = (float)Math.sqrt(Math.max(0, Duv));
 		}
-		if (K < 1000 || K > 100000) return new CCT(Float.NaN, Float.NaN);
+		if (K < 1000) return new CCT(Float.NaN, Float.NaN);
 		return new CCT(K, Duv * Math.signum(v - (vp + (vn - vp) * ds)));
 	}
 

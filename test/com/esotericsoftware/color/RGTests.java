@@ -12,21 +12,21 @@ public class RGTests extends Tests {
 		// Test primary colors
 		RGB red = new RGB(1, 0, 0);
 		rg rgRed = red.rg();
-		assertEquals(1.0f, rgRed.r(), 0.001f);
-		assertEquals(0.0f, rgRed.g(), 0.001f);
-		assertEquals(0.0f, rgRed.b(), 0.001f);
+		assertEquals(1f, rgRed.r(), 0.001f);
+		assertEquals(0f, rgRed.g(), 0.001f);
+		assertEquals(0f, rgRed.b(), 0.001f);
 
 		RGB green = new RGB(0, 1, 0);
 		rg rgGreen = green.rg();
-		assertEquals(0.0f, rgGreen.r(), 0.001f);
-		assertEquals(1.0f, rgGreen.g(), 0.001f);
-		assertEquals(0.0f, rgGreen.b(), 0.001f);
+		assertEquals(0f, rgGreen.r(), 0.001f);
+		assertEquals(1f, rgGreen.g(), 0.001f);
+		assertEquals(0f, rgGreen.b(), 0.001f);
 
 		RGB blue = new RGB(0, 0, 1);
 		rg rgBlue = blue.rg();
-		assertEquals(0.0f, rgBlue.r(), 0.001f);
-		assertEquals(0.0f, rgBlue.g(), 0.001f);
-		assertEquals(1.0f, rgBlue.b(), 0.001f);
+		assertEquals(0f, rgBlue.r(), 0.001f);
+		assertEquals(0f, rgBlue.g(), 0.001f);
+		assertEquals(1f, rgBlue.b(), 0.001f);
 
 		// Test white
 		RGB white = new RGB(1, 1, 1);
@@ -34,7 +34,7 @@ public class RGTests extends Tests {
 		assertEquals(0.333f, rgWhite.r(), 0.001f);
 		assertEquals(0.333f, rgWhite.g(), 0.001f);
 		assertEquals(0.333f, rgWhite.b(), 0.001f);
-		assertEquals(0.0f, rgWhite.s(), 0.001f); // White has no saturation
+		assertEquals(0f, rgWhite.s(), 0.001f); // White has no saturation
 
 		// Test black (should return NaN)
 		RGB black = new RGB(0, 0, 0);
@@ -47,13 +47,13 @@ public class RGTests extends Tests {
 	@Test
 	void testToRGB () {
 		// Test conversion back from chromaticity
-		rg rgRed = new rg(1.0f, 0.0f, 0.0f, 0.667f, 0);
+		rg rgRed = new rg(1f, 0f, 0f, 0.667f, 0);
 		RGB red = rgRed.RGB(1);
-		assertEquals(1.0f, red.r(), 0.001f);
-		assertEquals(0.0f, red.g(), 0.001f);
-		assertEquals(0.0f, red.b(), 0.001f);
+		assertEquals(1f, red.r(), 0.001f);
+		assertEquals(0f, red.g(), 0.001f);
+		assertEquals(0f, red.b(), 0.001f);
 
-		rg rgWhite = new rg(0.333f, 0.333f, 0.334f, 0.0f, 0);
+		rg rgWhite = new rg(0.333f, 0.333f, 0.334f, 0f, 0);
 		RGB white = rgWhite.RGB(2);
 		assertEquals(0.666f, white.r(), 0.001f);
 		assertEquals(0.666f, white.g(), 0.001f);
@@ -95,14 +95,14 @@ public class RGTests extends Tests {
 		// Test saturation calculation
 		RGB gray = new RGB(0.5f, 0.5f, 0.5f);
 		rg rgGray = gray.rg();
-		assertEquals(0.0f, rgGray.s(), 0.001f); // Gray has no saturation
+		assertEquals(0f, rgGray.s(), 0.001f); // Gray has no saturation
 
 		// Test a saturated color
-		RGB orange = new RGB(1.0f, 0.5f, 0.0f);
+		RGB orange = new RGB(1f, 0.5f, 0f);
 		rg rgOrange = orange.rg();
 		assertTrue(rgOrange.s() > 0); // Orange should have saturation
 
 		// Verify chromaticity values sum to 1
-		assertEquals(1.0f, rgOrange.r() + rgOrange.g() + rgOrange.b(), 0.001f);
+		assertEquals(1f, rgOrange.r() + rgOrange.g() + rgOrange.b(), 0.001f);
 	}
 }

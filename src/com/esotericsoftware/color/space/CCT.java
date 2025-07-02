@@ -17,13 +17,14 @@ public record CCT ( //
 	}
 
 	/** Returns a reference illuminant spectrum for this CCT. Uses Planckian radiator for CCT < 5000K, CIE daylight for >= 5000K.
-	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. Requires [1000..100000K] else returns NaN. */
+	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. Requires [1000K+] else returns NaN. */
 	public Spectrum illuminant () {
 		if (K < 5000) return Planckian(380, 780, 5);
 		xy xy = xy();
 		float x = xy.x(), y = xy.y();
-		float M1 = (-1.3515f - 1.7703f * x + 5.9114f * y) / (0.0241f + 0.2562f * x - 0.7341f * y);
-		float M2 = (0.0300f - 31.4424f * x + 30.0717f * y) / (0.0241f + 0.2562f * x - 0.7341f * y);
+		float M = (0.0241f + 0.2562f * x - 0.7341f * y);
+		float M1 = (-1.3515f - 1.7703f * x + 5.9114f * y) / M;
+		float M2 = (0.03f - 31.4424f * x + 30.0717f * y) / M;
 		float[] values = new float[81];
 		for (int i = 0; i < 81; i++)
 			values[i] = S0[i] + M1 * S1[i] + M2 * S2[i];
@@ -41,13 +42,13 @@ public record CCT ( //
 		for (int i = 0; i < length; i++) {
 			double lambda = (start + i * step) * 1e-9; // nm to meters.
 			double exponent = XYZ.c2 / (lambda * K);
-			values[i] = (float)(exponent > 80 ? 0
+			values[i] = (float)(exponent > 700 ? 0
 				: XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1)));
 		}
 		return new Spectrum(values, step, start).normalize();
 	}
 
-	/** @return Requires [1000..100000K] else returns NaN. */
+	/** @return Requires [1000K+] else returns NaN. */
 	public RGB RGB () {
 		return xy().RGB();
 	}
@@ -55,7 +56,7 @@ public record CCT ( //
 	/** Convert to RGBW using one calibrated white LED color. Brightness is maximized.
 	 * @param brightness [0..1]
 	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
-	 * @return Requires [1000..100000K] else returns NaN. */
+	 * @return Requires [1000K+] else returns NaN. */
 	public RGBW RGBW (float brightness, LinearRGB w) {
 		LinearRGB target = xy().LinearRGB();
 		float W = 1;
@@ -150,27 +151,27 @@ public record CCT ( //
 	/** Uses exact Planck calculation [427..100000K].
 	 * @return Normalized with Y=100 or NaN if invalid. */
 	public XYZ XYZ () {
-		if (K < 427 || K > 100000) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		if (K < 427) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		double X = 0, Y = 0, Z = 0;
 		for (int i = 0; i < 81; i++) {
 			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
 			double exponent = XYZ.c2 / (lambda * K);
-			double B = exponent > 80 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
+			double B = exponent > 700 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
 			X += B * XYZ.Xbar[i];
 			Y += B * XYZ.Ybar[i];
 			Z += B * XYZ.Zbar[i];
 		}
 		if (Y > 0) {
-			double scale = 100f / Y;
+			double scale = 100 / Y;
 			X *= scale;
 			Z *= scale;
 		}
 		return new XYZ((float)X, 100, (float)Z);
 	}
 
-	/** @return Requires [1000..100000K] else returns NaN. */
+	/** @return Requires [1000K+] else returns NaN. */
 	public uv1960 uv1960 () {
-		if (K < 1000 || K > 100000) return new uv1960(Float.NaN, Float.NaN);
+		if (K < 1000) return new uv1960(Float.NaN, Float.NaN);
 		float[] Robertson = CCT.Robertson;
 		float pr = Robertson[0], mired = 1e6f / K;
 		for (int i = 5; i < 650; i += 5) {
@@ -192,7 +193,7 @@ public record CCT ( //
 		return new uv1960(Robertson[651] - Robertson[654] * Duv, Robertson[652] + Robertson[653] * Duv);
 	}
 
-	/** @return Requires [1000..100000K] else returns NaN. */
+	/** @return Requires [1000K+] else returns NaN. */
 	public xy xy () {
 		return uv1960().xy();
 	}
@@ -205,11 +206,11 @@ public record CCT ( //
 		else
 			dx_dT = 3.0258469f * 3e9f / (t2 * t2) - 2.1070379f * 2e6f / t2 * K - 0.2226347f * 1e3f / t2;
 		if (K <= 2222)
-			dy_dx = -3.3191442f * x * x - 2.69622040f * x + 2.18555832f;
+			dy_dx = -3.3191442f * x * x - 2.6962204f * x + 2.18555832f;
 		else if (K <= 4000)
 			dy_dx = -2.8648428f * x * x - 2.74837186f * x + 2.09137015f;
 		else
-			dy_dx = 9.2452740f * x * x - 11.74677340f * x + 3.75112997f;
+			dy_dx = 9.245274f * x * x - 11.7467734f * x + 3.75112997f;
 		float dy_dT = dy_dx * dx_dT;
 		float denom2 = -2 * x + 12 * y + 3;
 		denom2 *= denom2;
@@ -230,27 +231,26 @@ public record CCT ( //
 	}
 
 	/** CIE daylight basis function S0, 380-780nm @ 5nm. */
-	static public final float[] S0 = {63.4f, 65.8f, 94.8f, 104.8f, 105.9f, 96.8f, 113.9f, 125.6f, 125.5f, 121.3f, 121.3f, 113.5f,
-		113.1f, 110.8f, 106.5f, 108.8f, 105.3f, 104.4f, 100.0f, 96.0f, 95.1f, 89.1f, 90.5f, 90.3f, 88.4f, 84.0f, 85.1f, 81.9f,
-		82.6f, 84.9f, 81.3f, 71.9f, 74.3f, 76.4f, 63.3f, 71.7f, 77.0f, 65.2f, 47.7f, 68.6f, 65.0f, 66.0f, 61.0f, 53.3f, 58.9f,
-		61.9f, 62.0f, 62.0f, 58.0f, 52.0f, 55.0f, 56.0f, 58.0f, 60.0f, 56.0f, 55.0f, 52.0f, 50.0f, 49.0f, 50.0f, 53.0f, 54.0f,
-		53.0f, 51.0f, 50.0f, 48.0f, 46.0f, 46.0f, 47.0f, 47.0f, 46.0f, 45.0f, 44.0f, 44.0f, 44.0f, 44.0f, 44.0f, 43.0f, 43.0f,
-		43.0f, 42.0f};
+	static public final float[] S0 = {63.4f, 64.6f, 65.8f, 80.3f, 94.8f, 99.8f, 104.8f, 105.35f, 105.9f, 101.35f, 96.8f, 105.35f,
+		113.9f, 119.75f, 125.6f, 125.55f, 125.5f, 123.4f, 121.3f, 121.3f, 121.3f, 117.4f, 113.5f, 113.3f, 113.1f, 111.95f, 110.8f,
+		108.65f, 106.5f, 107.65f, 108.8f, 107.05f, 105.3f, 104.85f, 104.4f, 102.2f, 100, 98, 96, 95.55f, 95.1f, 92.1f, 89.1f, 89.8f,
+		90.5f, 90.4f, 90.3f, 89.35f, 88.4f, 86.2f, 84, 84.55f, 85.1f, 83.5f, 81.9f, 82.25f, 82.6f, 83.75f, 84.9f, 83.1f, 81.3f,
+		76.6f, 71.9f, 73.1f, 74.3f, 75.35f, 76.4f, 69.85f, 63.3f, 67.5f, 71.7f, 74.35f, 77, 71.1f, 65.2f, 56.45f, 47.7f, 58.15f,
+		68.6f, 66.8f, 65};
 
 	/** CIE daylight basis function S1, 380-780nm @ 5nm. */
-	static public final float[] S1 = {38.5f, 35.0f, 43.4f, 46.3f, 43.9f, 37.1f, 36.7f, 35.9f, 32.6f, 27.9f, 24.3f, 20.1f, 16.2f,
-		13.2f, 8.6f, 6.1f, 4.2f, 1.9f, 0.0f, -1.6f, -3.5f, -3.5f, -5.8f, -7.2f, -8.6f, -9.5f, -10.9f, -10.7f, -12.0f, -14.0f,
-		-13.6f, -12.0f, -13.3f, -12.9f, -10.6f, -11.6f, -12.2f, -10.2f, -7.8f, -11.2f, -10.4f, -10.6f, -9.7f, -8.3f, -9.3f, -9.8f,
-		-9.0f, -9.2f, -8.6f, -7.4f, -8.0f, -8.1f, -8.4f, -8.7f, -8.0f, -7.9f, -7.4f, -7.0f, -6.9f, -7.0f, -7.4f, -7.6f, -7.5f,
-		-7.2f, -7.1f, -6.7f, -6.4f, -6.4f, -6.5f, -6.5f, -6.4f, -6.2f, -6.1f, -6.1f, -6.1f, -6.1f, -6.0f, -6.0f, -6.0f, -5.9f,
-		-5.8f};
+	static public final float[] S1 = {38.5f, 36.75f, 35, 39.2f, 43.4f, 44.85f, 46.3f, 45.1f, 43.9f, 40.5f, 37.1f, 36.9f, 36.7f,
+		36.3f, 35.9f, 34.25f, 32.6f, 30.25f, 27.9f, 26.1f, 24.3f, 22.2f, 20.1f, 18.15f, 16.2f, 14.7f, 13.2f, 10.9f, 8.6f, 7.35f,
+		6.1f, 5.15f, 4.2f, 3.05f, 1.9f, 0.95f, 0, -0.8f, -1.6f, -2.55f, -3.5f, -3.5f, -3.5f, -4.65f, -5.8f, -6.5f, -7.2f, -7.9f,
+		-8.6f, -9.05f, -9.5f, -10.2f, -10.9f, -10.8f, -10.7f, -11.35f, -12, -13, -14, -13.8f, -13.6f, -12.8f, -12, -12.65f, -13.3f,
+		-13.1f, -12.9f, -11.75f, -10.6f, -11.1f, -11.6f, -11.9f, -12.2f, -11.2f, -10.2f, -9, -7.8f, -9.5f, -11.2f, -10.8f, -10.4f};
 
 	/** CIE daylight basis function S2, 380-780nm @ 5nm. */
-	static public final float[] S2 = {3.0f, 1.2f, -1.1f, -0.5f, -0.7f, -1.2f, -2.6f, -2.9f, -2.8f, -2.6f, -2.6f, -1.8f, -1.5f,
-		-1.3f, -1.2f, -1.0f, -0.5f, -0.3f, 0.0f, 0.2f, 0.5f, 2.1f, 3.2f, 4.1f, 4.7f, 5.1f, 6.7f, 7.3f, 8.6f, 9.8f, 10.2f, 8.3f,
-		9.6f, 8.5f, 7.0f, 7.6f, 8.0f, 6.7f, 5.2f, 7.4f, 6.8f, 7.0f, 6.4f, 5.5f, 6.1f, 6.5f, 6.5f, 6.4f, 6.0f, 5.4f, 5.7f, 5.8f,
-		6.0f, 6.2f, 5.8f, 5.7f, 5.4f, 5.2f, 5.1f, 5.2f, 5.5f, 5.6f, 5.5f, 5.3f, 5.2f, 5.0f, 4.8f, 4.8f, 4.9f, 4.9f, 4.8f, 4.7f,
-		4.6f, 4.6f, 4.6f, 4.6f, 4.6f, 4.5f, 4.5f, 4.5f, 4.4f, 4.3f};
+	static public final float[] S2 = {3, 2.1f, 1.2f, 0.05f, -1.1f, -0.8f, -0.5f, -0.6f, -0.7f, -0.95f, -1.2f, -1.9f, -2.6f, -2.75f,
+		-2.9f, -2.85f, -2.8f, -2.7f, -2.6f, -2.6f, -2.6f, -2.2f, -1.8f, -1.65f, -1.5f, -1.4f, -1.3f, -1.25f, -1.2f, -1.1f, -1,
+		-0.75f, -0.5f, -0.4f, -0.3f, -0.15f, 0, 0.1f, 0.2f, 0.35f, 0.5f, 1.3f, 2.1f, 2.65f, 3.2f, 3.65f, 4.1f, 4.4f, 4.7f, 4.9f,
+		5.1f, 5.9f, 6.7f, 7, 7.3f, 7.95f, 8.6f, 9.2f, 9.8f, 10, 10.2f, 9.25f, 8.3f, 8.95f, 9.6f, 9.05f, 8.5f, 7.75f, 7, 7.3f, 7.6f,
+		7.8f, 8, 7.35f, 6.7f, 5.95f, 5.2f, 6.3f, 7.4f, 7.1f, 6.8f};
 
 	/** Ohno (2013) with 1.0134 spacing. */
 	static void PlanckianTable () {
@@ -268,8 +268,8 @@ public record CCT ( //
 						float D = clamp((K - 1000) / 99000);
 						next = 1.0134f * (1 - D) + (1 + (1.0134f - 1) / 10) * D;
 					}
-					kTable[513] = 99999f;
-					kTable[514] = 100000f;
+					kTable[513] = 99999;
+					kTable[514] = 100000;
 					for (int i = 0; i < 515; i++) {
 						uv uv = new CCT(kTable[i]).XYZ().uv();
 						uvTable[i * 2] = uv.u();

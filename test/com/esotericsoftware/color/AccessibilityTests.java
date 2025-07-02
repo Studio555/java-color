@@ -104,7 +104,7 @@ public class AccessibilityTests extends Tests {
 		RGB bg2 = new RGB(0.333f, 0.333f, 0.333f);
 		float ratio2 = fg2.contrastRatio(bg2);
 		// Should be very close to 3:1
-		if (Math.abs(ratio2 - 3.0f) < 0.1f) assertTrue(fg2.WCAG_AA(bg2, true), "Should pass AA at exactly 3:1 for large text");
+		if (Math.abs(ratio2 - 3f) < 0.1f) assertTrue(fg2.WCAG_AA(bg2, true), "Should pass AA at exactly 3:1 for large text");
 
 		// Test with colored pairs
 		RGB blue = new RGB(0, 0, 1);
@@ -143,7 +143,7 @@ public class AccessibilityTests extends Tests {
 		RGB color2 = new RGB(0.25f, 0.25f, 0.25f);
 		float testRatio = color1.contrastRatio(color2);
 		// This should be around 5.7:1
-		if (testRatio > 4.5f && testRatio < 7.0f) {
+		if (testRatio > 4.5f && testRatio < 7f) {
 			assertTrue(!color1.WCAG_AAA(color2, false), "Should fail AAA for normal text");
 			assertTrue(color1.WCAG_AAA(color2, true), "Should pass AAA for large text");
 		}
@@ -154,7 +154,7 @@ public class AccessibilityTests extends Tests {
 		RGB bg1 = new RGB(0.247f, 0.247f, 0.247f);
 		float ratio1 = fg1.contrastRatio(bg1);
 		// Should be very close to 7:1
-		if (Math.abs(ratio1 - 7.0f) < 0.1f) {
+		if (Math.abs(ratio1 - 7f) < 0.1f) {
 			assertTrue(fg1.WCAG_AAA(bg1, false), "Should pass AAA at exactly 7:1 for normal text");
 		}
 

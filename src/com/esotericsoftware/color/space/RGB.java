@@ -63,8 +63,8 @@ public record RGB (
 		float r = linear(this.r), g = linear(this.g), b = linear(this.b);
 		return new ACEScg( //
 			0.61309741f * r + 0.33952315f * g + 0.04737945f * b, // To AP1.
-			0.07019486f * r + 0.91635524f * g + 0.01344990f * b, //
-			0.02061560f * r + 0.10956263f * g + 0.86982177f * b);
+			0.07019486f * r + 0.91635524f * g + 0.0134499f * b, //
+			0.0206156f * r + 0.10956263f * g + 0.86982177f * b);
 	}
 
 	public ACEScc ACEScc () {
@@ -214,14 +214,14 @@ public record RGB (
 
 	public ITP ITP () {
 		float r = linear(this.r), g = linear(this.g), b = linear(this.b);
-		float r2020 = 0.6274040f * r + 0.3292820f * g + 0.0433136f * b; // To BT.2020.
-		float g2020 = 0.0690970f * r + 0.9195400f * g + 0.0113612f * b;
-		float b2020 = 0.0163916f * r + 0.0880132f * g + 0.8955950f * b;
-		float L = ITP.PQ_EOTF_inverse((1688f / 4096f) * r2020 + (2146f / 4096f) * g2020 + (262f / 4096f) * b2020);
-		float M = ITP.PQ_EOTF_inverse((683f / 4096f) * r2020 + (2951f / 4096f) * g2020 + (462f / 4096f) * b2020);
-		float S = ITP.PQ_EOTF_inverse((99f / 4096f) * r2020 + (309f / 4096f) * g2020 + (3688f / 4096f) * b2020);
+		float r2020 = 0.627404f * r + 0.329282f * g + 0.0433136f * b; // To BT.2020.
+		float g2020 = 0.069097f * r + 0.91954f * g + 0.0113612f * b;
+		float b2020 = 0.0163916f * r + 0.0880132f * g + 0.895595f * b;
+		float L = ITP.PQ_EOTF_inverse((1688 / 4096f) * r2020 + (2146 / 4096f) * g2020 + (262 / 4096f) * b2020);
+		float M = ITP.PQ_EOTF_inverse((683 / 4096f) * r2020 + (2951 / 4096f) * g2020 + (462 / 4096f) * b2020);
+		float S = ITP.PQ_EOTF_inverse((99 / 4096f) * r2020 + (309 / 4096f) * g2020 + (3688 / 4096f) * b2020);
 		return new ITP( //
-			0.5f * L + 0.5f * M + 0f * S, // L'M'S' to ITP.
+			0.5f * L + 0.5f * M, // L'M'S' to ITP.
 			1.613769531f * L + -3.323486328f * M + 1.709716797f * S, //
 			4.378173828f * L + -4.245605469f * M + -0.132568359f * S);
 	}
@@ -295,9 +295,9 @@ public record RGB (
 		float m = (float)Math.cbrt(0.2119034982f * r + 0.6806995451f * g + 0.1073969566f * b);
 		float s = (float)Math.cbrt(0.0883024619f * r + 0.2817188376f * g + 0.6299787005f * b);
 		return new Oklab( //
-			0.2104542553f * l + 0.7936177850f * m - 0.0040720468f * s, //
-			1.9779984951f * l - 2.4285922050f * m + 0.4505937099f * s, //
-			0.0259040371f * l + 0.7827717662f * m - 0.8086757660f * s);
+			0.2104542553f * l + 0.793617785f * m - 0.0040720468f * s, //
+			1.9779984951f * l - 2.428592205f * m + 0.4505937099f * s, //
+			0.0259040371f * l + 0.7827717662f * m - 0.808675766f * s);
 	}
 
 	public Oklch Oklch () {
@@ -317,13 +317,13 @@ public record RGB (
 		float C_0 = Cs[0], C_mid = Cs[1], C_max = Cs[2];
 		float mid = 0.8f, s;
 		if (C < C_mid) {
-			float k_1 = mid * C_0, k_2 = (1.f - k_1 / C_mid), t = C / (k_1 + k_2 * C);
+			float k_1 = mid * C_0, k_2 = (1 - k_1 / C_mid), t = C / (k_1 + k_2 * C);
 			s = t * mid;
 		} else {
 			float mid_inv = 1.25f;
-			float k_0 = C_mid, k_1 = (1.f - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0, k_2 = (1.f - (k_1) / (C_max - C_mid));
+			float k_0 = C_mid, k_1 = (1 - mid) * C_mid * C_mid * mid_inv * mid_inv / C_0, k_2 = (1 - (k_1) / (C_max - C_mid));
 			float t = (C - k_0) / (k_1 + k_2 * (C - k_0));
-			s = mid + (1.f - mid) * t;
+			s = mid + (1 - mid) * t;
 		}
 		return new Okhsl(h * 360, s, Okhsv.toe(L));
 	}
@@ -342,7 +342,7 @@ public record RGB (
 		float T_max = ST_max[1], S_0 = 0.5f, k = 1 - S_0 / ST_max[0], t = T_max / (C + L * T_max);
 		float L_v = t * L, C_v = t * C, L_vt = Okhsv.toeInv(L_v), C_vt = C_v * L_vt / L_v;
 		LinearRGB l_r = new Oklab(L_vt, a_ * C_vt, b_ * C_vt).LinearRGB();
-		L /= (float)Math.cbrt(1.f / Math.max(0, l_r.max()));
+		L /= (float)Math.cbrt(1 / Math.max(0, l_r.max()));
 		float Lt = Okhsv.toe(L);
 		return new Okhsv(h, clamp((S_0 + T_max) * C_v / (T_max * S_0 + T_max * k * C_v)), clamp(Lt / L_v));
 	}
@@ -388,20 +388,20 @@ public record RGB (
 		float r = linear(this.r), g = linear(this.g), b = linear(this.b);
 		return new XYZ( //
 			(0.4124564f * r + 0.3575761f * g + 0.1804375f * b) * 100, //
-			(0.2126729f * r + 0.7151522f * g + 0.0721750f * b) * 100, //
-			(0.0193339f * r + 0.1191920f * g + 0.9503041f * b) * 100);
+			(0.2126729f * r + 0.7151522f * g + 0.072175f * b) * 100, //
+			(0.0193339f * r + 0.119192f * g + 0.9503041f * b) * 100);
 	}
 
 	/** @return [0..100]. */
 	public float Y () {
 		float r = linear(this.r), g = linear(this.g), b = linear(this.b);
-		return (0.2126729f * r + 0.7151522f * g + 0.0721750f * b) * 100;
+		return (0.2126729f * r + 0.7151522f * g + 0.072175f * b) * 100;
 	}
 
 	/** @return Relative luminance [0..1]. */
 	public float luminance () {
 		float r = linear(this.r), g = linear(this.g), b = linear(this.b);
-		return 0.2126729f * r + 0.7151522f * g + 0.0721750f * b;
+		return 0.2126729f * r + 0.7151522f * g + 0.072175f * b;
 	}
 
 	public YCbCr YCbCr (YCbCrColorSpace colorSpace) {
@@ -435,8 +435,8 @@ public record RGB (
 	public YES YES () {
 		return new YES( //
 			r * 0.253f + g * 0.684f + b * 0.063f, //
-			r * 0.500f + g * -0.500f, //
-			r * 0.250f + g * 0.250f + b * -0.5f);
+			r * 0.5f + g * -0.5f, //
+			r * 0.25f + g * 0.25f + b * -0.5f);
 	}
 
 	public YIQ YIQ () {
@@ -449,8 +449,8 @@ public record RGB (
 	public YUV YUV () {
 		return new YUV( //
 			0.299f * r + 0.587f * g + 0.114f * b, //
-			-0.147141f * r - 0.288869f * g + 0.436010f * b, //
-			0.614975f * r - 0.514965f * g - 0.100010f * b);
+			-0.147141f * r - 0.288869f * g + 0.43601f * b, //
+			0.614975f * r - 0.514965f * g - 0.10001f * b);
 	}
 
 	public RGB add (float value) {

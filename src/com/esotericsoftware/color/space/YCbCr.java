@@ -15,9 +15,9 @@ public record YCbCr (
 	public RGB RGB (YCbCrColorSpace colorSpace) {
 		float r, g, b;
 		if (colorSpace == YCbCrColorSpace.ITU_BT_601) {
-			r = Y + 0.00000000f * Cb + 1.40200000f * Cr;
+			r = Y + 1.402f * Cr;
 			g = Y - 0.34413629f * Cb - 0.71413629f * Cr;
-			b = Y + 1.77200000f * Cb + 0.00000000f * Cr;
+			b = Y + 1.772f * Cb;
 		} else {
 			r = Y - 0.000000295f * Cb + 1.574799932f * Cr;
 			g = Y - 0.187324182f * Cb - 0.468124212f * Cr;

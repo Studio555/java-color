@@ -5,6 +5,7 @@ import static com.esotericsoftware.color.Gamut.*;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.space.LMS.CAT;
 import com.esotericsoftware.color.space.LinearRGB;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;
@@ -14,9 +15,9 @@ import com.esotericsoftware.color.space.xy;
 /** @author Nathan Sweet <misc@n4te.com> */
 public interface Gamut {
 	static public final RGBGamut //
-	sRGB = new RGBGamut(new xy(0.64f, 0.33f), new xy(0.30f, 0.60f), new xy(0.15f, 0.06f)), //
+	sRGB = new RGBGamut(new xy(0.64f, 0.33f), new xy(0.3f, 0.6f), new xy(0.15f, 0.06f)), //
 		DisplayP3 = new RGBGamut(new xy(0.68f, 0.32f), new xy(0.265f, 0.69f), new xy(0.15f, 0.06f)), //
-		Rec2020 = new RGBGamut(new xy(0.708f, 0.292f), new xy(0.170f, 0.797f), new xy(0.131f, 0.046f)), //
+		Rec2020 = new RGBGamut(new xy(0.708f, 0.292f), new xy(0.17f, 0.797f), new xy(0.131f, 0.046f)), //
 		all = new RGBGamut(new xy(1, 0), new xy(0, 1), new xy(0, 0)); //
 
 	public boolean contains (xy xy);
@@ -241,41 +242,6 @@ public interface Gamut {
 				{Xr * S[0], Xg * S[1], Xb * S[2]}, //
 				{Yr * S[0], Yg * S[1], Yb * S[2]}, //
 				{Zr * S[0], Zg * S[1], Zb * S[2]}};
-		}
-
-		/** Solves Ax = b for x using Cramer's rule for 3x3. */
-		static private float[] matrixSolve (float[][] A, float b0, float b1, float b2) {
-			float det = A[0][0] * (A[1][1] * A[2][2] - A[2][1] * A[1][2]) //
-				- A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) //
-				+ A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
-			float det1 = b0 * (A[1][1] * A[2][2] - A[2][1] * A[1][2]) //
-				- A[0][1] * (b1 * A[2][2] - A[1][2] * b2) //
-				+ A[0][2] * (b1 * A[2][1] - A[1][1] * b2);
-			float det2 = A[0][0] * (b1 * A[2][2] - b2 * A[1][2]) //
-				- b0 * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) //
-				+ A[0][2] * (A[1][0] * b2 - A[2][0] * b1);
-			float det3 = A[0][0] * (A[1][1] * b2 - A[2][1] * b1) //
-				- A[0][1] * (A[1][0] * b2 - A[2][0] * b1) //
-				+ b0 * (A[1][0] * A[2][1] - A[2][0] * A[1][1]);
-			return new float[] {det1 / det, det2 / det, det3 / det};
-		}
-
-		static private float[][] invert3x3 (float[][] m) {
-			float det = m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2]) //
-				- m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) //
-				+ m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
-			float invdet = 1 / det;
-			float[][] inv = new float[3][3];
-			inv[0][0] = (m[1][1] * m[2][2] - m[2][1] * m[1][2]) * invdet;
-			inv[0][1] = (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * invdet;
-			inv[0][2] = (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * invdet;
-			inv[1][0] = (m[1][2] * m[2][0] - m[1][0] * m[2][2]) * invdet;
-			inv[1][1] = (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * invdet;
-			inv[1][2] = (m[1][0] * m[0][2] - m[0][0] * m[1][2]) * invdet;
-			inv[2][0] = (m[1][0] * m[2][1] - m[2][0] * m[1][1]) * invdet;
-			inv[2][1] = (m[2][0] * m[0][1] - m[0][0] * m[2][1]) * invdet;
-			inv[2][2] = (m[0][0] * m[1][1] - m[1][0] * m[0][1]) * invdet;
-			return inv;
 		}
 
 		static public class PhilipsHue {

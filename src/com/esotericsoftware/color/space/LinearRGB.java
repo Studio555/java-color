@@ -146,8 +146,8 @@ public record LinearRGB (
 	public XYZ XYZ () {
 		return new XYZ( //
 			(0.4124564f * r + 0.3575761f * g + 0.1804375f * b) * 100, //
-			(0.2126729f * r + 0.7151522f * g + 0.0721750f * b) * 100, //
-			(0.0193339f * r + 0.1191920f * g + 0.9503041f * b) * 100);
+			(0.2126729f * r + 0.7151522f * g + 0.072175f * b) * 100, //
+			(0.0193339f * r + 0.119192f * g + 0.9503041f * b) * 100);
 	}
 
 	public LinearRGB add (float value) {

@@ -90,7 +90,7 @@ public class LumaChromaTests extends Tests {
 		assertClose(magenta, magentaBack, 0.001f, "YCC magenta round trip");
 
 		// Test systematic round-trip accuracy
-		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] testValues = {0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f};
 		for (float r : testValues) {
 			for (float g : testValues) {
 				for (float b : testValues) {
@@ -213,7 +213,7 @@ public class LumaChromaTests extends Tests {
 		assertEquals(expectedY, ycocgTest.Y(), 0.0001f, "YCoCg Y calculation");
 
 		// Test systematic round-trip accuracy - YCoCg should be very accurate
-		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] testValues = {0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f};
 		for (float r : testValues) {
 			for (float g : testValues) {
 				for (float b : testValues) {
@@ -301,7 +301,7 @@ public class LumaChromaTests extends Tests {
 		assertClose(magenta, magentaBack, 0.001f, "YES magenta round trip");
 
 		// Test systematic round-trip accuracy
-		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] testValues = {0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f};
 		for (float r : testValues) {
 			for (float g : testValues) {
 				for (float b : testValues) {
@@ -411,7 +411,7 @@ public class LumaChromaTests extends Tests {
 		assertClose(magenta, magentaBack, 0.001f, "YIQ magenta round trip");
 
 		// Test systematic round-trip accuracy
-		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] testValues = {0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f};
 		for (float r : testValues) {
 			for (float g : testValues) {
 				for (float b : testValues) {
@@ -448,12 +448,12 @@ public class LumaChromaTests extends Tests {
 
 		// Test known color conversions from NTSC standards
 		// Orange should have positive I (reddish)
-		RGB orange = new RGB(1.0f, 0.5f, 0.0f);
+		RGB orange = new RGB(1f, 0.5f, 0f);
 		YIQ yiqOrange = orange.YIQ();
 		assertTrue(yiqOrange.I() > 0, "Orange should have positive I (reddish)");
 
 		// Blue-green should have negative I
-		RGB blueGreen = new RGB(0.0f, 0.7f, 0.7f);
+		RGB blueGreen = new RGB(0f, 0.7f, 0.7f);
 		YIQ yiqBlueGreen = blueGreen.YIQ();
 		assertTrue(yiqBlueGreen.I() < 0, "Blue-green should have negative I");
 
@@ -537,7 +537,7 @@ public class LumaChromaTests extends Tests {
 		assertClose(magenta, magentaBack, 0.001f, "YUV magenta round trip");
 
 		// Test systematic round-trip accuracy
-		float[] testValues = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] testValues = {0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f};
 		for (float r : testValues) {
 			for (float g : testValues) {
 				for (float b : testValues) {

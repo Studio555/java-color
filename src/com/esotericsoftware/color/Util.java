@@ -147,4 +147,46 @@ public class Util {
 			row0 * matrix[1][0] + row1 * matrix[1][1] + row2 * matrix[1][2],
 			row0 * matrix[2][0] + row1 * matrix[2][1] + row2 * matrix[2][2]};
 	}
+
+	static public float[] matrixMultiply (float row0, float row1, float row2, float[] matrix) {
+		return new float[] { //
+			row0 * matrix[0] + row1 * matrix[1] + row2 * matrix[2], //
+			row0 * matrix[3] + row1 * matrix[4] + row2 * matrix[5], //
+			row0 * matrix[6] + row1 * matrix[7] + row2 * matrix[8]};
+	}
+
+	/** Solves Ax = b for x using Cramer's rule for 3x3. */
+	static public float[] matrixSolve (float[][] A, float b0, float b1, float b2) {
+		float det = A[0][0] * (A[1][1] * A[2][2] - A[2][1] * A[1][2]) //
+			- A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) //
+			+ A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]);
+		float det1 = b0 * (A[1][1] * A[2][2] - A[2][1] * A[1][2]) //
+			- A[0][1] * (b1 * A[2][2] - A[1][2] * b2) //
+			+ A[0][2] * (b1 * A[2][1] - A[1][1] * b2);
+		float det2 = A[0][0] * (b1 * A[2][2] - b2 * A[1][2]) //
+			- b0 * (A[1][0] * A[2][2] - A[1][2] * A[2][0]) //
+			+ A[0][2] * (A[1][0] * b2 - A[2][0] * b1);
+		float det3 = A[0][0] * (A[1][1] * b2 - A[2][1] * b1) //
+			- A[0][1] * (A[1][0] * b2 - A[2][0] * b1) //
+			+ b0 * (A[1][0] * A[2][1] - A[2][0] * A[1][1]);
+		return new float[] {det1 / det, det2 / det, det3 / det};
+	}
+
+	static public float[][] invert3x3 (float[][] m) {
+		float det = m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2]) //
+			- m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) //
+			+ m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+		float invdet = 1 / det;
+		float[][] inv = new float[3][3];
+		inv[0][0] = (m[1][1] * m[2][2] - m[2][1] * m[1][2]) * invdet;
+		inv[0][1] = (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * invdet;
+		inv[0][2] = (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * invdet;
+		inv[1][0] = (m[1][2] * m[2][0] - m[1][0] * m[2][2]) * invdet;
+		inv[1][1] = (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * invdet;
+		inv[1][2] = (m[1][0] * m[0][2] - m[0][0] * m[1][2]) * invdet;
+		inv[2][0] = (m[1][0] * m[2][1] - m[2][0] * m[1][1]) * invdet;
+		inv[2][1] = (m[2][0] * m[0][1] - m[0][0] * m[2][1]) * invdet;
+		inv[2][2] = (m[0][0] * m[1][1] - m[1][0] * m[0][1]) * invdet;
+		return inv;
+	}
 }

@@ -174,7 +174,7 @@ public class GamutTests extends Tests {
 		RGB white = new RGB(1, 1, 1);
 		xy whiteXY = Gamut.sRGB.xy(white);
 		assertEquals(0.3127f, whiteXY.x(), 0.01f, "White x should be near D65");
-		assertEquals(0.3290f, whiteXY.y(), 0.01f, "White y should be near D65");
+		assertEquals(0.329f, whiteXY.y(), 0.01f, "White y should be near D65");
 
 		// Test grays - all should map to same chromaticity (white point)
 		RGB darkGray = new RGB(0.25f, 0.25f, 0.25f);
@@ -206,7 +206,7 @@ public class GamutTests extends Tests {
 		assertEquals(whiteXY.y(), nearBlackXY.y(), 0.01f, "Near black should have white point chromaticity");
 
 		// Test intermediate colors
-		RGB orange = new RGB(1.0f, 0.5f, 0.0f);
+		RGB orange = new RGB(1f, 0.5f, 0f);
 		xy orangeXY = Gamut.sRGB.xy(orange);
 		// Orange should be between red and yellow
 		assertTrue(orangeXY.x() > yellowXY.x() && orangeXY.x() < redXY.x(), "Orange x should be between yellow and red");
@@ -216,7 +216,7 @@ public class GamutTests extends Tests {
 		RGB[] testColors = {new RGB(0.2f, 0.5f, 0.8f), new RGB(0.9f, 0.1f, 0.3f), new RGB(0.4f, 0.6f, 0.2f)};
 		for (RGB color : testColors) {
 			xy colorXY = Gamut.sRGB.xy(color);
-			assertTrue(colorXY.x() + colorXY.y() <= 1.0f + EPSILON, "Chromaticity coordinates should be normalized for " + color);
+			assertTrue(colorXY.x() + colorXY.y() <= 1f + EPSILON, "Chromaticity coordinates should be normalized for " + color);
 			assertTrue(colorXY.x() >= 0 && colorXY.x() <= 1, "x should be in [0,1] for " + color);
 			assertTrue(colorXY.y() >= 0 && colorXY.y() <= 1, "y should be in [0,1] for " + color);
 		}
@@ -271,7 +271,7 @@ public class GamutTests extends Tests {
 	@Test
 	public void testXYToRGBConversion () {
 		// Test converting xy back to RGB
-		xy testPoint = new xy(0.3127f, 0.3290f); // D65 white point
+		xy testPoint = new xy(0.3127f, 0.329f); // D65 white point
 		RGB rgb = Gamut.sRGB.RGB(testPoint);
 
 		// D65 white point doesn't necessarily map to RGB(1,1,1) due to the gamut's
@@ -286,7 +286,7 @@ public class GamutTests extends Tests {
 
 		// Test edge case: y = 0 (will produce infinity/NaN)
 		// Note: conversions do NOT auto-clamp, so invalid inputs produce invalid outputs
-		xy zeroY = new xy(0.3f, 0.0f);
+		xy zeroY = new xy(0.3f, 0f);
 		RGB result = Gamut.sRGB.RGB(zeroY);
 		// With y=0, the conversion will produce infinity or NaN
 		assertTrue(Float.isNaN(result.r()) || Float.isInfinite(result.r()) || Float.isNaN(result.g())

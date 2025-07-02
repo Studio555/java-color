@@ -147,16 +147,16 @@ public class HCTTests extends Tests {
 		// Green
 		CAM16 greenCam = new RGB(0, 1, 0).CAM16();
 		assertEquals(79.331f, greenCam.J(), 0.001, "Green J");
-		assertEquals(108.410f, greenCam.C(), 0.001, "Green chroma");
+		assertEquals(108.41f, greenCam.C(), 0.001, "Green chroma");
 		assertEquals(142.139f, greenCam.h(), 0.001, "Green hue");
 		assertEquals(85.587f, greenCam.M(), 0.001, "Green M");
 		assertEquals(78.604f, greenCam.s(), 0.001, "Green s");
-		assertEquals(138.520f, greenCam.Q(), 0.001, "Green Q");
+		assertEquals(138.52f, greenCam.Q(), 0.001, "Green Q");
 
 		// Blue
 		CAM16 blueCam = new RGB(0, 0, 1).CAM16();
 		assertEquals(25.465f, blueCam.J(), 0.001, "Blue J");
-		assertEquals(87.230f, blueCam.C(), 0.001, "Blue chroma");
+		assertEquals(87.23f, blueCam.C(), 0.001, "Blue chroma");
 		assertEquals(282.788f, blueCam.h(), 0.001, "Blue hue");
 		assertEquals(68.867f, blueCam.M(), 0.001, "Blue M");
 		assertEquals(93.674f, blueCam.s(), 0.001, "Blue s");
@@ -268,8 +268,8 @@ public class HCTTests extends Tests {
 
 		// Test colors that should preserve their values
 		checkMapping(27.408f, 113.357f, 46.445f, "Red mapping");
-		checkMapping(142.139f, 108.410f, 79.331f, "Green mapping");
-		checkMapping(282.788f, 87.230f, 25.465f, "Blue mapping");
+		checkMapping(142.139f, 108.41f, 79.331f, "Green mapping");
+		checkMapping(282.788f, 87.23f, 25.465f, "Blue mapping");
 
 		// Test that white and black work correctly
 		HCT white = new HCT(0, 0, 100);

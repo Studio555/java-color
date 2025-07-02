@@ -161,18 +161,18 @@ public class ColorsTest extends Tests {
 		// Test known CIEDE2000 values from the original paper
 		// These test cases are from Sharma et al. "The CIEDE2000 Color-Difference Formula: Implementation Notes"
 		// Case 1
-		lab1 = new Lab(50.0000f, 2.6772f, -79.7751f);
-		lab2 = new Lab(50.0000f, 0.0000f, -82.7485f);
+		lab1 = new Lab(50f, 2.6772f, -79.7751f);
+		lab2 = new Lab(50f, 0f, -82.7485f);
 		assertEquals(2.0425f, lab1.deltaE2000(lab2), 0.0001, "CIEDE2000 test case 1");
 
 		// Case 2
-		lab1 = new Lab(50.0000f, 3.1571f, -77.2803f);
-		lab2 = new Lab(50.0000f, 0.0000f, -82.7485f);
+		lab1 = new Lab(50f, 3.1571f, -77.2803f);
+		lab2 = new Lab(50f, 0f, -82.7485f);
 		assertEquals(2.8615f, lab1.deltaE2000(lab2), 0.0001, "CIEDE2000 test case 2");
 
 		// Case 3
-		lab1 = new Lab(50.0000f, 2.8361f, -74.0200f);
-		lab2 = new Lab(50.0000f, 0.0000f, -82.7485f);
+		lab1 = new Lab(50f, 2.8361f, -74.020f);
+		lab2 = new Lab(50f, 0f, -82.7485f);
 		assertEquals(3.4412f, lab1.deltaE2000(lab2), 0.0001, "CIEDE2000 test case 3");
 
 		// Test RGB convenience methods
@@ -216,8 +216,8 @@ public class ColorsTest extends Tests {
 		assertTrue(deltaE > 0, "Different grays should have non-zero deltaE");
 
 		// Test very small differences
-		lab1 = new Lab(50.0000f, 0.0000f, 0.0000f);
-		lab2 = new Lab(50.0001f, 0.0000f, 0.0000f);
+		lab1 = new Lab(50f, 0f, 0f);
+		lab2 = new Lab(50.0001f, 0f, 0f);
 		deltaE = lab1.deltaE2000(lab2);
 		assertTrue(deltaE < 0.001, "Very small L difference should give very small deltaE");
 
@@ -252,7 +252,7 @@ public class ColorsTest extends Tests {
 	@Test
 	public void testDMXConversions () {
 		// Test DMX8 conversions
-		float[] testValues = {0.0f, 0.25f, 0.5f, 0.75f, 1.0f, 0.123f, 0.456f, 0.789f, 1 / 255f, 0.5f / 255};
+		float[] testValues = {0f, 0.25f, 0.5f, 0.75f, 1f, 0.123f, 0.456f, 0.789f, 1 / 255f, 0.5f / 255};
 
 		for (float value : testValues) {
 			int dmx = dmx8(value);
@@ -262,8 +262,8 @@ public class ColorsTest extends Tests {
 		}
 
 		// Test specific DMX8 values
-		assertEquals(0, dmx8(0.0f), "DMX8 of 0");
-		assertEquals(255, dmx8(1.0f), "DMX8 of 1");
+		assertEquals(0, dmx8(0f), "DMX8 of 0");
+		assertEquals(255, dmx8(1f), "DMX8 of 1");
 		assertEquals(128, dmx8(0.5f), "DMX8 of 0.5");
 
 		// Test DMX16 conversions
@@ -275,16 +275,16 @@ public class ColorsTest extends Tests {
 		}
 
 		// Test specific DMX16 values
-		assertEquals(0, dmx16(0.0f), "DMX16 of 0");
-		assertEquals(65535, dmx16(1.0f), "DMX16 of 1");
+		assertEquals(0, dmx16(0f), "DMX16 of 0");
+		assertEquals(65535, dmx16(1f), "DMX16 of 1");
 		assertEquals(32767, dmx16(0.5f), "DMX16 of 0.5");
 
 		// Test precision difference
 		float testVal = 0.123456f;
 		int dmx8Val = dmx8(testVal);
 		int dmx16Val = dmx16(testVal);
-		float back8 = dmx8Val / 255.0f;
-		float back16 = dmx16Val / 65535.0f;
+		float back8 = dmx8Val / 255f;
+		float back16 = dmx16Val / 65535f;
 
 		float error8 = Math.abs(testVal - back8);
 		float error16 = Math.abs(testVal - back16);
@@ -301,8 +301,8 @@ public class ColorsTest extends Tests {
 	@Test
 	public void testGammaFunctions () {
 		// Test common gamma values
-		float[] gammas = {1.0f, 1.8f, 2.2f, 2.4f};
-		float[] testValues = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 1.0f};
+		float[] gammas = {1f, 1.8f, 2.2f, 2.4f};
+		float[] testValues = {0f, 0.1f, 0.25f, 0.5f, 0.75f, 1f};
 
 		for (float gamma : gammas) {
 			for (float value : testValues) {
@@ -341,8 +341,8 @@ public class ColorsTest extends Tests {
 
 		// Test that gamma=1 is identity
 		for (float value : testValues) {
-			assertClose(value, gammaEncode(value, 1.0f), "Gamma 1.0 encode identity");
-			assertClose(value, gammaDecode(value, 1.0f), "Gamma 1.0 decode identity");
+			assertClose(value, gammaEncode(value, 1f), "Gamma 1.0 encode identity");
+			assertClose(value, gammaDecode(value, 1f), "Gamma 1.0 decode identity");
 		}
 	}
 
@@ -403,7 +403,7 @@ public class ColorsTest extends Tests {
 	@Test
 	public void testLMS () {
 		// Test all matrix types
-		CAT[] matrices = {CAT.HPE, CAT.Bradford, CAT.VonKries, CAT.CAT97, CAT.CAT02};
+		CAT[] matrices = CAT.values();
 		XYZ xyz = new XYZ(41.24f, 21.26f, 1.93f); // Red in XYZ
 
 		for (CAT matrix : matrices) {
@@ -564,9 +564,9 @@ public class ColorsTest extends Tests {
 		// When 2*G = R+B and r≠b, T should reflect the r'/b' ratio
 		// Calculate expected angle from normalized coordinates
 		float sum = rgb2g.r() + rgb2g.g() + rgb2g.b();
-		float r_prime = rgb2g.r() / sum - 1.0f / 3.0f;
-		float g_prime = rgb2g.g() / sum - 1.0f / 3.0f;
-		float b_prime = rgb2g.b() / sum - 1.0f / 3.0f;
+		float r_prime = rgb2g.r() / sum - 1f / 3f;
+		float g_prime = rgb2g.g() / sum - 1f / 3f;
+		float b_prime = rgb2g.b() / sum - 1f / 3f;
 
 		// Verify g' = 0 when 2*G = R+B
 		assertEquals(0, g_prime, 0.001f, "g' should be 0 when 2*G = R+B");
@@ -624,7 +624,7 @@ public class ColorsTest extends Tests {
 		// Test UV1976 to xy conversions
 		uv[] testUVs = {new uv(0.2105f, 0.4737f), // D65 white point in u'v'
 			new uv(0.4507f, 0.5229f), // Red primary
-			new uv(0.1250f, 0.5625f), // Green primary
+			new uv(0.125f, 0.5625f), // Green primary
 			new uv(0.1754f, 0.1579f) // Blue primary
 		};
 
@@ -725,8 +725,8 @@ public class ColorsTest extends Tests {
 
 		// Test clamp functions
 		assertEquals(0.5f, clamp(0.5f), EPSILON_F, "Clamp in range");
-		assertEquals(0.0f, clamp(-0.1f), EPSILON_F, "Clamp negative");
-		assertEquals(1.0f, clamp(1.1f), EPSILON_F, "Clamp over 1");
+		assertEquals(0f, clamp(-0.1f), EPSILON_F, "Clamp negative");
+		assertEquals(1f, clamp(1.1f), EPSILON_F, "Clamp over 1");
 
 		// Test linear/sRGB conversions
 		float srgbValue = 0.5f;
@@ -735,10 +735,10 @@ public class ColorsTest extends Tests {
 		assertEquals(srgbValue, backToSRGB, EPSILON_F, "sRGB <-> linear round trip");
 
 		// Test linear/sRGB edge cases
-		assertEquals(0.0f, linear(0.0f), EPSILON_F, "Linear of 0");
-		assertEquals(1.0f, linear(1.0f), EPSILON_F, "Linear of 1");
-		assertEquals(0.0f, sRGB(0.0f), EPSILON_F, "sRGB of 0");
-		assertEquals(1.0f, sRGB(1.0f), EPSILON_F, "sRGB of 1");
+		assertEquals(0f, linear(0f), EPSILON_F, "Linear of 0");
+		assertEquals(1f, linear(1f), EPSILON_F, "Linear of 1");
+		assertEquals(0f, sRGB(0f), EPSILON_F, "sRGB of 0");
+		assertEquals(1f, sRGB(1f), EPSILON_F, "sRGB of 1");
 
 		// Test linear cutoff point
 		float cutoff = 0.04045f;
@@ -877,11 +877,11 @@ public class ColorsTest extends Tests {
 		float lumBlack = 0.2126f * black.r() + 0.7152f * black.g() + 0.0722f * black.b();
 		float lumWhite = 0.2126f * white.r() + 0.7152f * white.g() + 0.0722f * white.b();
 		float contrast = (lumWhite + 0.05f) / (lumBlack + 0.05f);
-		assertEquals(21.0f, contrast, 0.1f, "Black/white contrast ratio");
+		assertEquals(21f, contrast, 0.1f, "Black/white contrast ratio");
 
 		// Test WCAG compliance thresholds
 		assertTrue(contrast >= 4.5f, "Black/white passes WCAG AA");
-		assertTrue(contrast >= 7.0f, "Black/white passes WCAG AAA");
+		assertTrue(contrast >= 7f, "Black/white passes WCAG AAA");
 
 		// Test low contrast
 		RGB gray1 = new RGB(0.4f, 0.4f, 0.4f);

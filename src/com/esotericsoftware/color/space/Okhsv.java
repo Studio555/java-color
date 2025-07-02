@@ -60,7 +60,7 @@ public record Okhsv (
 
 	static float[] Cs (float L, float a_, float b_) {
 		float[][] M = {{4.0767416621f, -3.3077115913f, 0.2309699292f}, {-1.2684380046f, 2.6097574011f, -0.3413193965f},
-			{-0.0041960863f, -0.7034186147f, 1.7076147010f}};
+			{-0.0041960863f, -0.7034186147f, 1.707614701f}};
 		float S_max = Float.MAX_VALUE;
 		for (int i = 0; i < 3; i++) {
 			float denom = a_ * M[i][0] + b_ * M[i][1];
@@ -73,10 +73,10 @@ public record Okhsv (
 		float C_max = maxSaturation(a_, b_);
 		float denom = Math.min(L * S_max, (1 - L) * C_max);
 		float k = denom < EPSILON ? 0 : C_max / denom;
-		float S = 0.11516993f + 1 / (7.44778970f + 4.15901240f * b_ + a_ * (-2.19557347f + 1.75198401f * b_
+		float S = 0.11516993f + 1 / (7.4477897f + 4.1590124f * b_ + a_ * (-2.19557347f + 1.75198401f * b_
 			+ a_ * (-2.13704948f - 10.02301043f * b_ + a_ * (-4.24894561f + 5.38770819f * b_ + 4.69891013f * a_))));
-		float T = 0.11239642f + 1 / (1.61320320f - 0.68124379f * b_ + a_ * (0.40370612f + 0.90148123f * b_
-			+ a_ * (-0.27087943f + 0.61223990f * b_ + a_ * (0.00299215f - 0.45399568f * b_ - 0.14661872f * a_))));
+		float T = 0.11239642f + 1 / (1.6132032f - 0.68124379f * b_ + a_ * (0.40370612f + 0.90148123f * b_
+			+ a_ * (-0.27087943f + 0.6122399f * b_ + a_ * (0.00299215f - 0.45399568f * b_ - 0.14661872f * a_))));
 		float inv_scale = Math.min(L * S, (1 - L) * 1 / T);
 		float denom2 = 1 + k;
 		float L_mid = 0.5f * (1 + (denom2 < EPSILON ? 0 : Math.signum(L - 0.5f) * inv_scale / denom2));
@@ -100,7 +100,7 @@ public record Okhsv (
 			k0 = 0.73956515f;
 			k1 = -0.45954404f;
 			k2 = 0.08285427f;
-			k3 = 0.12541070f;
+			k3 = 0.1254107f;
 			k4 = 0.14503204f;
 			wl = -1.2684380046f;
 			wm = 2.6097574011f;
@@ -108,17 +108,17 @@ public record Okhsv (
 		} else { // Blue.
 			k0 = 1.35733652f;
 			k1 = -0.00915799f;
-			k2 = -1.15130210f;
+			k2 = -1.1513021f;
 			k3 = -0.50559606f;
 			k4 = 0.00692167f;
 			wl = -0.0041960863f;
 			wm = -0.7034186147f;
-			ws = 1.7076147010f;
+			ws = 1.707614701f;
 		}
 		float S = k0 + k1 * a + k2 * b + k3 * a * a + k4 * a * b;
 		float k_l = 0.3963377774f * a + 0.2158037573f * b;
 		float k_m = -0.1055613458f * a - 0.0638541728f * b;
-		float k_s = -0.0894841775f * a - 1.2914855480f * b;
+		float k_s = -0.0894841775f * a - 1.291485548f * b;
 		float l_ = 1 + S * k_l, m_ = 1 + S * k_m, s_ = 1 + S * k_s;
 		float l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_;
 		float l_dS = 3 * k_l * l_ * l_, m_dS = 3 * k_m * m_ * m_, s_dS = 3 * k_s * s_ * s_;

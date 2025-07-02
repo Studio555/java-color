@@ -7,8 +7,10 @@ import java.util.Arrays;
 
 import com.esotericsoftware.color.Illuminant.CIE2;
 import com.esotericsoftware.color.space.CAM02UCS;
+import com.esotericsoftware.color.space.CAM16.VC;
 import com.esotericsoftware.color.space.CAM16UCS;
 import com.esotericsoftware.color.space.CCT;
+import com.esotericsoftware.color.space.LMS.CAT;
 import com.esotericsoftware.color.space.Lab;
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;
@@ -50,13 +52,14 @@ public record Spectrum (float[] values, int step, int start) {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
 		CCT cct = testXYZ.uv().CCT();
-		Spectrum reference = (cct.invalid() ? new CCT(6500) : cct).illuminant();
+		if (cct.invalid()) throw new IllegalStateException("Cannot calculate CRI for spectrum with invalid CCT.");
+		Spectrum reference = cct.illuminant();
 		XYZ refXYZ = reference.XYZ();
 		float[] samples = new float[14];
 		float sumRa = 0;
 		for (int i = 0; i < 14; i++) {
 			float[] tcs = CRI.TCS[i];
-			Lab testLab = illuminate(tcs).chromaticAdaptation(testXYZ, refXYZ).Lab(refXYZ);
+			Lab testLab = illuminate(tcs).Lab(testXYZ);
 			Lab refLab = reference.illuminate(tcs).Lab(refXYZ);
 			samples[i] = 100 - 4.6f * testLab.dst(refLab);
 			if (i < 8) sumRa += samples[i];
@@ -84,20 +87,19 @@ public record Spectrum (float[] values, int step, int start) {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
 		CCT cct = testXYZ.uv().CCT();
-		Spectrum reference = (cct.invalid() ? new CCT(6500) : cct).illuminant();
-		float sum = 0;
-		float[] colorSamples = new float[99];
-		float[] chromaShift = new float[16];
-		float[] hueShift = new float[16];
+		if (cct.invalid()) throw new IllegalStateException("Cannot calculate TM30 for spectrum with invalid CCT.");
+		Spectrum reference = cct.illuminant();
+		float[] colorSamples = new float[99], chromaShift = new float[16], hueShift = new float[16];
 		int[] binCounts = new int[16];
-		float chromaRef = 0;
-		float chromaTest = 0;
+		float chromaRef = 0, chromaTest = 0, sum = 0;
+		VC testVC = VC.with(testXYZ, 100, 20, 1, false);
+		VC refVC = VC.with(reference.XYZ(), 100, 20, 1, false);
 		if (useCAM02) {
 			CAM02UCS[] testColors = new CAM02UCS[99], refColors = new CAM02UCS[99];
 			for (int i = 0; i < 99; i++) {
 				float[] reflectance = TM30.CES[i];
-				testColors[i] = illuminate(reflectance).CAM02UCS();
-				refColors[i] = reference.illuminate(reflectance).CAM02UCS();
+				testColors[i] = illuminate(reflectance).CAM02UCS(testVC);
+				refColors[i] = reference.illuminate(reflectance).CAM02UCS(refVC);
 			}
 			for (int i = 0; i < 99; i++) {
 				float deltaE = testColors[i].dst(refColors[i]);
@@ -117,8 +119,8 @@ public record Spectrum (float[] values, int step, int start) {
 			CAM16UCS[] testColors = new CAM16UCS[99], refColors = new CAM16UCS[99];
 			for (int i = 0; i < 99; i++) {
 				float[] reflectance = TM30.CES[i];
-				testColors[i] = illuminate(reflectance).CAM16().CAM16UCS();
-				refColors[i] = reference.illuminate(reflectance).CAM16().CAM16UCS();
+				testColors[i] = illuminate(reflectance).CAM16UCS(testVC);
+				refColors[i] = reference.illuminate(reflectance).CAM16UCS(refVC);
 			}
 			for (int i = 0; i < 99; i++) {
 				float deltaE = testColors[i].deltaE(refColors[i]);
@@ -158,7 +160,8 @@ public record Spectrum (float[] values, int step, int start) {
 		return XYZ().xy();
 	}
 
-	/** Requires 380nm @ 5nm to [700..780+]nm. Missing wavelengths are treated as zero. */
+	/** Requires 380nm @ 5nm to [700..780+]nm. Missing wavelengths are treated as zero.
+	 * @return Normalized to Y=100. */
 	public XYZ XYZ () {
 		checkVisibleRange();
 		float X = 0, Y = 0, Z = 0;
@@ -168,7 +171,7 @@ public record Spectrum (float[] values, int step, int start) {
 			Y += value * XYZ.Ybar[i];
 			Z += value * XYZ.Zbar[i];
 		}
-		float normalize = XYZ.Km * 5 / 100;
+		float normalize = 100 / Y;
 		return new XYZ(X * normalize, Y * normalize, Z * normalize);
 	}
 
@@ -183,7 +186,7 @@ public record Spectrum (float[] values, int step, int start) {
 		float flux = 0;
 		for (int i = 0, n = Math.min(values.length, 81); i < n; i++)
 			flux += values[i] * XYZ.Ybar[i];
-		return flux * XYZ.Km * 5;
+		return flux * 5;
 	}
 
 	/** Calculates total radiant flux (relative). */
@@ -197,6 +200,13 @@ public record Spectrum (float[] values, int step, int start) {
 	/** Requires 380nm @ 5nm to [700..780+]nm.
 	 * @return Luminous efficacy of radiation, maximum 683 lm/W. */
 	public float LER () {
+		float radiant = radiantFlux();
+		return radiant == 0 ? 0 : luminousFlux() * XYZ.Km / radiant;
+	}
+
+	/** Requires 380nm @ 5nm to [700..780+]nm.
+	 * @return Luminous efficacy of radiation as ratio [0..1], where 1 = 683 lm/W. */
+	public float LERratio () {
 		float radiant = radiantFlux();
 		return radiant == 0 ? 0 : luminousFlux() / radiant;
 	}
@@ -224,7 +234,7 @@ public record Spectrum (float[] values, int step, int start) {
 		for (float v : values)
 			max = Math.max(max, v);
 		if (max == 0) return this;
-		return scl(1f / max);
+		return scl(1 / max);
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm.
@@ -241,7 +251,7 @@ public record Spectrum (float[] values, int step, int start) {
 			Y += product * XYZ.Ybar[i];
 			Z += product * XYZ.Zbar[i];
 		}
-		float normalize = XYZ.Km * 5 / 100;
+		float normalize = 100 / Y;
 		return new XYZ(X * normalize, Y * normalize, Z * normalize);
 	}
 

@@ -14,7 +14,7 @@ public record HSLuv (
 	/** Lightness [0..100]. */
 	float L) {
 
-	static private final float[][] XYZ_RGB = {{3.2404542f, -1.5371385f, -0.4985314f}, {-0.9692660f, 1.8760108f, 0.0415560f},
+	static private final float[][] XYZ_RGB = {{3.2404542f, -1.5371385f, -0.4985314f}, {-0.969266f, 1.8760108f, 0.041556f},
 		{0.0556434f, -0.2040259f, 1.0572252f}};
 
 	/** @return NaN if invalid. */
@@ -39,8 +39,8 @@ public record HSLuv (
 			float m1 = XYZ_RGB[i][0] * sub2, m2 = XYZ_RGB[i][1] * sub2, m3 = XYZ_RGB[i][2] * sub2;
 			for (int t = 0; t < 2; t++) {
 				float top1 = 2845.17f * m1 - 948.39f * m3;
-				float top2 = (8384.22f * m3 + 7698.60f * m2 + 7317.18f * m1 - 7698.60f * t) * L;
-				float bottom = (6322.60f * m3 - 1264.52f * m2) + 1264.52f * t;
+				float top2 = (8384.22f * m3 + 7698.6f * m2 + 7317.18f * m1 - 7698.6f * t) * L;
+				float bottom = (6322.6f * m3 - 1264.52f * m2) + 1264.52f * t;
 				float length = top2 / bottom / (sin - top1 / bottom * cos);
 				if (length >= 0) min = Math.min(min, length);
 			}

@@ -100,7 +100,7 @@ public record CAM16 (
 		return new XYZ( //
 			rF * 1.8620678f + gF * -1.0112547f + bF * 0.14918678f, //
 			rF * 0.38752654f + gF * 0.62144744f + bF * -0.00897398f, //
-			rF * -0.01584150f + gF * -0.03412294f + bF * 1.0499644f);
+			rF * -0.0158415f + gF * -0.03412294f + bF * 1.0499644f);
 	}
 
 	public CAM16 lerp (CAM16 other, float t) {

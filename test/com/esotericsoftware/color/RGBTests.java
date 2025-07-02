@@ -87,10 +87,10 @@ public class RGBTests extends Tests {
 		// Check that the normalized coordinates satisfy this
 		float sum1 = rgb1.r() + rgb1.g() + rgb1.b();
 		float sum2 = rgb2.r() + rgb2.g() + rgb2.b();
-		float r1_norm = rgb1.r() / sum1 - 1.0f / 3.0f;
-		float g1_norm = rgb1.g() / sum1 - 1.0f / 3.0f;
-		float r2_norm = rgb2.r() / sum2 - 1.0f / 3.0f;
-		float g2_norm = rgb2.g() / sum2 - 1.0f / 3.0f;
+		float r1_norm = rgb1.r() / sum1 - 1f / 3f;
+		float g1_norm = rgb1.g() / sum1 - 1f / 3f;
+		float r2_norm = rgb2.r() / sum2 - 1f / 3f;
+		float g2_norm = rgb2.g() / sum2 - 1f / 3f;
 		assertEquals(g1_norm, r1_norm, 0.001f, "T=0 constraint g'=r' for positive zero");
 		assertEquals(g2_norm, r2_norm, 0.001f, "T=0 constraint g'=r' for negative zero");
 
@@ -154,11 +154,11 @@ public class RGBTests extends Tests {
 		}
 
 		// Test xyXYZ with Y=100
-		XYZ xyz = new xy(0.3127f, 0.3290f).XYZ(); // D65 white point
+		XYZ xyz = new xy(0.3127f, 0.329f).XYZ(); // D65 white point
 		assertEquals(100, xyz.Y(), EPSILON_F, "xyXYZ Y value");
 
 		// Verify it produces the same ratios as XYZ
-		XYZ xyzFromxyY = new xyY(0.3127f, 0.3290f, 100).XYZ();
+		XYZ xyzFromxyY = new xyY(0.3127f, 0.329f, 100).XYZ();
 		assertClose(xyz, xyzFromxyY, EPSILON_F, "xyXYZ matches XYZ");
 	}
 
@@ -207,9 +207,9 @@ public class RGBTests extends Tests {
 		assertEquals(0.8f, richBlack.K(), 0.001, "Rich black K component");
 
 		// Test round trip for various colors
-		for (float r = 0; r <= 1.0f; r += 0.25f) {
-			for (float g = 0; g <= 1.0f; g += 0.25f) {
-				for (float b = 0; b <= 1.0f; b += 0.25f) {
+		for (float r = 0; r <= 1f; r += 0.25f) {
+			for (float g = 0; g <= 1f; g += 0.25f) {
+				for (float b = 0; b <= 1f; b += 0.25f) {
 					RGB rgb = new RGB(r, g, b);
 					CMYK cmyk = rgb.CMYK();
 					RGB rgbBack = cmyk.RGB();
@@ -311,7 +311,7 @@ public class RGBTests extends Tests {
 
 		// Test systematic hue values
 		for (float hue = 0; hue < 360; hue += 30) {
-			HSV hsv = new HSV(hue, 1.0f, 1.0f);
+			HSV hsv = new HSV(hue, 1f, 1f);
 			RGB rgb = hsv.RGB();
 			HSV hsvBack = rgb.HSV();
 			// Handle hue wraparound
@@ -323,7 +323,7 @@ public class RGBTests extends Tests {
 		}
 
 		// Test various saturation levels
-		for (float sat = 0; sat <= 1.0f; sat += 0.1f) {
+		for (float sat = 0; sat <= 1f; sat += 0.1f) {
 			HSV hsv = new HSV(180, sat, 0.8f); // Cyan at different saturations
 			RGB rgb = hsv.RGB();
 			HSV hsvBack = rgb.HSV();
@@ -335,9 +335,9 @@ public class RGBTests extends Tests {
 		}
 
 		// Test round trip for grid of colors
-		for (float r = 0; r <= 1.0f; r += 0.2f) {
-			for (float g = 0; g <= 1.0f; g += 0.2f) {
-				for (float b = 0; b <= 1.0f; b += 0.2f) {
+		for (float r = 0; r <= 1f; r += 0.2f) {
+			for (float g = 0; g <= 1f; g += 0.2f) {
+				for (float b = 0; b <= 1f; b += 0.2f) {
 					RGB rgb = new RGB(r, g, b);
 					roundTripD(rgb, RGB::HSV, HSV::RGB, "HSV " + rgb);
 				}
@@ -380,7 +380,7 @@ public class RGBTests extends Tests {
 
 		// Test systematic range of L* values
 		for (float L = 0; L <= 100; L += 10) {
-			float gray = L / 100.0f;
+			float gray = L / 100f;
 			RGB rgb = new RGB(gray, gray, gray);
 			Lab lab = rgb.Lab();
 			// L* should be approximately the input L value for grays
@@ -394,13 +394,13 @@ public class RGBTests extends Tests {
 		Lab redLab = new RGB(1, 0, 0).Lab();
 		assertEquals(53.233f, redLab.L(), 0.5, "Red L*");
 		assertEquals(80.109f, redLab.a(), 0.5, "Red a*");
-		assertEquals(67.220f, redLab.b(), 0.5, "Red b*");
+		assertEquals(67.22f, redLab.b(), 0.5, "Red b*");
 
 		// Test round-trip for various colors
-		float[] testValues = {0.0f, 0.01f, 0.1f, 0.2f, 0.3f, 0.33f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
+		float[] testValues = {0f, 0.01f, 0.1f, 0.2f, 0.3f, 0.33f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f};
 		for (float r : testValues) {
-			for (float g : new float[] {0.0f, 0.5f, 1.0f}) {
-				for (float b : new float[] {0.0f, 0.5f, 1.0f}) {
+			for (float g : new float[] {0f, 0.5f, 1f}) {
+				for (float b : new float[] {0f, 0.5f, 1f}) {
 					RGB rgb = new RGB(r, g, b);
 					Lab lab = rgb.Lab();
 					RGB rgbBack = lab.RGB();
@@ -526,11 +526,11 @@ public class RGBTests extends Tests {
 		assertEquals("255, 128, 64, 191", Util.toString255(hexTest), "RGBW toString255");
 
 		// Test CCT to RGBW conversion
-		LinearRGB scaledWhite = new LinearRGB(1.8f, 1.6f, 1.0f); // Scaled warm white LED (~2700K)
+		LinearRGB scaledWhite = new LinearRGB(1.8f, 1.6f, 1f); // Scaled warm white LED (~2700K)
 
 		// Test maximum brightness at full
 		RGB target4000 = new CCT(4000, 0).RGB();
-		RGBW cctFull = new CCT(4000).RGBW(1.0f, scaledWhite);
+		RGBW cctFull = new CCT(4000).RGBW(1f, scaledWhite);
 		// Verify full brightness produces expected result
 		Assertions.assertTrue(cctFull.r() >= 0 || cctFull.g() >= 0 || cctFull.b() >= 0 || cctFull.w() > 0,
 			"Full brightness CCT should produce non-zero output");
@@ -574,7 +574,7 @@ public class RGBTests extends Tests {
 	@Test
 	public void testRGBWW () {
 		// Test RGB to RGBWW with two whites
-		LinearRGB warmWhite = new LinearRGB(1.8f, 1.6f, 1.0f); // 2700K-ish, scaled
+		LinearRGB warmWhite = new LinearRGB(1.8f, 1.6f, 1f); // 2700K-ish, scaled
 		LinearRGB coolWhite = new LinearRGB(1.2f, 1.4f, 1.8f); // 6500K-ish, scaled
 
 		// Test warm color - should prefer warm white
@@ -590,7 +590,7 @@ public class RGBTests extends Tests {
 		// Test CCT to RGBWW conversion
 
 		// Test intermediate CCT - should blend whites
-		RGBWW cct4000 = new CCT(5500).RGBWW(1.0f, warmWhite, coolWhite);
+		RGBWW cct4000 = new CCT(5500).RGBWW(1f, warmWhite, coolWhite);
 		assertTrue(cct4000.w1() > 0 && cct4000.w2() > 0, "Mid CCT should blend both whites");
 
 		// Test warm CCT - should use mostly warm white

@@ -144,7 +144,7 @@ public record XYZ (
 		float X = this.X / 100, Y = this.Y / 100, Z = this.Z / 100;
 		return new LinearRGB( //
 			3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z, //
-			-0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z, //
+			-0.969266f * X + 1.8760108f * Y + 0.041556f * Z, //
 			0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z);
 	}
 
@@ -154,34 +154,28 @@ public record XYZ (
 	}
 
 	public LMS LMS (CAT matrix) {
-		float[] lms = matrixMultiply(X, Y, Z, switch (matrix) {
-		case HPE -> CAT.HPE_forward;
-		case Bradford -> CAT.Bradford_forward;
-		case VonKries -> CAT.vonKries_forward;
-		case CAT97 -> CAT.CAT97_forward;
-		default -> CAT.CAT02_forward;
-		});
+		float[] lms = matrixMultiply(X, Y, Z, matrix.forward);
 		return new LMS(lms[0], lms[1], lms[2]);
 	}
 
 	public Oklab Oklab () {
-		float X = this.X / 100f, Y = this.Y / 100f, Z = this.Z / 100f;
+		float X = this.X / 100, Y = this.Y / 100, Z = this.Z / 100;
 		float r = 3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z; // To linear RGB without clamp, D65.
-		float g = -0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z;
+		float g = -0.969266f * X + 1.8760108f * Y + 0.041556f * Z;
 		float b = 0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z;
 		float l = (float)Math.cbrt(0.4122214708f * r + 0.5363325363f * g + 0.0514459929f * b);
 		float m = (float)Math.cbrt(0.2119034982f * r + 0.6806995451f * g + 0.1073969566f * b);
 		float s = (float)Math.cbrt(0.0883024619f * r + 0.2817188376f * g + 0.6299787005f * b);
 		return new Oklab( //
-			0.2104542553f * l + 0.7936177850f * m - 0.0040720468f * s, //
-			1.9779984951f * l - 2.4285922050f * m + 0.4505937099f * s, //
-			0.0259040371f * l + 0.7827717662f * m - 0.8086757660f * s);
+			0.2104542553f * l + 0.793617785f * m - 0.0040720468f * s, //
+			1.9779984951f * l - 2.428592205f * m + 0.4505937099f * s, //
+			0.0259040371f * l + 0.7827717662f * m - 0.808675766f * s);
 	}
 
 	public RGB RGB () {
 		float X = this.X / 100, Y = this.Y / 100, Z = this.Z / 100;
 		return new RGB(sRGB(clamp(3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z)),
-			sRGB(clamp(-0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z)),
+			sRGB(clamp(-0.969266f * X + 1.8760108f * Y + 0.041556f * Z)),
 			sRGB(clamp(0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z)));
 	}
 
@@ -191,16 +185,16 @@ public record XYZ (
 	}
 
 	public UVW UVW (XYZ whitePoint) {
-		float denom = X() + 15f * Y + 3f * Z;
-		float denomWhite = whitePoint.X() + 15f * whitePoint.Y() + 3f * whitePoint.Z();
+		float denom = X() + 15 * Y + 3 * Z;
+		float denomWhite = whitePoint.X() + 15 * whitePoint.Y() + 3 * whitePoint.Z();
 		if (denom < EPSILON || denomWhite < EPSILON) return new UVW(0, 0, 0);
-		float u = 4f * X / denom, v = 6f * Y / denom;
-		float un = 4f * whitePoint.X() / denomWhite;
-		float vn = 6f * whitePoint.Y() / denomWhite;
+		float u = 4 * X / denom, v = 6 * Y / denom;
+		float un = 4 * whitePoint.X() / denomWhite;
+		float vn = 6 * whitePoint.Y() / denomWhite;
 		float yRatio = Y / whitePoint.Y();
 		if (yRatio <= 0) return new UVW(0, 0, -17);
-		float W = 25f * (float)Math.pow(yRatio, 1f / 3f) - 17f;
-		return new UVW(13f * W * (u - un), 13f * W * (v - vn), W);
+		float W = 25 * (float)Math.pow(yRatio, 1 / 3f) - 17;
+		return new UVW(13 * W * (u - un), 13 * W * (v - vn), W);
 	}
 
 	/** @return NaN if invalid. */
@@ -232,6 +226,19 @@ public record XYZ (
 
 	public XYZ add (float X, float Y, float Z) {
 		return new XYZ(this.X + X, this.Y + Y, this.Z + Z);
+	}
+
+	/** Uses {@link LMS.CAT#Bradford}. */
+	public XYZ chromaticAdaptation (XYZ sourceIlluminant, XYZ destIlluminant) {
+		return chromaticAdaptation(sourceIlluminant, destIlluminant, LMS.CAT.Bradford);
+	}
+
+	/** @return This color adapted to appear under the target illuminant as it would under the source illuminant. */
+	public XYZ chromaticAdaptation (XYZ sourceIlluminant, XYZ targetIlluminant, LMS.CAT transform) {
+		LMS lms = LMS(transform), sourceLMS = sourceIlluminant.LMS(transform), targetLMS = targetIlluminant.LMS(transform);
+		return new LMS(lms.L() * targetLMS.L() / sourceLMS.L(), //
+			lms.M() * targetLMS.M() / sourceLMS.M(), //
+			lms.S() * targetLMS.S() / sourceLMS.S()).XYZ(transform);
 	}
 
 	public XYZ lerp (XYZ other, float t) {
@@ -318,7 +325,7 @@ public record XYZ (
 	/** CIE 1931 y-bar color matching function (380-780nm at 5nm intervals). **/
 	static public float[] Ybar = {0.000039f, 0.000064f, 0.00012f, 0.000217f, 0.000396f, 0.00064f, 0.00121f, 0.00218f, 0.004f,
 		0.0073f, 0.0116f, 0.01684f, 0.023f, 0.0298f, 0.038f, 0.048f, 0.06f, 0.0739f, 0.09098f, 0.1126f, 0.13902f, 0.1693f, 0.20802f,
-		0.2586f, 0.323f, 0.4073f, 0.503f, 0.6082f, 0.71f, 0.7932f, 0.862f, 0.91485f, 0.954f, 0.9803f, 0.99495f, 1f, 0.995f, 0.9786f,
+		0.2586f, 0.323f, 0.4073f, 0.503f, 0.6082f, 0.71f, 0.7932f, 0.862f, 0.91485f, 0.954f, 0.9803f, 0.99495f, 1, 0.995f, 0.9786f,
 		0.952f, 0.9154f, 0.87f, 0.8163f, 0.757f, 0.6949f, 0.631f, 0.5668f, 0.503f, 0.4412f, 0.381f, 0.321f, 0.265f, 0.217f, 0.175f,
 		0.1382f, 0.107f, 0.0816f, 0.061f, 0.04458f, 0.032f, 0.0232f, 0.017f, 0.01192f, 0.00821f, 0.005723f, 0.004102f, 0.002929f,
 		0.002091f, 0.001484f, 0.001047f, 0.00074f, 0.00052f, 0.000361f, 0.000249f, 0.000172f, 0.00012f, 0.000085f, 0.00006f,
@@ -331,17 +338,4 @@ public record XYZ (
 		0.0039f, 0.00275f, 0.0021f, 0.0018f, 0.00165f, 0.0014f, 0.0011f, 0.001f, 0.0008f, 0.0006f, 0.00034f, 0.00024f, 0.00019f,
 		0.0001f, 0.00005f, 0.00003f, 0.00002f, 0.00001f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0};
-
-	/** Uses {@link LMS.CAT#VonKries}. */
-	public XYZ chromaticAdaptation (XYZ sourceIlluminant, XYZ destIlluminant) {
-		return chromaticAdaptation(sourceIlluminant, destIlluminant, LMS.CAT.VonKries);
-	}
-
-	/** @return This color adapted to appear under the target illuminant as it would under the source illuminant. */
-	public XYZ chromaticAdaptation (XYZ sourceIlluminant, XYZ targetIlluminant, LMS.CAT transform) {
-		LMS lms = LMS(transform), sourceLMS = sourceIlluminant.LMS(transform), targetLMS = targetIlluminant.LMS(transform);
-		return new LMS(lms.L() * targetLMS.L() / sourceLMS.L(), //
-			lms.M() * targetLMS.M() / sourceLMS.M(), //
-			lms.S() * targetLMS.S() / sourceLMS.S()).XYZ(transform);
-	}
 }
