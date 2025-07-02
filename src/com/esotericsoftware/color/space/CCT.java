@@ -17,7 +17,7 @@ public record CCT ( //
 	}
 
 	/** Returns a reference illuminant spectrum for this CCT. Uses Planckian radiator for CCT < 5000K, CIE daylight for >= 5000K.
-	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. */
+	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. Requires [1000..100000K] else returns NaN. */
 	public Spectrum illuminant () {
 		if (K < 5000) return Planckian(380, 780, 5);
 		xy xy = xy();
@@ -47,21 +47,15 @@ public record CCT ( //
 		return new Spectrum(values, step, start).normalize();
 	}
 
-	/** {@link #RGB(float)} with 0 Duv.
-	 * @return NaN if invalid. */
+	/** @return Requires [1000..100000K] else returns NaN. */
 	public RGB RGB () {
 		return xy().RGB();
-	}
-
-	/** @return NaN if invalid. */
-	public RGB RGB (float Duv) {
-		return xy(Duv).RGB();
 	}
 
 	/** Convert to RGBW using one calibrated white LED color. Brightness is maximized.
 	 * @param brightness [0..1]
 	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
-	 * @return NaN if invalid. */
+	 * @return Requires [1000..100000K] else returns NaN. */
 	public RGBW RGBW (float brightness, LinearRGB w) {
 		LinearRGB target = xy().LinearRGB();
 		float W = 1;
@@ -148,15 +142,9 @@ public record CCT ( //
 		return new RGBWW(r, g, b, W1, W2);
 	}
 
-	/** {@link #uv(float)} with 0 Duv.
-	 * @return NaN if invalid. */
-	public uv uv () {
-		return xy().uv();
-	}
-
 	/** @return NaN if invalid. */
-	public uv uv (float Duv) {
-		return xy(Duv).uv();
+	public uv uv () {
+		return uv1960().uv();
 	}
 
 	/** Uses exact Planck calculation [427..100000K].
@@ -180,6 +168,7 @@ public record CCT ( //
 		return new XYZ((float)X, 100, (float)Z);
 	}
 
+	/** @return Requires [1000..100000K] else returns NaN. */
 	public uv1960 uv1960 () {
 		if (K < 1000 || K > 100000) return new uv1960(Float.NaN, Float.NaN);
 		float[] Robertson = CCT.Robertson;
@@ -192,10 +181,8 @@ public record CCT ( //
 				v += (Robertson[i + 2] - v) * t;
 				if (Duv != 0) {
 					float du = Robertson[i - 2], dv = Robertson[i - 1];
-					du += t * (Robertson[i + 3] - du);
-					dv += t * (Robertson[i + 4] - dv);
-					u -= du * Duv;
-					v -= dv * Duv;
+					u -= (du + t * (Robertson[i + 3] - du)) * Duv;
+					v -= (dv + t * (Robertson[i + 4] - dv)) * Duv;
 				}
 				return new uv1960(u, v);
 			}
@@ -205,74 +192,9 @@ public record CCT ( //
 		return new uv1960(Robertson[646] - Robertson[649] * Duv, Robertson[647] + Robertson[648] * Duv);
 	}
 
-	/** {@link #xy(float)} with 0 Duv. Worst case accuracy is 0.00058 [1667-100000K] else uses exact Planck calculation
-	 * [427..1667].
-	 * @return NaN if invalid. */
+	/** @return Requires [1000..100000K] else returns NaN. */
 	public xy xy () {
-		if (K < 427 || K > 100000) return new xy(Float.NaN, Float.NaN);
-		if (K >= 1667) {
-			float x, t2 = K * K; // Krystek's approximation.
-			if (K >= 1667 && K <= 4000)
-				x = -0.2661239f * 1e9f / (t2 * K) - 0.2343589f * 1e6f / t2 + 0.8776956f * 1e3f / K + 0.179910f;
-			else // CCT > 4000 && CCT <= 25000
-				x = -3.0258469f * 1e9f / (t2 * K) + 2.1070379f * 1e6f / t2 + 0.2226347f * 1e3f / K + 0.240390f;
-			float y, xx = x * x;
-			if (K >= 1667 && K <= 2222)
-				y = -1.1063814f * xx * x - 1.34811020f * xx + 2.18555832f * x - 0.20219683f;
-			else if (K > 2222 && K <= 4000)
-				y = -0.9549476f * xx * x - 1.37418593f * xx + 2.09137015f * x - 0.16748867f;
-			else // CCT > 4000
-				y = 3.0817580f * xx * x - 5.87338670f * xx + 3.75112997f * x - 0.37001483f;
-			return new xy(x, y);
-		}
-// if (K >= 1000) {
-// float x, t = 1000f / K, t2 = t * t, t3 = t2 * t; // Use reciprocal temperature for better numerical stability
-// if (K >= 1667 && K <= 4000) {
-// // Standard Krystek approximation
-// x = -0.2661239f * t3 - 0.2343589f * t2 + 0.8776956f * t + 0.179910f;
-// } else if (K > 4000 && K <= 25000) {
-// // Standard Krystek approximation
-// x = -3.0258469f * t3 + 2.1070379f * t2 + 0.2226347f * t + 0.240390f;
-// } else if (K > 25000 && K <= 50000) {
-// // Extended approximation for high temperatures
-// x = -4.6070f * t3 + 2.9678f * t2 + 0.09911f * t + 0.244063f;
-// } else if (K > 50000) {
-// // Very high temperature approximation
-// x = -2.0064f * t3 + 1.9018f * t2 + 0.24748f * t + 0.237040f;
-// } else {
-// // K < 1667 - use polynomial fit
-// float t4 = t3 * t;
-// x = -0.0803f * t4 - 0.3903f * t3 - 0.2887f * t2 + 0.8810f * t + 0.17991f;
-// }
-// float y, xx = x * x, xxx = xx * x;
-// if (K >= 1667 && K <= 2222) {
-// y = -1.1063814f * xxx - 1.34811020f * xx + 2.18555832f * x - 0.20219683f;
-// } else if (K > 2222 && K <= 4000) {
-// y = -0.9549476f * xxx - 1.37418593f * xx + 2.09137015f * x - 0.16748867f;
-// } else if (K > 4000 && K <= 25000) {
-// y = 3.0817580f * xxx - 5.87338670f * xx + 3.75112997f * x - 0.37001483f;
-// } else if (K > 25000 && K <= 50000) {
-// // Extended approximation for high temperatures
-// y = 2.870f * xxx - 5.503f * xx + 3.583f * x - 0.35986f;
-// } else if (K > 50000) {
-// // Very high temperature approximation
-// y = 2.511f * xxx - 4.894f * xx + 3.234f * x - 0.33684f;
-// } else {
-// // K < 1667 - use polynomial fit
-// y = -0.9267f * xxx - 1.2481f * xx + 2.1532f * x - 0.19834f;
-// }
-// return new xy(x, y);
-// }
-		return XYZ().xy();
-	}
-
-	/** @return NaN if {@link #K()} is outside [1667..25000K]. */
-	public xy xy (float Duv) {
-		if (K < 1667 || K > 25000) return new xy(Float.NaN, Float.NaN);
-		xy xy = xy();
-		if (Duv == 0 || Duv == this.Duv) return xy;
-		uv1960 perp = perpendicular(K, xy), uv = xy.uv1960();
-		return new uv1960(uv.u() + perp.u() * Duv, uv.v() + perp.v() * Duv).xy();
+		return uv1960().xy();
 	}
 
 	static uv1960 perpendicular (float K, xy xyPoint) {

@@ -529,7 +529,7 @@ public class RGBTests extends Tests {
 		LinearRGB scaledWhite = new LinearRGB(1.8f, 1.6f, 1.0f); // Scaled warm white LED (~2700K)
 
 		// Test maximum brightness at full
-		RGB target4000 = new CCT(4000).RGB(0);
+		RGB target4000 = new CCT(4000, 0).RGB();
 		RGBW cctFull = new CCT(4000).RGBW(1.0f, scaledWhite);
 		// Verify full brightness produces expected result
 		Assertions.assertTrue(cctFull.r() >= 0 || cctFull.g() >= 0 || cctFull.b() >= 0 || cctFull.w() > 0,

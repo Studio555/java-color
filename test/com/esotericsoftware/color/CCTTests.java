@@ -15,12 +15,6 @@ import com.esotericsoftware.color.space.xy;
 
 public class CCTTests extends Tests {
 	@Test
-	public void testCCTtouv () {
-		System.out.println(new CCT(6500, 0.03f).uv1960());
-		System.out.println(new CCT(6500, 0.03f).xy().uv1960());
-	}
-
-	@Test
 	public void testDuvSigns () {
 		for (CCT.Method method : CCT.Method.values())
 			checkDuvSigns(method);
@@ -36,12 +30,17 @@ public class CCTTests extends Tests {
 	@Test
 	public void testxyErrorOhno () {
 		float max = 0;
-		for (float K = 1667; K < 25000; K += 0.1f) {
+		for (float K = 1000; K < 25000; K += 0.1f) {
 			float roundTripK = new CCT(K).xy().CCT(CCT.Method.Ohno).K();
 			if (Float.isNaN(roundTripK)) System.out.println();
 			max = Math.max(max, K - roundTripK);
 		}
-		assertTrue(max < 3.14f, "Max error: " + max);
+		for (float K = 25000; K < 100000; K += 0.1f) {
+			float roundTripK = new CCT(K).xy().CCT(CCT.Method.Ohno).K();
+			if (Float.isNaN(roundTripK)) System.out.println();
+			max = Math.max(max, K - roundTripK);
+		}
+		assertTrue(max < 30, "Max error: " + max);
 	}
 
 	@Test
@@ -82,8 +81,8 @@ public class CCTTests extends Tests {
 		String actual = hex(new CCT(2700).RGB());
 		assertTrue(actual.equals("ffad59"), "Expected CCT RGB value != actual: ffad59 != " + actual);
 
-		actual = hex(new CCT(2700).RGB(0.01f));
-		assertTrue(actual.equals("ffb32b"), "Expected CCT RGB with 0.01 Duv value != actual: ffb32b != " + actual);
+		actual = hex(new CCT(2700, 0.01f).RGB());
+		assertTrue(actual.equals("ffb32a"), "Expected CCT RGB with 0.01 Duv value != actual: ffb32a != " + actual);
 
 		// Test many color temperatures including new lower range
 		java.util.List<Float> cctsList = new java.util.ArrayList<>();
@@ -120,7 +119,7 @@ public class CCTTests extends Tests {
 		// Test CCT with Duv offsets
 		float[] duvOffsets = {-0.01f, 0, 0.01f};
 		for (float duv : duvOffsets) {
-			RGB rgb = new CCT(3000).RGB(duv);
+			RGB rgb = new CCT(3000, duv).RGB();
 			// Verify Duv affects the color
 			Assertions.assertTrue(rgb.r() >= 0 && rgb.r() <= 1, "Duv " + duv + " R in range");
 			Assertions.assertTrue(rgb.g() >= 0 && rgb.g() <= 1, "Duv " + duv + " G in range");
@@ -150,8 +149,8 @@ public class CCTTests extends Tests {
 		for (float cct : testCCTs) {
 			// Create points using the CCT + Duv constructor
 			xy onLocus = new CCT(cct).xy(); // On the locus (Duv = 0)
-			xy aboveLocus = new CCT(cct).xy(0.005f); // Above locus (Duv = +0.005)
-			xy belowLocus = new CCT(cct).xy(-0.005f); // Below locus (Duv = -0.005)
+			xy aboveLocus = new CCT(cct, 0.005f).xy(); // Above locus (Duv = +0.005)
+			xy belowLocus = new CCT(cct, -0.005f).xy(); // Below locus (Duv = -0.005)
 
 			// Calculate the actual Duv values back
 			float duvOn = onLocus.CCT().Duv();
@@ -180,7 +179,7 @@ public class CCTTests extends Tests {
 		assertTrue(rgb.r() >= 0 && rgb.r() <= 1 && rgb.g() >= 0 && rgb.g() <= 1 && rgb.b() >= 0 && rgb.b() <= 1,
 			"RGB in range for minimum CCT");
 
-		rgb = new CCT(1667).RGB(); // Previous minimum CCT (boundary test)
+		rgb = new CCT(1667).RGB();
 		assertTrue(rgb.r() >= 0 && rgb.r() <= 1 && rgb.g() >= 0 && rgb.g() <= 1 && rgb.b() >= 0 && rgb.b() <= 1,
 			"RGB in range for 1667K CCT");
 
@@ -200,56 +199,39 @@ public class CCTTests extends Tests {
 			}
 
 			float error = Math.abs(calculatedCCT - expectedCCT);
-
-			// McCamy's approximation has varying accuracy
-			if (expectedCCT >= 4000 && expectedCCT <= 8000) {
-				assertTrue(error < 50, "CCT error should be <50K in optimal range, was " + error + " for CCT " + expectedCCT);
-			} else if (expectedCCT < 1667 || expectedCCT > 25000) {
-				// Out of range can't be round tripped.
-			} else if (expectedCCT >= 1667 && expectedCCT < 4000) {
-				// Transition range also has reduced accuracy
-				assertTrue(error < 1600, "CCT error should be <1600K in transition range, was " + error + " for CCT " + expectedCCT);
-			} else {
-				assertTrue(error < 200, "CCT error should be <200K outside optimal range, was " + error + " for CCT " + expectedCCT);
-			}
+			assertTrue(error < 25, "CCT error should be <25K, was " + error + " for CCT " + expectedCCT);
 		}
 
 		// Test round-trip accuracy specifically for new lower range
-		float[] lowCCTs = {1000, 1100, 1200, 1300, 1400, 1500, 1600};
+		float[] lowCCTs = {1000, 1030, 1100, 1200, 1300, 1400, 1500, 1600, 2700, 3000, 4000, 5000, 6500, 10000};
 		for (float cct : lowCCTs) {
 			// Test xy(CCT) -> CCT(xy) round trip
 			xy xyFromCCT = new CCT(cct).xy();
 			float cctFromXY = xyFromCCT.CCT().K();
 			if (!Float.isNaN(cctFromXY)) {
 				float roundTripError = Math.abs(cct - cctFromXY);
-				// Accept higher error for very low temperatures where McCamy doesn't work well
-				float maxError = cct < 1200 ? 4000 : 1000;
+				float maxError = 1000;
 				assertTrue(roundTripError < maxError,
 					"Round-trip error for low CCT " + cct + " should be < " + maxError + ", was " + roundTripError);
 			}
 
 			// Test with Duv offsets
-			xy xyWithDuv = new CCT(cct).xy(0.005f);
+			xy xyWithDuv = new CCT(cct, 0.005f).xy();
 			float duvCalculated = xyWithDuv.CCT().Duv();
 			if (!Float.isNaN(duvCalculated)) {
-				// Higher tolerance for very low CCT values
-				float duvTolerance = cct <= 1200 ? 0.003f : 0.001f;
-				assertEquals(0.005f, duvCalculated, duvTolerance, "Duv accuracy for low CCT " + cct);
+				// <1030K Robertson cannot accurately calculate Duv
+				if (cct < 1030) continue;
+				assertEquals(0.005f, duvCalculated, 0.001f, "Duv accuracy for low CCT " + cct);
 			}
 		}
 
 		// Test uv to CCT conversions
 		for (float expectedCCT : cctsList) {
-			if (expectedCCT < 1667 || expectedCCT > 25000) continue;
 			uv uv = new CCT(expectedCCT).RGB().uv();
 			float calculatedCCT = uv.CCT().K();
 			float error = Math.abs(calculatedCCT - expectedCCT);
-			// Verify error is reasonable
-			// Accept higher error for very low temperatures
-			Assertions.assertTrue(error < 500, "UV to CCT error for " + expectedCCT + "K should be reasonable, was " + error);
+			Assertions.assertTrue(error < 30, "UV to CCT error for " + expectedCCT + "K should be reasonable, was " + error);
 		}
-
-		// Test edge cases
 
 		// Test invalid xy coordinates
 		float invalidCCT = new xy(0.1f, 0.1f).CCT(CCT.Method.Ohno).K(); // Far from blackbody locus
@@ -318,7 +300,7 @@ public class CCTTests extends Tests {
 		for (float cct : testCCTs) {
 			for (float expectedDuv : testDuvs) {
 				// Create a point with known Duv offset
-				uv uvWithDuv = new CCT(cct).uv(expectedDuv);
+				uv uvWithDuv = new CCT(cct, expectedDuv).uv();
 				float calculatedDuv = uvWithDuv.xy().CCT().Duv();
 
 				// The calculated Duv should be close to the expected value
@@ -343,10 +325,10 @@ public class CCTTests extends Tests {
 		// Points below the locus (more pink/magenta) should have negative Duv
 
 		// Create points with known Duv offsets
-		xy aboveLocus = new CCT(4000).xy(0.002f); // Positive Duv - above the locus
+		xy aboveLocus = new CCT(4000, 0.002f).xy(); // Positive Duv - above the locus
 		float duvAbove = aboveLocus.CCT().Duv();
 
-		xy belowLocus = new CCT(4000).xy(-0.002f); // Negative Duv - below the locus
+		xy belowLocus = new CCT(4000, -0.002f).xy(); // Negative Duv - below the locus
 		float duvBelow = belowLocus.CCT().Duv();
 
 		// Verify the calculated Duv values match what we specified
