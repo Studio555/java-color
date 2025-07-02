@@ -16,7 +16,7 @@ public record uv (
 
 	/** Uses {@link CCT.Method#Robertson}. Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.5K
 	 * [60000-100000K].
-	 * @return [1000..100000K] or NaN out of range. */
+	 * @return [1000K+] or NaN out of range. */
 	public CCT CCT () {
 		float[] Robertson = CCT.Robertson;
 		uv1960 uv = uv1960();

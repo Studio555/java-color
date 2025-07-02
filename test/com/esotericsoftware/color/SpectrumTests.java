@@ -8,7 +8,7 @@ import com.esotericsoftware.color.space.XYZ;
 
 public class SpectrumTests extends Tests {
 	@Test
-	public void testRealSpectrum () {
+	public void test12248K () {
 		spectrum("12248K",
 			new float[] {1.9956915E-5f, 6.5079814E-7f, 7.2967196E-5f, 4.9119168E-5f, 6.737685E-5f, 7.471229E-4f, 0.0027926343f,
 				0.008958212f, 0.022782302f, 0.049911488f, 0.096607715f, 0.17858425f, 0.32043064f, 0.54326475f, 0.7663351f,
@@ -32,7 +32,10 @@ public class SpectrumTests extends Tests {
 				87.7f, 91.3f, 85.2f, 81.7f, 78.9f, 79.8f, 76.7f, 76.9f, 91.9f, 85.2f, 87.5f, 67.7f, 83.5f, 77, 74.9f, 72.9f, 72.1f,
 				83.6f, 85, 83, 64.3f, 91.2f, 78.3f, 83.4f, 70.5f, 93.5f, 87.8f, 87.9f, 90.8f, 89.3f, 71.6f, 95.5f, 87.8f, 91.5f,
 				78.1f, 71.1f, 78.6f, 78.9f, 76.4f, 77.6f, 50.7f, 65.9f, 77.6f, 67.5f, 69.7f, 84.2f, 90.3f, 84.4f, 76.1f});
+	}
 
+	@Test
+	public void test2693K () {
 		spectrum("2693K",
 			new float[] {0, 4.63404E-5f, 0, 0, 1.5213385E-5f, 9.423979E-5f, 9.168864E-4f, 0.0028124647f, 0.0064910487f, 0.012795517f,
 				0.02279974f, 0.0390725f, 0.06805827f, 0.1170179f, 0.16432652f, 0.1575605f, 0.1220362f, 0.104939625f, 0.089811146f,

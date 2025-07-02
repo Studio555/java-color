@@ -6,11 +6,18 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.Spectrum;
 
 public record CCT ( //
-	/** [427..100000K] */
+	/** [427K+] */
 	float K,
 	float Duv) {
 
 	static float[] KPlanckian, uvPlanckian;
+
+	public CCT {
+		if (K < 427 || !Float.isFinite(K) || !Float.isFinite(Duv)) {
+			K = Float.NaN;
+			Duv = Float.NaN;
+		}
+	}
 
 	public CCT (float K) {
 		this(K, 0);
@@ -148,7 +155,7 @@ public record CCT ( //
 		return uv1960().uv();
 	}
 
-	/** Uses exact Planck calculation [427..100000K].
+	/** Uses exact Planck calculation [427K+].
 	 * @return Normalized with Y=100 or NaN if invalid. */
 	public XYZ XYZ () {
 		if (K < 427) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
@@ -161,12 +168,9 @@ public record CCT ( //
 			Y += B * XYZ.Ybar[i];
 			Z += B * XYZ.Zbar[i];
 		}
-		if (Y > 0) {
-			double scale = 100 / Y;
-			X *= scale;
-			Z *= scale;
-		}
-		return new XYZ((float)X, 100, (float)Z);
+		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		double scale = 100 / Y;
+		return new XYZ((float)(X * scale), 100, (float)(Z * scale));
 	}
 
 	/** @return Requires [1000K+] else returns NaN. */

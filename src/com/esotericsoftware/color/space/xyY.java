@@ -14,7 +14,6 @@ public record xyY (
 
 	/** @return NaN X and Z if y is 0. */
 	public XYZ XYZ () {
-		if (y < EPSILON) return new XYZ(Float.NaN, Y, Float.NaN);
 		double X = (double)x * Y / y;
 		double Z = (1.0 - x - y) * Y / y;
 		return new XYZ((float)X, Y, (float)Z);

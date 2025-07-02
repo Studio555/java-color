@@ -34,14 +34,14 @@ public record Spectrum (float[] values, int step, int start) {
 		this(values, 5, 380);
 	}
 
-	/** @return [1000..100000K] or NaN out of range.
+	/** @return [1000K+] or NaN out of range.
 	 * @see uv#CCT(CCT.Method) */
 	public CCT CCT (CCT.Method method) {
 		return uv().CCT(method);
 	}
 
 	/** Uses {@link CCT.Method#Robertson}.
-	 * @return [1000..100000K] or NaN out of range. */
+	 * @return [1000K+] or NaN out of range. */
 	@SuppressWarnings("javadoc")
 	public CCT CCT () {
 		return uv().CCT();
@@ -59,7 +59,7 @@ public record Spectrum (float[] values, int step, int start) {
 		float sumRa = 0;
 		for (int i = 0; i < 14; i++) {
 			float[] tcs = CRI.TCS[i];
-			Lab testLab = illuminate(tcs).Lab(testXYZ);
+			Lab testLab = illuminate(tcs).chromaticAdaptation(testXYZ, refXYZ, CAT.CAT16).Lab(refXYZ);
 			Lab refLab = reference.illuminate(tcs).Lab(refXYZ);
 			samples[i] = 100 - 4.6f * testLab.dst(refLab);
 			if (i < 8) sumRa += samples[i];
@@ -171,8 +171,9 @@ public record Spectrum (float[] values, int step, int start) {
 			Y += value * XYZ.Ybar[i];
 			Z += value * XYZ.Zbar[i];
 		}
+		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		float normalize = 100 / Y;
-		return new XYZ(X * normalize, Y * normalize, Z * normalize);
+		return new XYZ(X * normalize, 100, Z * normalize);
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm. */
@@ -221,19 +222,18 @@ public record Spectrum (float[] values, int step, int start) {
 		return SpectralLocus.dominantWavelength(uv(), whitePoint);
 	}
 
-	/** Normalizes spectrum so Y = 100. */
+	/** Normalizes spectrum so Y=100.
+	 * @return NaN if Y=0. */
 	public Spectrum normalize () {
-		float Y = Y();
-		if (Y == 0) return this;
-		return scl(100 / Y);
+		return scl(100 / Y());
 	}
 
-	/** Normalizes spectrum so maximum value = 1. */
+	/** Normalizes spectrum so the maximum value is 1.
+	 * @return NaN if no value is > 0. */
 	public Spectrum normalizeMax () {
 		float max = 0;
 		for (float v : values)
 			max = Math.max(max, v);
-		if (max == 0) return this;
 		return scl(1 / max);
 	}
 
@@ -251,6 +251,7 @@ public record Spectrum (float[] values, int step, int start) {
 			Y += product * XYZ.Ybar[i];
 			Z += product * XYZ.Zbar[i];
 		}
+		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		float normalize = 100 / Y;
 		return new XYZ(X * normalize, Y * normalize, Z * normalize);
 	}
