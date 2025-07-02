@@ -41,13 +41,6 @@ public record CAM16UCS (
 		};
 	}
 
-	public CAM02UCS CAM02UCS () { // Based on Luo et al. "Uniform colour spaces based on CIECAM02 colour appearance model".
-		float KL = 0.77f, c1 = 0.007f, c2 = 0.0228f, J02 = J / 1.7f * (1 + c1 * J) / (1 + c1 * J / 1.7f);
-		float M16 = C(), M02 = (float)(Math.exp(M16 * c2) - 1) / c2;
-		float ratio = M16 > 0 ? M02 / M16 : 0; // Maintain hue angle.
-		return new CAM02UCS(J02 * KL, a * ratio, b * ratio);
-	}
-
 	/** Uses {@link CAM16.VC#sRGB}. */
 	public CAM16 CAM16 () {
 		return CAM16(CAM16.VC.sRGB);

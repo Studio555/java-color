@@ -93,15 +93,6 @@ public record XYZ (
 		return CAM16(vc).CAM16UCS();
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public CAM02UCS CAM02UCS () {
-		return CAM16UCS().CAM02UCS();
-	}
-
-	public CAM02UCS CAM02UCS (CAM16.VC vc) {
-		return CAM16UCS(vc).CAM02UCS();
-	}
-
 	/** @return NaN if invalid. */
 	public HunterLab HunterLab () {
 		if (Y < EPSILON) return new HunterLab(0, 0, 0);

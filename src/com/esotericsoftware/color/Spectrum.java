@@ -6,7 +6,6 @@ import static com.esotericsoftware.color.Util.*;
 import java.util.Arrays;
 
 import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.space.CAM02UCS;
 import com.esotericsoftware.color.space.CAM16.VC;
 import com.esotericsoftware.color.space.CAM16UCS;
 import com.esotericsoftware.color.space.CCT;
@@ -76,14 +75,8 @@ public record Spectrum (float[] values, int step, int start) {
 		return XYZ().Lab(whitePoint);
 	}
 
-	/** Requires 380nm @ 5nm to [700..780+]nm. Uses CAM16-UCS. */
+	/** Requires 380nm @ 5nm to [700..780+]nm. */
 	public TM30 TM30 () {
-		return TM30(false);
-	}
-
-	/** Requires 380nm @ 5nm to [700..780+]nm.
-	 * @param useCAM02 If true, uses CAM02-UCS; if false, uses CAM16-UCS. */
-	public TM30 TM30 (boolean useCAM02) {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
 		CCT cct = testXYZ.uv().CCT();
@@ -94,48 +87,25 @@ public record Spectrum (float[] values, int step, int start) {
 		float chromaRef = 0, chromaTest = 0, sum = 0;
 		VC testVC = VC.with(testXYZ, 100, 20, 1, false);
 		VC refVC = VC.with(reference.XYZ(), 100, 20, 1, false);
-		if (useCAM02) {
-			CAM02UCS[] testColors = new CAM02UCS[99], refColors = new CAM02UCS[99];
-			for (int i = 0; i < 99; i++) {
-				float[] reflectance = TM30.CES[i];
-				testColors[i] = illuminate(reflectance).CAM02UCS(testVC);
-				refColors[i] = reference.illuminate(reflectance).CAM02UCS(refVC);
-			}
-			for (int i = 0; i < 99; i++) {
-				float deltaE = testColors[i].dst(refColors[i]);
-				colorSamples[i] = 100 - 7.18f * deltaE;
-				sum += deltaE;
-			}
-			for (int i = 0; i < 99; i++) {
-				float hue = refColors[i].h(), refChroma = refColors[i].C();
-				int bin = (int)((hue + 11.25f) / 22.5f) % 16;
-				hueShift[bin] += angleDifference(refColors[i].h(), testColors[i].h());
-				chromaShift[bin] += (testColors[i].C() - refChroma) / refChroma;
-				binCounts[bin]++;
-				chromaRef += refChroma;
-				chromaTest += testColors[i].C();
-			}
-		} else {
-			CAM16UCS[] testColors = new CAM16UCS[99], refColors = new CAM16UCS[99];
-			for (int i = 0; i < 99; i++) {
-				float[] reflectance = TM30.CES[i];
-				testColors[i] = illuminate(reflectance).CAM16UCS(testVC);
-				refColors[i] = reference.illuminate(reflectance).CAM16UCS(refVC);
-			}
-			for (int i = 0; i < 99; i++) {
-				float deltaE = testColors[i].deltaE(refColors[i]);
-				colorSamples[i] = 100 - 7.18f * deltaE;
-				sum += deltaE;
-			}
-			for (int i = 0; i < 99; i++) {
-				float hue = refColors[i].h(), refChroma = refColors[i].C();
-				int bin = (int)((hue + 11.25f) / 22.5f) % 16;
-				hueShift[bin] += angleDifference(refColors[i].h(), testColors[i].h());
-				chromaShift[bin] += (testColors[i].C() - refChroma) / refChroma;
-				binCounts[bin]++;
-				chromaRef += refChroma;
-				chromaTest += testColors[i].C();
-			}
+		CAM16UCS[] testColors = new CAM16UCS[99], refColors = new CAM16UCS[99];
+		for (int i = 0; i < 99; i++) {
+			float[] reflectance = TM30.CES[i];
+			testColors[i] = illuminate(reflectance).CAM16UCS(testVC);
+			refColors[i] = reference.illuminate(reflectance).CAM16UCS(refVC);
+		}
+		for (int i = 0; i < 99; i++) {
+			float deltaE = testColors[i].deltaE(refColors[i]);
+			colorSamples[i] = 100 - 7.18f * deltaE;
+			sum += deltaE;
+		}
+		for (int i = 0; i < 99; i++) {
+			float hue = refColors[i].h(), refChroma = refColors[i].C();
+			int bin = (int)((hue + 11.25f) / 22.5f) % 16;
+			hueShift[bin] += angleDifference(refColors[i].h(), testColors[i].h());
+			chromaShift[bin] += (testColors[i].C() - refChroma) / refChroma;
+			binCounts[bin]++;
+			chromaRef += refChroma;
+			chromaTest += testColors[i].C();
 		}
 		float[] hueAngleBins = new float[16];
 		for (int i = 0; i < 16; i++) {
