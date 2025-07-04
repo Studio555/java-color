@@ -109,12 +109,6 @@ public record CAM16UCS (
 		return CAM16(vc).XYZ(vc);
 	}
 
-	/** Perceptual color difference. */
-	public float deltaE (CAM16UCS other) {
-		float dJ = J - other.J(), da = a - other.a(), db = b - other.b();
-		return 1.41f * (float)Math.pow(Math.sqrt(dJ * dJ + da * da + db * db), 0.63);
-	}
-
 	public CAM16UCS add (float value) {
 		return new CAM16UCS(J + value, a + value, b + value);
 	}

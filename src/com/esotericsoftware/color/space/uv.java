@@ -103,7 +103,7 @@ public record uv (
 			K = Kp + (Kn - Kp) * ds;
 			Duv = (float)Math.sqrt(Math.max(0, Duv));
 		}
-		if (K < 1000) return new CCT(Float.NaN, Float.NaN);
+		if (K < 999.99) return new CCT(Float.NaN, Float.NaN);
 		return new CCT(K, Duv * Math.signum(v - (vp + (vn - vp) * ds)));
 	}
 

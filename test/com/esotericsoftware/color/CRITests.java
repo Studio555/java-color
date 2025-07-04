@@ -64,11 +64,17 @@ public class CRITests extends Tests {
 		// System.out.println("TCS " + (i + 1) + ": " + cri.samples()[i]);
 		assertEquals(46.977493f, cri.Ra(), "Wrong Ra");
 
+		cri = spectrum.CRI(CRI.Method.CAM16UCS);
+		assertEquals(47.474117f, cri.Ra(), "Wrong Ra");
+
 		for (int i = 0; i < 12; i++)
 			values[i] = 66;
 		spectrum = new Spectrum(values, 5);
 		cri = spectrum.CRI();
 		assertEquals(37.610584f, cri.Ra(), "Wrong Ra");
+
+		cri = spectrum.CRI(CRI.Method.CAM16UCS);
+		assertEquals(40.88963f, cri.Ra(), "Wrong Ra");
 	}
 
 	@Test

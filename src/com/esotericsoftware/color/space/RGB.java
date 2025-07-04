@@ -33,6 +33,12 @@ public record RGB (
 			((rgb & 0x0000ff)) / 255f);
 	}
 
+	public RGB (String hex) {
+		this(Integer.parseInt(hex.substring(0, 2), 16) / 255f, //
+			Integer.parseInt(hex.substring(2, 4), 16) / 255f, //
+			Integer.parseInt(hex.substring(4, 6), 16) / 255f);
+	}
+
 	public float get (int index) {
 		return switch (index) {
 		case 0 -> r;

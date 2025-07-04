@@ -79,12 +79,12 @@ public record Spectrum (float[] values, int step, int start) {
 			XYZ test = illuminate(tcs).scl(100 / testXYZ.Y());
 			XYZ ref = reference.illuminate(tcs).scl(100 / refXYZ.Y());
 			float deltaE = switch (method) {
-			case UVW -> {
-				UVW test_UVW = test.uv1960().chromaticAdaptation(testuv, refuv).UVW(test.Y(), refuv);
-				UVW ref_UVW = ref.uv1960().UVW(ref.Y(), refuv);
-				yield test_UVW.dst(ref_UVW);
-			}
 			case CAM16UCS -> test.CAM16UCS(testVC).dst(ref.CAM16UCS(refVC));
+			case UVW -> {
+				UVW testUVW = test.uv1960().chromaticAdaptation(testuv, refuv).UVW(test.Y(), refuv);
+				UVW refUVW = ref.uv1960().UVW(ref.Y(), refuv);
+				yield testUVW.dst(refUVW);
+			}
 			};
 			samples[i] = 100 - 4.6f * deltaE;
 			if (i < 8) sumRa += samples[i];
@@ -115,12 +115,12 @@ public record Spectrum (float[] values, int step, int start) {
 		VC refVC = VC.with(reference.XYZ(), 100, 20, 1, false);
 		CAM16UCS[] testColors = new CAM16UCS[99], refColors = new CAM16UCS[99];
 		for (int i = 0; i < 99; i++) {
-			float[] reflectance = TM30.CES[i];
-			testColors[i] = illuminate(reflectance).CAM16UCS(testVC);
-			refColors[i] = reference.illuminate(reflectance).CAM16UCS(refVC);
+			float[] ces = TM30.CES[i];
+			testColors[i] = illuminate(ces).CAM16UCS(testVC);
+			refColors[i] = reference.illuminate(ces).CAM16UCS(refVC);
 		}
 		for (int i = 0; i < 99; i++) {
-			float deltaE = testColors[i].deltaE(refColors[i]);
+			float deltaE = testColors[i].dst(refColors[i]);
 			colorSamples[i] = 100 - 7.18f * deltaE;
 			sum += deltaE;
 		}

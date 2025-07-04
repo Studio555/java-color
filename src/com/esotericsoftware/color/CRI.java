@@ -6,7 +6,7 @@ package com.esotericsoftware.color;
 public record CRI (float Ra, float[] samples) {
 
 	public enum Method {
-		UVW, CAM16UCS
+		CAM16UCS, UVW
 	}
 
 	/** Test Color Samples (TCS) reflectance data at 5nm intervals (380-780nm). */

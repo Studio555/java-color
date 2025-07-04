@@ -113,11 +113,11 @@ public class HCTTests extends Tests {
 		RGB rgb2 = new RGB(0.3f, 0.5f, 0.8f);
 		var ucs1 = rgb1.CAM16UCS();
 		var ucs2 = rgb2.CAM16UCS();
-		float distance = ucs1.deltaE(ucs2);
+		float distance = ucs1.dst(ucs2);
 		assertTrue(distance > 0, "Different colors have positive distance");
 
 		// Same color should have zero distance
-		float sameDistance = ucs1.deltaE(ucs1);
+		float sameDistance = ucs1.dst(ucs1);
 		assertEquals(0, sameDistance, 0.0001, "Same color has zero distance");
 
 		// Test 6: Gray colors in UCS
