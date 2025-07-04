@@ -106,7 +106,7 @@ public record RGB (
 		return uv().CCT(method);
 	}
 
-	/** Uses {@link CCT.Method#Robertson}.
+	/** Uses {@link CCT.Method#RobertsonImproved}.
 	 * @return [1000..100000K] or NaN out of range. */
 	public CCT CCT () {
 		return uv().CCT();

@@ -23,36 +23,8 @@ public record CCT ( //
 		this(K, 0);
 	}
 
-	/** Returns a reference illuminant spectrum for this CCT. Uses Planckian radiator for CCT < 5000K, CIE daylight for >= 5000K.
-	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. Requires [1000K+] else returns NaN. */
-	public Spectrum illuminant () {
-		if (K < 5000) return Planckian(380, 780, 5);
-		xy xy = xy();
-		float x = xy.x(), y = xy.y();
-		float M = (0.0241f + 0.2562f * x - 0.7341f * y);
-		float M1 = (-1.3515f - 1.7703f * x + 5.9114f * y) / M;
-		float M2 = (0.03f - 31.4424f * x + 30.0717f * y) / M;
-		float[] values = new float[81];
-		for (int i = 0; i < 81; i++)
-			values[i] = S0[i] + M1 * S1[i] + M2 * S2[i];
-		return new Spectrum(values, 5).normalize();
-	}
-
 	public boolean invalid () {
 		return Float.isNaN(K);
-	}
-
-	/** @return Normalized to Y=100. */
-	public Spectrum Planckian (int start, int end, int step) {
-		int length = ((end - start) / step) + 1;
-		float[] values = new float[length];
-		for (int i = 0; i < length; i++) {
-			double lambda = (start + i * step) * 1e-9; // nm to meters.
-			double exponent = XYZ.c2 / (lambda * K);
-			values[i] = (float)(exponent > 700 ? 0
-				: XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1)));
-		}
-		return new Spectrum(values, step, start).normalize();
 	}
 
 	/** @return Requires [1000K+] else returns NaN. */
@@ -176,7 +148,7 @@ public record CCT ( //
 	/** @return Requires [1000K+] else returns NaN. */
 	public uv1960 uv1960 () {
 		if (K < 1000) return new uv1960(Float.NaN, Float.NaN);
-		float[] Robertson = CCT.Robertson;
+		float[] Robertson = CCT.RobertsonImproved;
 		float pr = Robertson[0], mired = 1e6f / K;
 		for (int i = 5; i < 650; i += 5) {
 			float cr = Robertson[i];
@@ -197,12 +169,46 @@ public record CCT ( //
 		return new uv1960(Robertson[651] - Robertson[654] * Duv, Robertson[652] + Robertson[653] * Duv);
 	}
 
-	/** @return Requires [1000K+] else returns NaN. */
+	/** Returns Planckian locus coordinates for {@link #K()} and {@link #Duv()}.
+	 * @return Requires [1000K+] else returns NaN. */
 	public xy xy () {
 		return uv1960().xy();
 	}
 
-	static uv1960 perpendicular (float K, xy xyPoint) {
+	/** Returns CIE Illuminant D Series daylight locus coordinates for {@link #K()}.
+	 * @return Requires [4000.25000K+] else returns NaN. */
+	public xy xyDaylight () {
+		if (K < 4000 || K > 25000) return new xy(Float.NaN, Float.NaN);
+		float K3 = K * K * K;
+		float K2 = K * K;
+		float x;
+		if (K <= 7000)
+			x = -4.607e9f / K3 + 2.9678e6f / K2 + 0.09911e3f / K + 0.244063f;
+		else
+			x = -2.0064e9f / K3 + 1.9018e6f / K2 + 0.24748e3f / K + 0.23704f;
+		return new xy(x, 2.87f * x - 3.0f * x * x - 0.275f);
+	}
+
+	/** @return Normalized to Y=100. */
+	public Spectrum blackbody (int start, int end, int step) { // BOZO - Rename blackbody.
+		int length = ((end - start) / step) + 1;
+		float[] values = new float[length];
+		for (int i = 0; i < length; i++) {
+			double lambda = (start + i * step) * 1e-9; // nm to meters.
+			double exponent = XYZ.c2 / (lambda * K);
+			values[i] = (float)(exponent > 700 ? 0
+				: XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1)));
+		}
+		return new Spectrum(values, step, start).normalize();
+	}
+
+	/** Returns a reference illuminant spectrum for this CCT. Uses Planckian radiator for CCT < 5000K, CIE daylight for >= 5000K.
+	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. Requires [1000K+] else returns NaN. */
+	public Spectrum reference () {
+		return K < 5000 ? blackbody(380, 780, 5) : xyDaylight().daylightD();
+	}
+
+	static uv1960 perpendicular (float K, xy xyPoint) { // BOZO - Improve.
 		float x = xyPoint.x(), y = xyPoint.y();
 		float dx_dT, dy_dx, t2 = K * K;
 		if (K <= 4000)
@@ -234,28 +240,6 @@ public record CCT ( //
 		return new uv1960(perp_u, perp_v);
 	}
 
-	/** CIE daylight basis function S0, 380-780nm @ 5nm. */
-	static public final float[] S0 = {63.4f, 64.6f, 65.8f, 80.3f, 94.8f, 99.8f, 104.8f, 105.35f, 105.9f, 101.35f, 96.8f, 105.35f,
-		113.9f, 119.75f, 125.6f, 125.55f, 125.5f, 123.4f, 121.3f, 121.3f, 121.3f, 117.4f, 113.5f, 113.3f, 113.1f, 111.95f, 110.8f,
-		108.65f, 106.5f, 107.65f, 108.8f, 107.05f, 105.3f, 104.85f, 104.4f, 102.2f, 100, 98, 96, 95.55f, 95.1f, 92.1f, 89.1f, 89.8f,
-		90.5f, 90.4f, 90.3f, 89.35f, 88.4f, 86.2f, 84, 84.55f, 85.1f, 83.5f, 81.9f, 82.25f, 82.6f, 83.75f, 84.9f, 83.1f, 81.3f,
-		76.6f, 71.9f, 73.1f, 74.3f, 75.35f, 76.4f, 69.85f, 63.3f, 67.5f, 71.7f, 74.35f, 77, 71.1f, 65.2f, 56.45f, 47.7f, 58.15f,
-		68.6f, 66.8f, 65};
-
-	/** CIE daylight basis function S1, 380-780nm @ 5nm. */
-	static public final float[] S1 = {38.5f, 36.75f, 35, 39.2f, 43.4f, 44.85f, 46.3f, 45.1f, 43.9f, 40.5f, 37.1f, 36.9f, 36.7f,
-		36.3f, 35.9f, 34.25f, 32.6f, 30.25f, 27.9f, 26.1f, 24.3f, 22.2f, 20.1f, 18.15f, 16.2f, 14.7f, 13.2f, 10.9f, 8.6f, 7.35f,
-		6.1f, 5.15f, 4.2f, 3.05f, 1.9f, 0.95f, 0, -0.8f, -1.6f, -2.55f, -3.5f, -3.5f, -3.5f, -4.65f, -5.8f, -6.5f, -7.2f, -7.9f,
-		-8.6f, -9.05f, -9.5f, -10.2f, -10.9f, -10.8f, -10.7f, -11.35f, -12, -13, -14, -13.8f, -13.6f, -12.8f, -12, -12.65f, -13.3f,
-		-13.1f, -12.9f, -11.75f, -10.6f, -11.1f, -11.6f, -11.9f, -12.2f, -11.2f, -10.2f, -9, -7.8f, -9.5f, -11.2f, -10.8f, -10.4f};
-
-	/** CIE daylight basis function S2, 380-780nm @ 5nm. */
-	static public final float[] S2 = {3, 2.1f, 1.2f, 0.05f, -1.1f, -0.8f, -0.5f, -0.6f, -0.7f, -0.95f, -1.2f, -1.9f, -2.6f, -2.75f,
-		-2.9f, -2.85f, -2.8f, -2.7f, -2.6f, -2.6f, -2.6f, -2.2f, -1.8f, -1.65f, -1.5f, -1.4f, -1.3f, -1.25f, -1.2f, -1.1f, -1,
-		-0.75f, -0.5f, -0.4f, -0.3f, -0.15f, 0, 0.1f, 0.2f, 0.35f, 0.5f, 1.3f, 2.1f, 2.65f, 3.2f, 3.65f, 4.1f, 4.4f, 4.7f, 4.9f,
-		5.1f, 5.9f, 6.7f, 7, 7.3f, 7.95f, 8.6f, 9.2f, 9.8f, 10, 10.2f, 9.25f, 8.3f, 8.95f, 9.6f, 9.05f, 8.5f, 7.75f, 7, 7.3f, 7.6f,
-		7.8f, 8, 7.35f, 6.7f, 5.95f, 5.2f, 6.3f, 7.4f, 7.1f, 6.8f};
-
 	/** Ohno (2013) with 1.0134 spacing. */
 	static void PlanckianTable () {
 		if (KPlanckian == null) {
@@ -286,9 +270,44 @@ public record CCT ( //
 		}
 	}
 
+	/** Original Robertson isotemperature lines with precomputed direction. */
+	static public final float[] Robertson1968 = { // mired, u, v, du, dv
+		0, 0.18006f, 0.26352f, 0.9716304f, -0.23650457f, // Infinity K
+		10, 0.18066f, 0.26589f, 0.9690406f, -0.24690185f, // 100000.0 K
+		20, 0.18133f, 0.26846f, 0.9657298f, -0.25954953f, // 50000.0 K
+		30, 0.18208f, 0.27119f, 0.96160626f, -0.2744328f, // 33333.332 K
+		40, 0.18293f, 0.27407f, 0.95658004f, -0.29146993f, // 25000.0 K
+		50, 0.18388f, 0.27709f, 0.95054394f, -0.31059024f, // 20000.0 K
+		60, 0.18494f, 0.28021f, 0.9433986f, -0.33166122f, // 16666.666 K
+		70, 0.18611f, 0.28342f, 0.93504727f, -0.35452315f, // 14285.714 K
+		80, 0.1874f, 0.28668f, 0.925398f, -0.37899676f, // 12500.0 K
+		90, 0.1888f, 0.28997f, 0.9143755f, -0.40486717f, // 11111.111 K
+		100, 0.19032f, 0.29326f, 0.9019168f, -0.4319099f, // 10000.0 K
+		125, 0.19462f, 0.30141f, 0.864265f, -0.5030368f, // 8000.0 K
+		150, 0.19962f, 0.30921f, 0.81741905f, -0.5760434f, // 6666.6665 K
+		175, 0.20525f, 0.31647f, 0.7623116f, -0.6472102f, // 5714.2856 K
+		200, 0.21142f, 0.32312f, 0.70070165f, -0.7134544f, // 5000.0 K
+		225, 0.21807f, 0.32909f, 0.6349235f, -0.77257496f, // 4444.4443 K
+		250, 0.22511f, 0.33439f, 0.5674147f, -0.8234322f, // 4000.0 K
+		275, 0.23247f, 0.33904f, 0.5004877f, -0.86574364f, // 3636.3635 K
+		300, 0.2401f, 0.34308f, 0.43606806f, -0.8999136f, // 3333.3333 K
+		325, 0.24792f, 0.34655f, 0.3755177f, -0.9268153f, // 3076.923 K
+		350, 0.25591f, 0.34951f, 0.31966853f, -0.94752944f, // 2857.1428 K
+		375, 0.264f, 0.352f, 0.2689336f, -0.9631587f, // 2666.6667 K
+		400, 0.27218f, 0.35407f, 0.22339252f, -0.9747285f, // 2500.0 K
+		425, 0.28039f, 0.35577f, 0.18286845f, -0.98313737f, // 2352.9412 K
+		450, 0.28863f, 0.35714f, 0.14705601f, -0.9891282f, // 2222.2222 K
+		475, 0.29685f, 0.35823f, 0.11556052f, -0.9933004f, // 2105.2632 K
+		500, 0.30505f, 0.35907f, 0.08796569f, -0.9961235f, // 2000.0 K
+		525, 0.3132f, 0.35968f, 0.063857116f, -0.997959f, // 1904.762 K
+		550, 0.32129f, 0.36011f, 0.042833105f, -0.9990822f, // 1818.1818 K
+		575, 0.32931f, 0.36038f, 0.024520462f, -0.9996993f, // 1739.1305 K
+		600, 0.33724f, 0.36051f, 0.0085870605f, -0.9999631f, // 1666.6666 K
+	};
+
 	/** Improved Robertson isotemperature lines: larger LUT (131*5) with adaptive increments [1000..100000K], precomputed
 	 * direction. */
-	static public final float[] Robertson = { // mired, u, v, slope, du, dv
+	static public final float[] RobertsonImproved = { // mired, u, v, du, dv
 		0, 0.18006f, 0.26352f, 0.9716304f, -0.23650457f, // infinity K
 		10, 0.18063825f, 0.2659503f, 0.9688685f, -0.24757574f, // 100000 K
 		10.15797f, 0.18064822f, 0.26598927f, 0.96882194f, -0.24775791f, // 98444.86 K
@@ -423,9 +442,11 @@ public record CCT ( //
 	};
 
 	public enum Method {
-		/** Nearest isotemperature line. */
-		Robertson,
+		/** Nearest isotemperature line, greatly improved accuracy. */
+		RobertsonImproved,
+		/** Nearest isotemperature line, poor accuracy. */
+		Robertson1968,
 		/** Nearest point on Planckian locus. */
-		Ohno
+		Ohno2013
 	}
 }

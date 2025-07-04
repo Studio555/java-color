@@ -1,17 +1,20 @@
 
 package com.esotericsoftware.color;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.CCT;
+import com.esotericsoftware.color.space.LMS;
 import com.esotericsoftware.color.space.XYZ;
 
 public class CRITests extends Tests {
 	@Test
 	public void testPlanckianRadiator () {
 		// Test with 2700K Planckian radiator
-		CRI cri = new CCT(2700).illuminant().CRI();
+		CRI cri = new CCT(2700).reference().CRI();
 
 		// Planckian radiator at 2700K should have CRI ~100
 		assertTrue(cri.Ra() > 95 && cri.Ra() <= 100, "Planckian radiator at 2700K should have very high CRI, got: " + cri.Ra());
@@ -25,7 +28,7 @@ public class CRITests extends Tests {
 	@Test
 	public void testDaylight () {
 		// Test with 6500K daylight
-		CRI cri = new CCT(6500).illuminant().CRI();
+		CRI cri = new CCT(6500).reference().CRI();
 
 		// CIE daylight at 6500K should have CRI ~100
 		assertTrue(cri.Ra() > 95 && cri.Ra() <= 100, "CIE daylight at 6500K should have very high CRI, got: " + cri.Ra());
@@ -40,40 +43,32 @@ public class CRITests extends Tests {
 	public void testNarrowbandSpectrum () {
 		// Create a narrowband spectrum (simulating LED)
 		float[] values = new float[81];
-		// Add peaks at blue and yellow wavelengths
 		for (int i = 0; i < 81; i++) {
 			float wavelength = 380 + i * 5;
 			// Blue peak around 450nm
 			if (wavelength >= 440 && wavelength <= 460)
+				values[i] = 80;
+			// Green peak around 530nm
+			else if (wavelength >= 520 && wavelength <= 540)
 				values[i] = 100;
-			// Yellow peak around 570nm
-			else if (wavelength >= 560 && wavelength <= 580)
-				values[i] = 150;
+			// Red peak around 630nm
+			else if (wavelength >= 620 && wavelength <= 640)
+				values[i] = 90;
 			else
-				values[i] = 10; // Low baseline
+				values[i] = 5; // Low baseline
 		}
 		Spectrum spectrum = new Spectrum(values, 5);
-
-		// Normalize to reasonable values
-		XYZ xyz = spectrum.XYZ();
-		float scale = 100f / xyz.Y();
-		for (int i = 0; i < 81; i++)
-			values[i] *= scale;
-
 		CRI cri = spectrum.CRI();
+		// System.out.println(cri.Ra());
+		// for (int i = 0; i < 14; i++)
+		// System.out.println("TCS " + (i + 1) + ": " + cri.samples()[i]);
+		assertEquals(46.977493f, cri.Ra(), "Wrong Ra");
 
-		// Narrowband spectrum should have lower CRI
-		assertTrue(cri.Ra() < 90, "Narrowband spectrum should have lower CRI, got: " + cri.Ra());
-
-		// Some samples (especially reds) should score poorly
-		boolean hasLowScore = false;
-		for (int i = 0; i < 8; i++) {
-			if (cri.samples()[i] < 50) {
-				hasLowScore = true;
-				break;
-			}
-		}
-		assertTrue(hasLowScore, "Narrowband spectrum should have at least one low-scoring sample");
+		for (int i = 0; i < 12; i++)
+			values[i] = 66;
+		spectrum = new Spectrum(values, 5);
+		cri = spectrum.CRI();
+		assertEquals(37.610584f, cri.Ra(), "Wrong Ra");
 	}
 
 	@Test
@@ -88,7 +83,7 @@ public class CRITests extends Tests {
 		float[] cctValues = {2000, 2700, 3000, 4000, 5000, 6500, 10000};
 
 		for (float K : cctValues) {
-			CRI cri = new CCT(K).illuminant().CRI();
+			CRI cri = new CCT(K).reference().CRI();
 
 			// Reference illuminants should have high CRI
 			assertTrue(cri.Ra() > 90, "CCT " + K + "K should have high CRI, got: " + cri.Ra());
@@ -111,17 +106,17 @@ public class CRITests extends Tests {
 
 		CRI cri = new Spectrum(values).CRI();
 
-		// Monochromatic light should have poor CRI
-		assertTrue(cri.Ra() < 45, "Monochromatic light should have low CRI, got: " + cri.Ra());
+		// Monochromatic light should have reduced CRI
+		assertTrue(cri.Ra() < -40, "Monochromatic light should have reduced CRI, got: " + cri.Ra());
 
-		// Some samples should score very poorly
-		int lowScoreCount = 0;
-		int veryLowScoreCount = 0;
+		// At least one sample should score below 85
+		boolean hasLowerScore = false;
 		for (int i = 0; i < 8; i++) {
-			if (cri.samples()[i] < 0) lowScoreCount++;
-			if (cri.samples()[i] < 50) veryLowScoreCount++;
+			if (cri.samples()[i] < -75) {
+				hasLowerScore = true;
+				break;
+			}
 		}
-		assertTrue(lowScoreCount >= 2 || veryLowScoreCount >= 4,
-			"Monochromatic light should have several samples with poor scores");
+		assertTrue(hasLowerScore, "Monochromatic light should have at least one sample below 85");
 	}
 }

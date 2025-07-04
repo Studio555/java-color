@@ -14,17 +14,28 @@ public record uv (
 	/** v' chromaticity [0..1]. */
 	float v) {
 
-	/** Uses {@link CCT.Method#Robertson}. Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.5K
+	/** Uses {@link CCT.Method#RobertsonImproved}. Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K
 	 * [60000-100000K].
 	 * @return [1000K+] or NaN out of range. */
 	public CCT CCT () {
-		float[] Robertson = CCT.Robertson;
+		return CCT(CCT.Method.RobertsonImproved);
+	}
+
+	public CCT CCT (CCT.Method method) {
+		return switch (method) {
+		case RobertsonImproved -> CCT(CCT.RobertsonImproved, 650);
+		case Robertson1968 -> CCT(CCT.Robertson1968, 155);
+		case Ohno2013 -> CCT_Ohno();
+		};
+	}
+
+	private CCT CCT (float[] Robertson, int count) {
 		uv1960 uv = uv1960();
 		float u = uv.u(), v = uv.v(), pu = Robertson[1], pv = Robertson[2], pDt = 0, pDu = 0, pDv = 0;
-		for (int i = 5; i < 655; i += 5) {
+		for (int i = 5, last = count - 5;; i += 5) {
 			float cu = Robertson[i + 1], cv = Robertson[i + 2], du = Robertson[i + 3], dv = Robertson[i + 4];
 			float dt = -(u - cu) * dv + (v - cv) * du;
-			if (dt <= 0 || i == 650) {
+			if (dt <= 0 || i == last) {
 				dt = -Math.min(dt, 0);
 				float f = i == 5 ? 0 : dt / (pDt + dt), fc = 1 - f;
 				du = du * fc + pDu * f;
@@ -41,14 +52,6 @@ public record uv (
 			pu = cu;
 			pv = cv;
 		}
-		return new CCT(Float.NaN, Float.NaN);
-	}
-
-	public CCT CCT (CCT.Method method) {
-		return switch (method) {
-		case Robertson -> CCT();
-		case Ohno -> CCT_Ohno();
-		};
 	}
 
 	/** Maximum error 1K [1000..7000K], 2.7K [7000..20000K], 3.52K [20000-100000K].

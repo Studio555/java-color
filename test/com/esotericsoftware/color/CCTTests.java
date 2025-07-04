@@ -32,12 +32,12 @@ public class CCTTests extends Tests {
 		float max = 0;
 		for (float K = 1000; K < 3000; K += 0.1f) {
 			xy xy = new CCT(K).xy();
-			float roundTripK = xy.CCT(CCT.Method.Ohno).K();
+			float roundTripK = xy.CCT(CCT.Method.Ohno2013).K();
 			max = Math.max(max, K - roundTripK);
 		}
 		assertTrue(max < 1, "Max error: " + max);
 		for (float K = 25000; K < 100000; K += 0.1f) {
-			float roundTripK = new CCT(K).xy().CCT(CCT.Method.Ohno).K();
+			float roundTripK = new CCT(K).xy().CCT(CCT.Method.Ohno2013).K();
 			max = Math.max(max, K - roundTripK);
 		}
 		assertTrue(max < 30, "Max error: " + max);
@@ -45,24 +45,30 @@ public class CCTTests extends Tests {
 
 	@Test
 	public void testXYZError () {
-		checkMaxError(CCT.Method.Robertson, 1000, 2000, 0.1f, 0.10083008f);
-		checkMaxError(CCT.Method.Robertson, 2000, 7000, 0.1f, 0.106933594f);
-		checkMaxError(CCT.Method.Robertson, 7000, 20000, 0.1f, 1.09375f);
-		checkMaxError(CCT.Method.Robertson, 20000, 60000, 0.1f, 2.0429688f);
-		checkMaxError(CCT.Method.Robertson, 60000, 100000, 0.1f, 2.5390625f);
+		checkMaxError(CCT.Method.RobertsonImproved, 1000, 2000, 0.1f, 0.09814453f, 0.0001f);
+		checkMaxError(CCT.Method.RobertsonImproved, 2000, 7000, 0.1f, 0.106933594f, 0.0001f);
+		checkMaxError(CCT.Method.RobertsonImproved, 7000, 20000, 0.1f, 1.0742188f, 0.0001f);
+		checkMaxError(CCT.Method.RobertsonImproved, 20000, 60000, 0.1f, 2.0195312f, 0.0001f);
+		checkMaxError(CCT.Method.RobertsonImproved, 60000, 100000, 0.1f, 2.1953125f, 0.0001f);
 
-		checkMaxError(CCT.Method.Ohno, 1000, 2000, 0.1f, 0.3104248f);
-		checkMaxError(CCT.Method.Ohno, 2000, 7000, 0.1f, 1.0024414f);
-		checkMaxError(CCT.Method.Ohno, 7000, 20000, 0.1f, 2.703125f);
-		checkMaxError(CCT.Method.Ohno, 20000, 60000, 0.1f, 3.546875f);
-		checkMaxError(CCT.Method.Ohno, 60000, 100000, 0.1f, 3.09375f);
+		checkMaxError(CCT.Method.Robertson1968, 1000, 2000, 0.1f, 666.6666f, 0.007f);
+		checkMaxError(CCT.Method.Robertson1968, 2000, 7000, 0.1f, 2.3999023f, 0.007f);
+		checkMaxError(CCT.Method.Robertson1968, 7000, 20000, 0.1f, 46.351562f, 0.007f);
+		checkMaxError(CCT.Method.Robertson1968, 20000, 60000, 0.1f, 377.125f, 0.007f);
+		checkMaxError(CCT.Method.Robertson1968, 60000, 100000, 0.1f, 1959.1484f, 0.007f);
+
+		checkMaxError(CCT.Method.Ohno2013, 1000, 2000, 0.1f, 0.30993652f, 0.0001f);
+		checkMaxError(CCT.Method.Ohno2013, 2000, 7000, 0.1f, 1.0048828f, 0.0001f);
+		checkMaxError(CCT.Method.Ohno2013, 7000, 20000, 0.1f, 2.6875f, 0.0001f);
+		checkMaxError(CCT.Method.Ohno2013, 20000, 60000, 0.1f, 3.5429688f, 0.0001f);
+		checkMaxError(CCT.Method.Ohno2013, 60000, 100000, 0.1f, 3.1367188f, 0.0001f);
 	}
 
-	private void checkMaxError (CCT.Method method, float start, float end, float step, float expectedMaxError) {
+	private void checkMaxError (CCT.Method method, float start, float end, float step, float expectedMaxError, float epsilonDuv) {
 		float max = 0, maxK = 0;
 		for (float K = start; K < end; K += step) {
 			CCT roundTrip = new CCT(K).XYZ().uv().CCT(method);
-			assertEquals(0, roundTrip.Duv(), 0.0001f, "Wrong Duv: " + K + " K, " + method);
+			assertEquals(0, roundTrip.Duv(), epsilonDuv, "Wrong Duv: " + K + " K, " + method);
 			float error = Math.abs(K - roundTrip.K());
 			if (error > max) {
 				max = error;
@@ -431,7 +437,7 @@ public class CCTTests extends Tests {
 			uv uv = cct.XYZ().uv();
 
 			// Calculate CCT back from uv coordinates
-			CCT calculated = uv.CCT(CCT.Method.Robertson);
+			CCT calculated = uv.CCT(CCT.Method.RobertsonImproved);
 			float calculatedK = calculated.K();
 			float error = Math.abs(expectedK - calculatedK);
 
@@ -453,7 +459,7 @@ public class CCTTests extends Tests {
 		float testU = 0.352f;
 		float testV = 0.3434f;
 
-		CCT result = new uv(testU, testV).CCT(CCT.Method.Robertson);
+		CCT result = new uv(testU, testV).CCT(CCT.Method.RobertsonImproved);
 
 		// Should produce a valid result
 		assertFalse(Float.isNaN(result.K()), "Robertson should handle inflection point region");

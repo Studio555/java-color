@@ -5,6 +5,10 @@ package com.esotericsoftware.color;
  * compared to a reference illuminant. */
 public record CRI (float Ra, float[] samples) {
 
+	public enum Method {
+		UVW, CAM16UCS
+	}
+
 	/** Test Color Samples (TCS) reflectance data at 5nm intervals (380-780nm). */
 	static public final float[][] TCS = { // @off
 		// TCS01 - Light greyish red

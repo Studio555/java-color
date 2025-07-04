@@ -9,10 +9,12 @@ import com.esotericsoftware.color.Illuminant.CIE2;
 import com.esotericsoftware.color.space.CAM16.VC;
 import com.esotericsoftware.color.space.CAM16UCS;
 import com.esotericsoftware.color.space.CCT;
-import com.esotericsoftware.color.space.LMS.CAT;
+import com.esotericsoftware.color.space.CCT.Method;
 import com.esotericsoftware.color.space.Lab;
+import com.esotericsoftware.color.space.UVW;
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;
+import com.esotericsoftware.color.space.uv1960;
 import com.esotericsoftware.color.space.xy;
 
 /** @author Nathan Sweet <misc@n4te.com> */
@@ -39,28 +41,52 @@ public record Spectrum (float[] values, int step, int start) {
 		return uv().CCT(method);
 	}
 
-	/** Uses {@link CCT.Method#Robertson}.
+	/** Uses {@link Method#RobertsonImproved}.
 	 * @return [1000K+] or NaN out of range. */
-	@SuppressWarnings("javadoc")
 	public CCT CCT () {
 		return uv().CCT();
 	}
 
-	/** CIE 13.3-1995. Requires 380nm @ 5nm to [700..780+]nm. */
+	/** CIE 13.3-1995 with {@link CRI.Method#UVW}. Requires 380nm @ 5nm to [700..780+]nm. */
 	public CRI CRI () {
+		return CRI(CRI.Method.UVW);
+	}
+
+	/** CIE 13.3-1995. Requires 380nm @ 5nm to [700..780+]nm. */
+	public CRI CRI (CRI.Method method) {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
 		CCT cct = testXYZ.uv().CCT();
 		if (cct.invalid()) throw new IllegalStateException("Cannot calculate CRI for spectrum with invalid CCT.");
-		Spectrum reference = cct.illuminant();
+		Spectrum reference = cct.reference();
 		XYZ refXYZ = reference.XYZ();
+		uv1960 testuv = null, refuv = null;
+		VC testVC = null, refVC = null;
+		switch (method) {
+		case UVW -> {
+			testuv = testXYZ.uv1960();
+			refuv = refXYZ.uv1960();
+		}
+		case CAM16UCS -> {
+			testVC = VC.with(testXYZ, 100, 20, 1, false);
+			refVC = VC.with(refXYZ, 100, 20, 1, false);
+		}
+		}
 		float[] samples = new float[14];
 		float sumRa = 0;
 		for (int i = 0; i < 14; i++) {
 			float[] tcs = CRI.TCS[i];
-			Lab testLab = illuminate(tcs).chromaticAdaptation(testXYZ, refXYZ, CAT.VonKries).Lab(refXYZ);
-			Lab refLab = reference.illuminate(tcs).Lab(refXYZ);
-			samples[i] = 100 - 4.6f * testLab.dst(refLab);
+			XYZ test = illuminate(tcs).scl(100 / testXYZ.Y());
+			XYZ ref = reference.illuminate(tcs).scl(100 / refXYZ.Y());
+			float deltaE = switch (method) {
+			case UVW -> {
+				UVW test_UVW = test.uv1960().chromaticAdaptation(testuv, refuv).UVW(test.Y(), refuv);
+				UVW ref_UVW = ref.uv1960().UVW(ref.Y(), refuv);
+				yield test_UVW.dst(ref_UVW);
+			}
+			case CAM16UCS -> test.CAM16UCS(testVC).dst(ref.CAM16UCS(refVC));
+			};
+			samples[i] = 100 - 4.6f * deltaE;
 			if (i < 8) sumRa += samples[i];
 		}
 		return new CRI(sumRa / 8, samples);
@@ -81,7 +107,7 @@ public record Spectrum (float[] values, int step, int start) {
 		XYZ testXYZ = XYZ();
 		CCT cct = testXYZ.uv().CCT();
 		if (cct.invalid()) throw new IllegalStateException("Cannot calculate TM30 for spectrum with invalid CCT.");
-		Spectrum reference = cct.illuminant();
+		Spectrum reference = cct.reference();
 		float[] colorSamples = new float[99], chromaShift = new float[16], hueShift = new float[16];
 		int[] binCounts = new int[16];
 		float chromaRef = 0, chromaTest = 0, sum = 0;
@@ -131,7 +157,7 @@ public record Spectrum (float[] values, int step, int start) {
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm. Missing wavelengths are treated as zero.
-	 * @return Normalized to Y=100. */
+	 * @return XYZ in relative colorimetric units (equal energy white gives Y=100). */
 	public XYZ XYZ () {
 		checkVisibleRange();
 		float X = 0, Y = 0, Z = 0;
@@ -142,8 +168,8 @@ public record Spectrum (float[] values, int step, int start) {
 			Z += value * XYZ.Zbar[i];
 		}
 		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
-		float normalize = 100 / Y;
-		return new XYZ(X * normalize, 100, Z * normalize);
+		float factor = 100 / XYZ.YbarIntegral * step;
+		return new XYZ(X * factor, Y * factor, Z * factor);
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm. */
@@ -208,8 +234,9 @@ public record Spectrum (float[] values, int step, int start) {
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm.
-	 * @param reflectance Must have 81 or at least as many entries as this spectrum.
-	 * @return XYZ for the specified reflective sample illuminated by this spectrum. */
+	 * @param reflectance Must have at least as many entries as this spectrum.
+	 * @return XYZ in relative colorimetric units (equal energy white gives Y=100) for the specified reflective sample illuminated
+	 *         by this spectrum. */
 	public XYZ illuminate (float[] reflectance) {
 		checkVisibleRange();
 		int n = Math.min(values.length, 81);
@@ -222,8 +249,8 @@ public record Spectrum (float[] values, int step, int start) {
 			Z += product * XYZ.Zbar[i];
 		}
 		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
-		float normalize = 100 / Y;
-		return new XYZ(X * normalize, 100, Z * normalize);
+		float factor = 100 / XYZ.YbarIntegral * 5;
+		return new XYZ(X * factor, Y * factor, Z * factor);
 	}
 
 	/** Resamples to new wavelength range and interval using linear interpolation and zero padding. */
@@ -352,7 +379,7 @@ public record Spectrum (float[] values, int step, int start) {
 
 	/** Returns an equal energy spectrum (all values 1, illuminantE). */
 	static public Spectrum equalEnergy (int start, int end, int step) {
-		float[] values = new float[((end - start) / step) + 1];
+		float[] values = new float[(end - start) / step + 1];
 		Arrays.fill(values, 1);
 		return new Spectrum(values, step, start);
 	}
