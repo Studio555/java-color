@@ -1,6 +1,8 @@
 
 package com.esotericsoftware.color;
 
+import java.util.Arrays;
+
 import com.esotericsoftware.color.space.XYZ;
 
 /** Tristimulus values [0..100]. */
@@ -62,4 +64,11 @@ public class Illuminant {
 		-0.75f, -0.5f, -0.4f, -0.3f, -0.15f, 0, 0.1f, 0.2f, 0.35f, 0.5f, 1.3f, 2.1f, 2.65f, 3.2f, 3.65f, 4.1f, 4.4f, 4.7f, 4.9f,
 		5.1f, 5.9f, 6.7f, 7, 7.3f, 7.95f, 8.6f, 9.2f, 9.8f, 10, 10.2f, 9.25f, 8.3f, 8.95f, 9.6f, 9.05f, 8.5f, 7.75f, 7, 7.3f, 7.6f,
 		7.8f, 8, 7.35f, 6.7f, 5.95f, 5.2f, 6.3f, 7.4f, 7.1f, 6.8f};
+
+	/** Returns an equal energy spectrum (all values 1, illuminantE). */
+	static public Spectrum E (int start, int end, int step) {
+		float[] values = new float[(end - start) / step + 1];
+		Arrays.fill(values, 1);
+		return new Spectrum(values, step, start);
+	}
 }

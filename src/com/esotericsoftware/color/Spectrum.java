@@ -376,11 +376,4 @@ public record Spectrum (float[] values, int step, int start) {
 		if (index < 0 || index >= values.length) throw new IllegalArgumentException("Wavelength out of range: " + wavelength);
 		return values[index];
 	}
-
-	/** Returns an equal energy spectrum (all values 1, illuminantE). */
-	static public Spectrum equalEnergy (int start, int end, int step) {
-		float[] values = new float[(end - start) / step + 1];
-		Arrays.fill(values, 1);
-		return new Spectrum(values, step, start);
-	}
 }
