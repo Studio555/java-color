@@ -14,13 +14,13 @@ public record CAM16LCD (
 	/** Yellow-blue component (b*) [-50..50]. */
 	float b) {
 
+	public float C () {
+		return (float)Math.sqrt(a * a + b * b);
+	}
+
 	public float h () {
 		float h = (float)Math.atan2(b, a) * radDeg;
 		return h < 0 ? h + 360 : h;
-	}
-
-	public float C () {
-		return (float)Math.sqrt(a * a + b * b);
 	}
 
 	public float get (int index) {

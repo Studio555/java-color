@@ -1,13 +1,9 @@
 
 package com.esotericsoftware.color;
 
-import java.util.Arrays;
-
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
 import com.esotericsoftware.color.space.CCT;
-import com.esotericsoftware.color.space.LMS;
 import com.esotericsoftware.color.space.XYZ;
 
 public class SpectrumTests extends Tests {

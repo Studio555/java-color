@@ -8,6 +8,10 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import com.esotericsoftware.color.space.CAM02;
+import com.esotericsoftware.color.space.CAM02LCD;
+import com.esotericsoftware.color.space.CAM02SCD;
+import com.esotericsoftware.color.space.CAM02UCS;
 import com.esotericsoftware.color.space.CAM16;
 import com.esotericsoftware.color.space.CAM16UCS;
 import com.esotericsoftware.color.space.Lab;
@@ -126,6 +130,22 @@ public class Gradients {
 			CAM16UCS c2 = to.CAM16().CAM16UCS();
 			yield c1.lerp(c2, t).CAM16(CAM16.VC.sRGB).RGB();
 		}
+		case "CAM02" -> from.CAM02().lerp(to.CAM02(), t).RGB();
+		case "CAM02UCS" -> {
+			CAM02UCS c1 = from.CAM02().CAM02UCS();
+			CAM02UCS c2 = to.CAM02().CAM02UCS();
+			yield c1.lerp(c2, t).CAM02(CAM02.VC.sRGB).RGB();
+		}
+		case "CAM02LCD" -> {
+			CAM02LCD c1 = from.CAM02().CAM02LCD();
+			CAM02LCD c2 = to.CAM02().CAM02LCD();
+			yield c1.lerp(c2, t).CAM02(CAM02.VC.sRGB).RGB();
+		}
+		case "CAM02SCD" -> {
+			CAM02SCD c1 = from.CAM02().CAM02SCD();
+			CAM02SCD c2 = to.CAM02().CAM02SCD();
+			yield c1.lerp(c2, t).CAM02(CAM02.VC.sRGB).RGB();
+		}
 		case "HSLuv" -> from.HSLuv().lerp(to.HSLuv(), t).RGB();
 		case "Luv" -> from.Luv().lerp(to.Luv(), t).RGB();
 		case "LCh" -> from.LCh().lerp(to.LCh(), t).RGB();
@@ -168,10 +188,14 @@ public class Gradients {
 		config.colorSpaces.add("LinearRGB+L");
 		config.colorSpaces.add("Oklab+L");
 		config.colorSpaces.add("Luv");
+		config.colorSpaces.add("CAM02UCS");
+		config.colorSpaces.add("CAM02LCD");
+		config.colorSpaces.add("CAM02SCD");
 		config.colorSpaces.add("CAM16UCS");
 		config.colorSpaces.add("Oklab");
 		config.colorSpaces.add("HCT");
 		config.colorSpaces.add("HSLuv");
+		config.colorSpaces.add("CAM02");
 		config.colorSpaces.add("CAM16");
 		config.colorSpaces.add("Oklch");
 		config.colorSpaces.add("ITP"); // Intended for HDR.

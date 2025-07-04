@@ -48,6 +48,70 @@ public record XYZ (
 		};
 	}
 
+	/** Uses {@link CAM02.VC#sRGB}. */
+	public CAM02 CAM02 () {
+		return CAM02(CAM02.VC.sRGB);
+	}
+
+	public CAM02 CAM02 (CAM02.VC vc) {
+		// CAT02 forward transform
+		float rT = X * 0.7328f + Y * 0.4296f + Z * -0.1624f;
+		float gT = X * -0.7036f + Y * 1.6975f + Z * 0.0061f;
+		float bT = X * 0.0030f + Y * 0.0136f + Z * 0.9834f;
+
+		// Chromatic adaptation
+		float rC = vc.rgbD()[0] * rT;
+		float gC = vc.rgbD()[1] * gT;
+		float bC = vc.rgbD()[2] * bT;
+
+		// Hunt-Pointer-Estevez transform
+		// First apply inverse CAT02, then HPE (combined matrix)
+		float rP = rC * 0.7409791f + gC * 0.21802516f + bC * 0.04100575f;
+		float gP = rC * 0.28535329f + gC * 0.62420157f + bC * 0.09044513f;
+		float bP = rC * -0.00962761f + gC * -0.00569803f + bC * 1.01532564f;
+
+		// Post-adaptation non-linear response compression
+		float rAF = (float)Math.pow(vc.FL() * Math.abs(rP) / 100, 0.42);
+		float gAF = (float)Math.pow(vc.FL() * Math.abs(gP) / 100, 0.42);
+		float bAF = (float)Math.pow(vc.FL() * Math.abs(bP) / 100, 0.42);
+		float rA = Math.signum(rP) * 400 * rAF / (rAF + 27.13f) + 0.1f;
+		float gA = Math.signum(gP) * 400 * gAF / (gAF + 27.13f) + 0.1f;
+		float bA = Math.signum(bP) * 400 * bAF / (bAF + 27.13f) + 0.1f;
+
+		// Opponent color dimensions
+		float a = (11 * rA + -12 * gA + bA) / 11;
+		float b = (rA + gA - 2 * bA) / 9;
+		float h = (float)Math.atan2(b, a) * radDeg;
+		h = h < 0 ? h + 360 : h;
+
+		// Eccentricity factor
+		float hRad = h * degRad;
+		float eT = 0.25f * ((float)Math.cos(hRad + 2) + 3.8f);
+
+		// Achromatic response
+		float A = (2 * rA + gA + 0.05f * bA) * vc.Nbb();
+
+		// Lightness
+		// Use signed power to handle negative A values
+		float J = 100 * Math.signum(A) * (float)Math.pow(Math.abs(A) / vc.Aw(), vc.c() * vc.z());
+
+		// Chroma
+		float t = (50000 / 13f * vc.Nc() * vc.Ncb() * eT * (float)Math.sqrt(a * a + b * b)) / (rA + gA + 21 / 20f * bA);
+		float C = J == 0 ? 0
+			: (float)Math.pow(t, 0.9) * (float)Math.sqrt(Math.abs(J) / 100) * (float)Math.pow(1.64 - Math.pow(0.29, vc.n()), 0.73);
+
+		// Brightness (use absolute value of J for sqrt)
+		float Q = J == 0 ? 0 : 4 / vc.c() * (float)Math.sqrt(Math.abs(J) / 100) * (vc.Aw() + 4) * vc.FLRoot();
+
+		// Colorfulness
+		float M = C * vc.FLRoot();
+
+		// Saturation (use absolute values for sqrt)
+		float s = (M == 0 || Q == 0) ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q));
+
+		return new CAM02(J, C, h, Q, M, s);
+	}
+
 	/** Uses {@link CAM16.VC#sRGB}. */
 	public CAM16 CAM16 () {
 		return CAM16(CAM16.VC.sRGB);

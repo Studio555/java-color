@@ -5,7 +5,6 @@ import static com.esotericsoftware.color.Gamut.*;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.space.LMS.CAT;
 import com.esotericsoftware.color.space.LinearRGB;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;

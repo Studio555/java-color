@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.CCT;
-import com.esotericsoftware.color.space.XYZ;
 
 public class TM30Tests extends Tests {
 	@Test

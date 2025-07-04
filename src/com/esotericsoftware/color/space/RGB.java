@@ -78,17 +78,31 @@ public record RGB (
 		return new ACEScc(ACEScc.encode(cg.r()), ACEScc.encode(cg.g()), ACEScc.encode(cg.b()));
 	}
 
+	/** Uses {@link CAM02.VC#sRGB}. */
+	public CAM02 CAM02 () {
+		return CAM02(CAM02.VC.sRGB);
+	}
+
+	public CAM02 CAM02 (CAM02.VC vc) {
+		return XYZ().CAM02(vc);
+	}
+
+	/** Uses {@link CAM02.VC#sRGB}. */
+	public CAM02UCS CAM02UCS () {
+		return CAM02().CAM02UCS();
+	}
+
+	public CAM02UCS CAM02UCS (CAM02.VC vc) {
+		return CAM02(vc).CAM02UCS();
+	}
+
 	/** Uses {@link CAM16.VC#sRGB}. */
 	public CAM16 CAM16 () {
 		return CAM16(CAM16.VC.sRGB);
 	}
 
 	public CAM16 CAM16 (CAM16.VC vc) {
-		float r = linear(this.r) * 100, g = linear(this.g) * 100, b = linear(this.b) * 100;
-		return new XYZ( //
-			0.41233895f * r + 0.35762064f * g + 0.18051042f * b, //
-			0.2126f * r + 0.7152f * g + 0.0722f * b, //
-			0.01932141f * r + 0.11916382f * g + 0.95034478f * b).CAM16(vc);
+		return XYZ().CAM16(vc);
 	}
 
 	/** Uses {@link CAM16.VC#sRGB}. */

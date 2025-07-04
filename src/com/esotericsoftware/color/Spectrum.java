@@ -3,8 +3,6 @@ package com.esotericsoftware.color;
 
 import static com.esotericsoftware.color.Util.*;
 
-import java.util.Arrays;
-
 import com.esotericsoftware.color.Illuminant.CIE2;
 import com.esotericsoftware.color.space.CAM16.VC;
 import com.esotericsoftware.color.space.CAM16UCS;

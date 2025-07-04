@@ -6,12 +6,12 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.Util;
 
 /** Uniform Color Space based on CAM02, for color difference calculations. */
-public record CAM02UCS (
-	/** Lightness (J') [0+]. */
+public record CAM02LCD (
+	/** Lightness (J*) [0..100]. */
 	float J,
-	/** Red-green (a'). */
+	/** Red-green component (a*) [-50..50]. */
 	float a,
-	/** Yellow-blue (b'). */
+	/** Yellow-blue component (b*) [-50..50]. */
 	float b) {
 
 	public float C () {
@@ -19,7 +19,7 @@ public record CAM02UCS (
 	}
 
 	public float h () {
-		float h = (float)Math.atan2(b, a) * 180 / (float)Math.PI;
+		float h = (float)Math.atan2(b, a) * radDeg;
 		return h < 0 ? h + 360 : h;
 	}
 
@@ -32,11 +32,11 @@ public record CAM02UCS (
 		};
 	}
 
-	public CAM02UCS set (int index, float value) {
+	public CAM02LCD set (int index, float value) {
 		return switch (index) {
-		case 0 -> new CAM02UCS(value, a, b);
-		case 1 -> new CAM02UCS(J, value, b);
-		case 2 -> new CAM02UCS(J, a, value);
+		case 0 -> new CAM02LCD(value, a, b);
+		case 1 -> new CAM02LCD(J, value, b);
+		case 2 -> new CAM02LCD(J, a, value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
 	}
@@ -47,14 +47,9 @@ public record CAM02UCS (
 	}
 
 	public CAM02 CAM02 (CAM02.VC vc) {
-		// Coefficients for CAM02-UCS
+		// Coefficients for CAM02-LCD
 		float c_1 = 0.007f;
-		float c_2 = 0.0228f;
-
-		// Handle edge case where J' = 0
-		if (this.J == 0) {
-			return new CAM02(0, 0, 0, 0, 0, 0);
-		}
+		float c_2 = 0.0053f;
 
 		// Reverse transformation
 		float Jp = this.J;
@@ -65,7 +60,7 @@ public record CAM02UCS (
 		float h = (float)Math.atan2(b, a);
 
 		// Reverse M transformation
-		float M = Mstar == 0 ? 0 : (float)(Math.expm1(Mstar / (1 / c_2)) / c_2);
+		float M = (float)(Math.expm1(Mstar / (1 / c_2)) / c_2);
 
 		// Convert h to degrees
 		h = h * radDeg;
@@ -74,8 +69,8 @@ public record CAM02UCS (
 		// Compute C from M using viewing conditions
 		float C = M / (float)Math.pow(vc.FL(), 0.25);
 
-		// Compute Q and s from J and M (use absolute values for sqrt)
-		float Q = J == 0 ? 0 : 4 / vc.c() * (float)Math.sqrt(Math.abs(J) / 100) * (vc.Aw() + 4) * (float)Math.pow(vc.FL(), 0.25);
+		// Compute Q and s from J and M
+		float Q = 4 / vc.c() * (float)Math.sqrt(Math.abs(J) / 100) * (vc.Aw() + 4) * (float)Math.pow(vc.FL(), 0.25);
 		float s = (M == 0 || Q == 0) ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q));
 
 		return new CAM02(J, C, h, Q, M, s);
@@ -135,49 +130,49 @@ public record CAM02UCS (
 		return CAM02(vc).XYZ(vc);
 	}
 
-	public CAM02UCS add (float value) {
-		return new CAM02UCS(J + value, a + value, b + value);
+	public CAM02LCD add (float value) {
+		return new CAM02LCD(J + value, a + value, b + value);
 	}
 
-	public CAM02UCS add (int index, float value) {
+	public CAM02LCD add (int index, float value) {
 		return switch (index) {
-		case 0 -> new CAM02UCS(J + value, a, b);
-		case 1 -> new CAM02UCS(J, a + value, b);
-		case 2 -> new CAM02UCS(J, a, b + value);
+		case 0 -> new CAM02LCD(J + value, a, b);
+		case 1 -> new CAM02LCD(J, a + value, b);
+		case 2 -> new CAM02LCD(J, a, b + value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
 	}
 
-	public CAM02UCS add (float J, float a, float b) {
-		return new CAM02UCS(this.J + J, this.a + a, this.b + b);
+	public CAM02LCD add (float J, float a, float b) {
+		return new CAM02LCD(this.J + J, this.a + a, this.b + b);
 	}
 
-	public CAM02UCS lerp (CAM02UCS other, float t) {
-		return new CAM02UCS(Util.lerp(J, other.J, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
+	public CAM02LCD lerp (CAM02LCD other, float t) {
+		return new CAM02LCD(Util.lerp(J, other.J, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
 	}
 
-	public CAM02UCS sub (float value) {
-		return new CAM02UCS(J - value, a - value, b - value);
+	public CAM02LCD sub (float value) {
+		return new CAM02LCD(J - value, a - value, b - value);
 	}
 
-	public CAM02UCS sub (int index, float value) {
+	public CAM02LCD sub (int index, float value) {
 		return switch (index) {
-		case 0 -> new CAM02UCS(J - value, a, b);
-		case 1 -> new CAM02UCS(J, a - value, b);
-		case 2 -> new CAM02UCS(J, a, b - value);
+		case 0 -> new CAM02LCD(J - value, a, b);
+		case 1 -> new CAM02LCD(J, a - value, b);
+		case 2 -> new CAM02LCD(J, a, b - value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
 	}
 
-	public CAM02UCS sub (float J, float a, float b) {
-		return new CAM02UCS(this.J - J, this.a - a, this.b - b);
+	public CAM02LCD sub (float J, float a, float b) {
+		return new CAM02LCD(this.J - J, this.a - a, this.b - b);
 	}
 
-	public float dst (CAM02UCS other) {
+	public float dst (CAM02LCD other) {
 		return (float)Math.sqrt(dst2(other));
 	}
 
-	public float dst2 (CAM02UCS other) {
+	public float dst2 (CAM02LCD other) {
 		float dJ = J - other.J, da = a - other.a, db = b - other.b;
 		return dJ * dJ + da * da + db * db;
 	}
@@ -190,7 +185,7 @@ public record CAM02UCS (
 		return J * J + a * a + b * b;
 	}
 
-	public CAM02UCS withJ (float J) {
-		return new CAM02UCS(J, a, b);
+	public CAM02LCD withJ (float J) {
+		return new CAM02LCD(J, a, b);
 	}
 }

@@ -117,8 +117,10 @@ public record CAM16 (
 			rF * -0.0158415f + gF * -0.03412294f + bF * 1.0499644f);
 	}
 
+	/** @return JCh are interpolated, QMs are NaN. */
 	public CAM16 lerp (CAM16 other, float t) {
-		return new CAM16(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), 0, 0, 0);
+		return new CAM16(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), Float.NaN, Float.NaN,
+			Float.NaN);
 	}
 
 	/** {@link CAM16} viewing conditions. */
