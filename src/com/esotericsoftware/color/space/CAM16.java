@@ -21,6 +21,20 @@ public record CAM16 (
 	/** Saturation [0+]. */
 	float s) {
 
+	public CAM16LCD CAM16LCD () {
+		float h = this.h * degRad;
+		float Jstar = 0.77f * J / (1 + 0.007f * J);
+		float Mstar = 1 / 0.15f * (float)Math.log1p(0.15f * M);
+		return new CAM16LCD(Jstar, Mstar * (float)Math.cos(h), Mstar * (float)Math.sin(h));
+	}
+
+	public CAM16SCD CAM16SCD () {
+		float h = this.h * degRad;
+		float Jstar = 1.65f * J / (1 + 0.007f * J);
+		float Mstar = 1 / 0.0228f * (float)Math.log1p(0.0228f * M);
+		return new CAM16SCD(Jstar, Mstar * (float)Math.cos(h), Mstar * (float)Math.sin(h));
+	}
+
 	public CAM16UCS CAM16UCS () { // Based on Copyright 2021 Google LLC (Apache 2.0).
 		float h = this.h * degRad;
 		float Jstar = 1.7f * J / (1 + 0.007f * J);
