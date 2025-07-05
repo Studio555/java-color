@@ -6,6 +6,7 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.space.CAM02;
 import com.esotericsoftware.color.space.CAM02UCS;
 import com.esotericsoftware.color.space.CAM16;
+import com.esotericsoftware.color.space.CAM16UCS;
 import com.esotericsoftware.color.space.CCT;
 import com.esotericsoftware.color.space.CCT.Method;
 import com.esotericsoftware.color.space.Lab;
@@ -99,7 +100,7 @@ public record Spectrum (float[] values, int step, int start) {
 		return XYZ(observer).Lab(whitePoint);
 	}
 
-	/** ANSI/IES TM-30-20. Requires 380nm @ 5nm to [700..780+]nm. */
+	/** ANSI/IES TM-30-18. Requires 380nm @ 5nm to [700..780+]nm. */
 	public TM30 TM30 () {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ(Observer.CIE10);
@@ -125,30 +126,50 @@ public record Spectrum (float[] values, int step, int start) {
 			sum += deltaE;
 		}
 		int[] binCounts = new int[16];
-		float chromaRef = 0, chromaTest = 0;
+		float[][] testBinSums = new float[16][2], refBinSums = new float[16][2];
 		for (int i = 0; i < 99; i++) {
 			float hue = refColors[i].h(), refChroma = refColors[i].C();
 			int bin = (int)((hue + 11.25f) / 22.5f) % 16;
 			hueShift[bin] += angleDifference(refColors[i].h(), testColors[i].h());
 			chromaShift[bin] += (testColors[i].C() - refChroma) / refChroma;
 			binCounts[bin]++;
-			chromaRef += refChroma;
-			chromaTest += testColors[i].C();
+			testBinSums[bin][0] += testColors[i].a();
+			testBinSums[bin][1] += testColors[i].b();
+			refBinSums[bin][0] += refColors[i].a();
+			refBinSums[bin][1] += refColors[i].b();
 		}
+		float[][] testAverages = new float[16][2], refAverages = new float[16][2];
 		float[] hueAngleBins = new float[16];
 		for (int i = 0; i < 16; i++) {
 			if (binCounts[i] > 0) {
 				hueShift[i] /= binCounts[i];
 				chromaShift[i] /= binCounts[i];
 				hueAngleBins[i] = deltaEtoRf(Math.abs(hueShift[i]));
+				testAverages[i][0] = testBinSums[i][0] / binCounts[i];
+				testAverages[i][1] = testBinSums[i][1] / binCounts[i];
+				refAverages[i][0] = refBinSums[i][0] / binCounts[i];
+				refAverages[i][1] = refBinSums[i][1] / binCounts[i];
 			} else
 				hueAngleBins[i] = 100;
 		}
-		return new TM30(deltaEtoRf(sum / 99), 100 * (chromaTest / chromaRef), chromaShift, hueShift, hueAngleBins, colorSamples);
+		float Rg = 100 * (polygonArea(testAverages) / polygonArea(refAverages));
+		return new TM30(deltaEtoRf(sum / 99), Rg, chromaShift, hueShift, hueAngleBins, colorSamples);
 	}
 
 	static private float deltaEtoRf (float deltaE) {
+// return 100 - 7.18f * deltaE;
 		return 10 * (float)Math.log1p(Math.exp((100 - 6.73f * deltaE) / 10));
+	}
+
+	static private float polygonArea (float[][] vertices) {
+		float area = 0;
+		int n = vertices.length;
+		for (int i = 0; i < n; i++) {
+			float[] u = vertices[i];
+			float[] v = vertices[(i + 1) % n];
+			area += (u[0] * v[1] - u[1] * v[0]) / 2;
+		}
+		return Math.abs(area);
 	}
 
 	/** Uses {@link Observer#CIE2}.
