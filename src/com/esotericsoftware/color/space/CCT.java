@@ -4,6 +4,7 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.Spectrum;
 
 public record CCT ( //
@@ -181,17 +182,22 @@ public record CCT ( //
 		return uv1960().XYZ();
 	}
 
+	/** Uses {@link Observer#CIE2} D65. */
+	public XYZ PlanckianXYZ () {
+		return PlanckianXYZ(Observer.CIE2);
+	}
+
 	/** Uses exact Planck's law for spectral power distribution.
 	 * @return Normalized with Y=100. Requires [26.3K+] else returns NaN. */
-	public XYZ PlanckianXYZ () {
+	public XYZ PlanckianXYZ (Observer observer) {
 		double X = 0, Y = 0, Z = 0;
 		for (int i = 0; i < 81; i++) {
 			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
 			double exponent = XYZ.c2 / (lambda * K);
 			double B = exponent > 700 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
-			X += B * XYZ.Xbar[i];
-			Y += B * XYZ.Ybar[i];
-			Z += B * XYZ.Zbar[i];
+			X += B * observer.xbar[i];
+			Y += B * observer.ybar[i];
+			Z += B * observer.zbar[i];
 		}
 		if (Y == 0) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		double scale = 100 / Y;
@@ -214,7 +220,7 @@ public record CCT ( //
 	/** Returns a reference illuminant spectrum for this CCT. Uses Planckian radiator for CCT < 5000K, CIE daylight for >= 5000K.
 	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. Requires [1000K+] else returns NaN. */
 	public Spectrum reference () {
-		return K < 5000 ? blackbody(380, 780, 5) : Illuminant.D(xyDaylight());
+		return K < 5000 ? blackbody(380, 780, 5) : Illuminant.D(xyDaylight()).normalize();
 	}
 
 	@SuppressWarnings("all")

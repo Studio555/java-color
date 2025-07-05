@@ -6,6 +6,7 @@ import static com.esotericsoftware.color.Util.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.Util;
 import com.esotericsoftware.color.space.XYZ;
 
@@ -121,9 +122,9 @@ public class CCTRobertsonLUT {
 			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
 			double exponent = XYZ.c2 / (lambda * K);
 			double B = exponent > 700 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
-			X += B * XYZ.Xbar[i];
-			Y += B * XYZ.Ybar[i];
-			Z += B * XYZ.Zbar[i];
+			X += B * Observer.CIE2.xbar[i];
+			Y += B * Observer.CIE2.ybar[i];
+			Z += B * Observer.CIE2.zbar[i];
 		}
 		if (Y > 0) {
 			double scale = 100 / Y;

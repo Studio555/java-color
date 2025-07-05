@@ -3,7 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.Util;
 
 /** Color Appearance Model 2016. Predicts color appearance under viewing conditions. */
@@ -146,7 +146,7 @@ public record CAM16 (
 			return new VC(Aw, Nbb, Nbb, c, Nc, n, rgbD, FL, (float)Math.pow(FL, 0.25), z, wp, La, Yb);
 		}
 
-		static public final VC sRGB = VC.with(CIE2.D65, 200 / PI * Lab.LstarToYn(20), 20, 2, false);
-		static public final VC HCT = VC.with(CIE2.D65, 200 / PI * Lab.LstarToYn(50), 50, 2, false);
+		static public final VC sRGB = VC.with(Observer.CIE2.D65, 200 / PI * Lab.LstarToYn(20), 20, 2, false);
+		static public final VC HCT = VC.with(Observer.CIE2.D65, 200 / PI * Lab.LstarToYn(50), 50, 2, false);
 	}
 }

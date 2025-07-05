@@ -4,7 +4,7 @@ package com.esotericsoftware.color;
 import static com.esotericsoftware.color.Gamut.*;
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.space.LinearRGB;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;
@@ -102,14 +102,14 @@ public interface Gamut {
 		public final XYZ whitePoint;
 		public final float[][] RGB_XYZ, XYZ_RGB;
 
-		/** Uses {@link CIE2#D65}. */
+		/** Uses {@link Observer#CIE2} D65. */
 		public RGBGamut (uv red, uv green, uv blue) {
-			this(red.xy(), green.xy(), blue.xy(), CIE2.D65);
+			this(red.xy(), green.xy(), blue.xy(), Observer.CIE2.D65);
 		}
 
-		/** Uses {@link CIE2#D65}. */
+		/** Uses {@link Observer#CIE2} D65. */
 		public RGBGamut (xy red, xy green, xy blue) {
-			this(red, green, blue, CIE2.D65);
+			this(red, green, blue, Observer.CIE2.D65);
 		}
 
 		public RGBGamut (uv red, uv green, uv blue, XYZ whitePoint) {

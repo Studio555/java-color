@@ -3,7 +3,6 @@ package com.esotericsoftware.color;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;
 import com.esotericsoftware.color.space.xy;
@@ -115,9 +114,9 @@ public class SpectralLocus {
 		return bestWavelength;
 	}
 
-	/** Uses {@link CIE2#D65}. */
+	/** Uses {@link Observer#CIE2} D65. */
 	static public float dominantWavelength (uv color) {
-		return dominantWavelength(color, CIE2.D65);
+		return dominantWavelength(color, Observer.CIE2.D65);
 	}
 
 	/** Returns the ratio of the distance from the white point to the color divided by the distance from the white point to the

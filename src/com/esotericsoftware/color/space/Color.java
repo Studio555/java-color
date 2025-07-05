@@ -4,7 +4,7 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
-import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.space.LMS.CAT;
 import com.esotericsoftware.color.space.YCbCr.YCbCrColorSpace;
 
@@ -204,9 +204,9 @@ public interface Color {
 			4.378173828f * L + -4.245605469f * M + -0.132568359f * S);
 	}
 
-	/** Uses {@link CIE2#D65}. */
+	/** Uses {@link Observer#CIE2} D65. */
 	default public Lab Lab () {
-		return Lab(CIE2.D65);
+		return Lab(Observer.CIE2.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
@@ -214,9 +214,9 @@ public interface Color {
 		return XYZ().Lab(whitePoint);
 	}
 
-	/** Uses {@link CIE2#D65}. */
+	/** Uses {@link Observer#CIE2} D65. */
 	default public LCh LCh () {
-		return LCh(CIE2.D65);
+		return LCh(Observer.CIE2.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
@@ -224,7 +224,7 @@ public interface Color {
 		return Lab(whitePoint).LCh();
 	}
 
-	/** Uses {@link CIE2#D65}.
+	/** Uses {@link Observer#CIE2} D65.
 	 * @return NaN if invalid. */
 	default public LCHuv LChuv () {
 		return Luv().LCHuv();
@@ -243,10 +243,10 @@ public interface Color {
 		return XYZ().LMS(matrix);
 	}
 
-	/** Uses {@link CIE2#D65}.
+	/** Uses {@link Observer#CIE2} D65.
 	 * @return NaN if invalid. */
 	default public Luv Luv () {
-		return XYZ().Luv(CIE2.D65);
+		return XYZ().Luv(Observer.CIE2.D65);
 	}
 
 	/** @return NaN if invalid. */

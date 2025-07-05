@@ -3,7 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.Util;
 
 public record CAM02 (
@@ -183,6 +183,6 @@ public record CAM02 (
 			return new VC(Aw, Nbb, Nbb, c, Nc, n, rgbD, FL, (float)Math.pow(FL, 0.25), z, wp, La, Yb, F);
 		}
 
-		static public final VC sRGB = VC.with(CIE2.D65, 200 / PI * Lab.LstarToYn(20), 20, 2, false);
+		static public final VC sRGB = VC.with(Observer.CIE2.D65, 200 / PI * Lab.LstarToYn(20), 20, 2, false);
 	}
 }

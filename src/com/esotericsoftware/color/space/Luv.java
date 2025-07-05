@@ -4,7 +4,7 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
-import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.Util;
 
 /** CIELUV perceptually uniform color space. */
@@ -52,10 +52,10 @@ public record Luv (
 		return XYZ(whitePoint).RGB();
 	}
 
-	/** Uses {@link CIE2#D65}.
+	/** Uses {@link Observer#CIE2} D65.
 	 * @return NaN if invalid. */
 	public XYZ XYZ () {
-		return XYZ(CIE2.D65);
+		return XYZ(Observer.CIE2.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}.

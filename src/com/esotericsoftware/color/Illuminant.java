@@ -3,47 +3,9 @@ package com.esotericsoftware.color;
 
 import java.util.Arrays;
 
-import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.xy;
 
-/** Tristimulus values [0..100]. */
 public class Illuminant {
-	/** 2-degree Observer (CIE 1931) */
-	static public class CIE2 {
-		/** Incandescent. */
-		static public final XYZ A = new XYZ(109.85f, 100, 35.585f);
-		static public final XYZ C = new XYZ(98.074f, 100, 118.232f);
-		static public final XYZ D50 = new XYZ(96.422f, 100, 82.521f);
-		static public final XYZ D55 = new XYZ(95.682f, 100, 92.149f);
-		/** Daylight. */
-		static public final XYZ D65 = new XYZ(95.047f, 100, 108.883f);
-		static public final XYZ D75 = new XYZ(94.972f, 100, 122.638f);
-		/** Equal energy. */
-		static public final XYZ E = new XYZ(100, 100, 100);
-		/** Fluorescent. */
-		static public final XYZ F2 = new XYZ(99.187f, 100, 67.395f);
-		static public final XYZ F7 = new XYZ(95.044f, 100, 108.755f);
-		static public final XYZ F11 = new XYZ(100.966f, 100, 64.37f);
-	}
-
-	/** 10-degree Observer (CIE 1964) */
-	static public class CIE10 {
-		/** Incandescent. */
-		static public final XYZ A = new XYZ(111.144f, 100, 35.2f);
-		static public final XYZ C = new XYZ(97.285f, 100, 116.145f);
-		static public final XYZ D50 = new XYZ(96.72f, 100, 81.427f);
-		static public final XYZ D55 = new XYZ(95.799f, 100, 90.926f);
-		/** Daylight. */
-		static public final XYZ D65 = new XYZ(94.811f, 100, 107.304f);
-		static public final XYZ D75 = new XYZ(94.416f, 100, 120.641f);
-		/** Equal energy. */
-		static public final XYZ E = new XYZ(100, 100, 100);
-		/** Fluorescent. */
-		static public final XYZ F2 = new XYZ(103.28f, 100, 69.026f);
-		static public final XYZ F7 = new XYZ(95.792f, 100, 107.687f);
-		static public final XYZ F11 = new XYZ(103.866f, 100, 65.627f);
-	}
-
 	/** CIE daylight basis function S0, 380-780nm @ 5nm. */
 	static public final float[] S0 = {63.4f, 64.6f, 65.8f, 80.3f, 94.8f, 99.8f, 104.8f, 105.35f, 105.9f, 101.35f, 96.8f, 105.35f,
 		113.9f, 119.75f, 125.6f, 125.55f, 125.5f, 123.4f, 121.3f, 121.3f, 121.3f, 117.4f, 113.5f, 113.3f, 113.1f, 111.95f, 110.8f,
@@ -66,8 +28,7 @@ public class Illuminant {
 		5.1f, 5.9f, 6.7f, 7, 7.3f, 7.95f, 8.6f, 9.2f, 9.8f, 10, 10.2f, 9.25f, 8.3f, 8.95f, 9.6f, 9.05f, 8.5f, 7.75f, 7, 7.3f, 7.6f,
 		7.8f, 8, 7.35f, 6.7f, 5.95f, 5.2f, 6.3f, 7.4f, 7.1f, 6.8f};
 
-	/** Returns a CIE daylight illuminant spectrum for the given xy chromaticity coordinate. For CRI calculations.
-	 * @param xy The chromaticity coordinate of the daylight illuminant
+	/** Returns a CIE daylight illuminant spectrum.
 	 * @return 380-780nm @ 5nm, 81 values unnormalized. */
 	static public Spectrum D (xy xy) {
 		float x = xy.x(), y = xy.y();

@@ -6,7 +6,7 @@ import static com.esotericsoftware.color.Util.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.space.C1C2C3;
 import com.esotericsoftware.color.space.CMYK;
 import com.esotericsoftware.color.space.HSL;
@@ -393,10 +393,10 @@ public class ColorsTest extends Tests {
 		assertClose(rgb, rgbBack, EPSILON_F, "RGB-LCh round trip");
 
 		// Test RGB to LCh with custom illuminant
-		LCh lchFromRgbD50 = rgb.LCh(CIE2.D50);
+		LCh lchFromRgbD50 = rgb.LCh(Observer.CIE2.D50);
 		// Convert back through Lab with the same illuminant
 		Lab labFromLch = lchFromRgbD50.Lab();
-		RGB rgbBackD50 = labFromLch.RGB(CIE2.D50);
+		RGB rgbBackD50 = labFromLch.RGB(Observer.CIE2.D50);
 		assertClose(rgb, rgbBackD50, EPSILON_F, "RGB-LCh round trip with D50 illuminant");
 	}
 
@@ -958,7 +958,7 @@ public class ColorsTest extends Tests {
 		// Test Lab with D50 illuminant
 		XYZ xyzD65 = testColor.XYZ();
 		Lab labD65 = xyzD65.Lab();
-		Lab labD50 = xyzD65.Lab(CIE2.D50);
+		Lab labD50 = xyzD65.Lab(Observer.CIE2.D50);
 
 		// Colors should be different under different illuminants
 		assertTrue(Math.abs(labD65.L() - labD50.L()) > 0.01 //

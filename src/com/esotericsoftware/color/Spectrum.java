@@ -3,9 +3,9 @@ package com.esotericsoftware.color;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.space.CAM16.VC;
-import com.esotericsoftware.color.space.CAM16UCS;
+import com.esotericsoftware.color.space.CAM02;
+import com.esotericsoftware.color.space.CAM02UCS;
+import com.esotericsoftware.color.space.CAM16;
 import com.esotericsoftware.color.space.CCT;
 import com.esotericsoftware.color.space.CCT.Method;
 import com.esotericsoftware.color.space.Lab;
@@ -59,11 +59,11 @@ public record Spectrum (float[] values, int step, int start) {
 		Spectrum reference = cct.reference();
 		XYZ refXYZ = reference.XYZ();
 		uv1960 testuv = null, refuv = null;
-		VC testVC = null, refVC = null;
+		CAM16.VC testVC = null, refVC = null;
 		switch (method) {
 		case CAM16UCS -> {
-			testVC = VC.with(testXYZ, 100, 20, 1, false);
-			refVC = VC.with(refXYZ, 100, 20, 1, false);
+			testVC = CAM16.VC.with(testXYZ, 100, 20, 1, false);
+			refVC = CAM16.VC.with(refXYZ, 100, 20, 1, false);
 		}
 		case UVW -> {
 			testuv = testXYZ.uv1960();
@@ -90,38 +90,42 @@ public record Spectrum (float[] values, int step, int start) {
 		return new CRI(sumRa / 8, samples);
 	}
 
-	/** Uses {@link CIE2#D65}. */
+	/** Uses {@link Observer#CIE2} D65. */
 	public Lab Lab () {
 		return XYZ().Lab();
 	}
 
-	public Lab Lab (XYZ whitePoint) {
-		return XYZ().Lab(whitePoint);
+	public Lab Lab (XYZ whitePoint, Observer observer) {
+		return XYZ(observer).Lab(whitePoint);
 	}
 
-	/** Requires 380nm @ 5nm to [700..780+]nm. */
+	/** ANSI/IES TM-30-20. Requires 380nm @ 5nm to [700..780+]nm. */
 	public TM30 TM30 () {
 		checkVisibleRange();
-		XYZ testXYZ = XYZ();
+		XYZ testXYZ = XYZ(Observer.CIE10);
 		CCT cct = testXYZ.CCT();
 		if (cct.invalid()) throw new IllegalStateException("Cannot calculate TM30 for spectrum with invalid CCT.");
 		Spectrum reference = cct.reference();
-		float[] colorSamples = new float[99], chromaShift = new float[16], hueShift = new float[16];
-		int[] binCounts = new int[16];
-		float chromaRef = 0, chromaTest = 0, sum = 0;
-		VC testVC = VC.with(testXYZ, 100, 20, 1, false);
-		VC refVC = VC.with(reference.XYZ(), 100, 20, 1, false);
-		CAM16UCS[] testColors = new CAM16UCS[99], refColors = new CAM16UCS[99];
+		XYZ refXYZ = reference.XYZ(Observer.CIE10);
+		XYZ refWP = refXYZ.scl(100 / refXYZ.Y());
+		XYZ testWP = testXYZ.scl(100 / testXYZ.Y());
+		CAM02.VC refVC = CAM02.VC.with(refWP, 100, 20, 2, true);
+		CAM02.VC testVC = CAM02.VC.with(testWP, 100, 20, 2, true);
+		CAM02UCS[] testColors = new CAM02UCS[99], refColors = new CAM02UCS[99];
 		for (int i = 0; i < 99; i++) {
 			float[] ces = TM30.CES[i];
-			testColors[i] = illuminate(ces).CAM16UCS(testVC);
-			refColors[i] = reference.illuminate(ces).CAM16UCS(refVC);
+			testColors[i] = illuminate(ces, Observer.CIE10).scl(100 / testXYZ.Y()).CAM02UCS(testVC);
+			refColors[i] = reference.illuminate(ces, Observer.CIE10).scl(100 / refXYZ.Y()).CAM02UCS(refVC);
 		}
+		float[] colorSamples = new float[99], chromaShift = new float[16], hueShift = new float[16];
+		float sum = 0;
 		for (int i = 0; i < 99; i++) {
 			float deltaE = testColors[i].dst(refColors[i]);
-			colorSamples[i] = 100 - 7.18f * deltaE;
+			colorSamples[i] = deltaEtoRf(deltaE);
 			sum += deltaE;
 		}
+		int[] binCounts = new int[16];
+		float chromaRef = 0, chromaTest = 0;
 		for (int i = 0; i < 99; i++) {
 			float hue = refColors[i].h(), refChroma = refColors[i].C();
 			int bin = (int)((hue + 11.25f) / 22.5f) % 16;
@@ -136,51 +140,74 @@ public record Spectrum (float[] values, int step, int start) {
 			if (binCounts[i] > 0) {
 				hueShift[i] /= binCounts[i];
 				chromaShift[i] /= binCounts[i];
-				hueAngleBins[i] = 100 - 7.18f * Math.abs(hueShift[i]);
+				hueAngleBins[i] = deltaEtoRf(Math.abs(hueShift[i]));
 			} else
 				hueAngleBins[i] = 100;
 		}
-		return new TM30(100 - 7.18f * (sum / 99), 100 * (chromaTest / chromaRef), chromaShift, hueShift, hueAngleBins,
-			colorSamples);
+		return new TM30(deltaEtoRf(sum / 99), 100 * (chromaTest / chromaRef), chromaShift, hueShift, hueAngleBins, colorSamples);
 	}
 
-	/** @return NaN if invalid. */
+	static private float deltaEtoRf (float deltaE) {
+		return 10 * (float)Math.log1p(Math.exp((100 - 6.73f * deltaE) / 10));
+	}
+
+	/** Uses {@link Observer#CIE2}.
+	 * @return NaN if invalid. */
 	public uv uv () {
 		return XYZ().uv();
 	}
 
-	/** @return NaN if invalid. */
+	public uv uv (Observer observer) {
+		return XYZ(observer).uv();
+	}
+
+	/** Uses {@link Observer#CIE2}.
+	 * @return NaN if invalid. */
 	public xy xy () {
 		return XYZ().xy();
 	}
 
+	public xy xy (Observer observer) {
+		return XYZ(observer).xy();
+	}
+
+	/** Uses {@link Observer#CIE2}. */
+	public XYZ XYZ () {
+		return XYZ(Observer.CIE2);
+	}
+
 	/** Requires 380nm @ 5nm to [700..780+]nm. Missing wavelengths are treated as zero.
 	 * @return XYZ in relative colorimetric units (equal energy white gives Y=100). */
-	public XYZ XYZ () {
+	public XYZ XYZ (Observer observer) {
 		checkVisibleRange();
 		float X = 0, Y = 0, Z = 0;
 		for (int i = 0, n = Math.min(values.length, 81); i < n; i++) {
 			float value = values[i];
-			X += value * XYZ.Xbar[i];
-			Y += value * XYZ.Ybar[i];
-			Z += value * XYZ.Zbar[i];
+			X += value * observer.xbar[i];
+			Y += value * observer.ybar[i];
+			Z += value * observer.zbar[i];
 		}
 		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
-		float factor = 100 / XYZ.YbarIntegral * step;
+		float factor = 100 / observer.ybarIntegral * step;
 		return new XYZ(X * factor, Y * factor, Z * factor);
 	}
 
-	/** Requires 380nm @ 5nm to [700..780+]nm. */
+	/** Uses {@link Observer#CIE2}. Requires 380nm @ 5nm to [700..780+]nm. */
 	public float Y () {
-		return luminousFlux() / 100;
+		return XYZ().Y();
+	}
+
+	/** Requires 380nm @ 5nm to [700..780+]nm. */
+	public float Y (Observer observer) {
+		return XYZ(observer).Y();
 	}
 
 	/** Total luminous flux (relative) weighted by the photopic luminosity function. Requires 380nm @ 5nm to [700..780+]nm. */
-	public float luminousFlux () {
+	public float luminousFlux (Observer observer) {
 		checkVisibleRange();
 		float flux = 0;
 		for (int i = 0, n = Math.min(values.length, 81); i < n; i++)
-			flux += values[i] * XYZ.Ybar[i];
+			flux += values[i] * observer.ybar[i];
 		return flux * 5;
 	}
 
@@ -194,16 +221,16 @@ public record Spectrum (float[] values, int step, int start) {
 
 	/** Requires 380nm @ 5nm to [700..780+]nm.
 	 * @return Luminous efficacy of radiation, maximum 683 lm/W. */
-	public float LER () {
+	public float LER (Observer observer) {
 		float radiant = radiantFlux();
-		return radiant == 0 ? 0 : luminousFlux() * XYZ.Km / radiant;
+		return radiant == 0 ? 0 : luminousFlux(observer) * XYZ.Km / radiant;
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm.
 	 * @return Luminous efficacy of radiation as ratio [0..1], where 1 = 683 lm/W. */
-	public float LERratio () {
+	public float LERratio (Observer observer) {
 		float radiant = radiantFlux();
-		return radiant == 0 ? 0 : luminousFlux() / radiant;
+		return radiant == 0 ? 0 : luminousFlux(observer) / radiant;
 	}
 
 	/** @see SpectralLocus#dominantWavelength(uv) */
@@ -231,23 +258,28 @@ public record Spectrum (float[] values, int step, int start) {
 		return scl(1 / max);
 	}
 
+	/** Uses {@link Observer#CIE2}. */
+	public XYZ illuminate (float[] reflectance) {
+		return illuminate(reflectance, Observer.CIE2);
+	}
+
 	/** Requires 380nm @ 5nm to [700..780+]nm.
 	 * @param reflectance Must have at least as many entries as this spectrum.
 	 * @return XYZ in relative colorimetric units (equal energy white gives Y=100) for the specified reflective sample illuminated
 	 *         by this spectrum. */
-	public XYZ illuminate (float[] reflectance) {
+	public XYZ illuminate (float[] reflectance, Observer observer) {
 		checkVisibleRange();
 		int n = Math.min(values.length, 81);
 		if (reflectance.length < n) throw new IllegalArgumentException("reflectance requires as many entries as spectrum: " + n);
 		float X = 0, Y = 0, Z = 0;
 		for (int i = 0; i < n; i++) {
 			float product = reflectance[i] * values[i];
-			X += product * XYZ.Xbar[i];
-			Y += product * XYZ.Ybar[i];
-			Z += product * XYZ.Zbar[i];
+			X += product * observer.xbar[i];
+			Y += product * observer.ybar[i];
+			Z += product * observer.zbar[i];
 		}
 		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
-		float factor = 100 / XYZ.YbarIntegral * 5;
+		float factor = 100 / observer.ybarIntegral * 5;
 		return new XYZ(X * factor, Y * factor, Z * factor);
 	}
 

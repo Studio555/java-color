@@ -4,7 +4,7 @@ package com.esotericsoftware.color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;
@@ -73,7 +73,7 @@ public class SpectralLocusTests extends Tests {
 		assertTrue(SpectralLocus.contains(inside), "Point inside locus");
 
 		// Test white point (should be inside)
-		uv d65 = CIE2.D65.uv();
+		uv d65 = Observer.CIE2.D65.uv();
 		assertTrue(SpectralLocus.contains(d65), "D65 inside locus");
 
 		// Test points outside
@@ -91,7 +91,7 @@ public class SpectralLocusTests extends Tests {
 
 	@Test
 	public void testDominantWavelength () {
-		XYZ d65 = CIE2.D65;
+		XYZ d65 = Observer.CIE2.D65;
 
 		// Test pure spectral colors
 		float wavelength = SpectralLocus.dominantWavelength(SpectralLocus.uv(500), d65);
@@ -127,7 +127,7 @@ public class SpectralLocusTests extends Tests {
 
 	@Test
 	public void testDominantWavelengthRGB () {
-		XYZ d65 = CIE2.D65;
+		XYZ d65 = Observer.CIE2.D65;
 
 		// Test some RGB colors
 		RGB red = new RGB(1, 0, 0);
@@ -156,7 +156,7 @@ public class SpectralLocusTests extends Tests {
 
 	@Test
 	public void testExcitationPurity () {
-		XYZ d65 = CIE2.D65;
+		XYZ d65 = Observer.CIE2.D65;
 		uv d65uv = d65.xy().uv();
 
 		// Test achromatic (white point)
@@ -187,7 +187,7 @@ public class SpectralLocusTests extends Tests {
 
 	@Test
 	public void testExcitationPurityEdgeCases () {
-		XYZ d65 = CIE2.D65;
+		XYZ d65 = Observer.CIE2.D65;
 
 		// Test point outside spectral locus
 		uv outside = new uv(0.8f, 0.8f);
@@ -196,7 +196,7 @@ public class SpectralLocusTests extends Tests {
 		assertTrue(purity >= 0, "Purity is non-negative");
 
 		// Test with different white points
-		XYZ a = CIE2.A; // Incandescent
+		XYZ a = Observer.CIE2.A; // Incandescent
 		RGB blue = new RGB(0, 0, 1);
 		uv blueUV = blue.uv();
 
@@ -209,7 +209,7 @@ public class SpectralLocusTests extends Tests {
 
 	@Test
 	public void testPurpleLineColors () {
-		XYZ d65 = CIE2.D65;
+		XYZ d65 = Observer.CIE2.D65;
 
 		// Test various purple/magenta colors that should return negative wavelengths
 

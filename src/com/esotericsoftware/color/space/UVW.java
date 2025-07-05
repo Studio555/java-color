@@ -3,13 +3,13 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Observer;
 
 /** CIE 1964 U*V*W* space (obsolete). */
 public record UVW (float U, float V, float W) implements Color {
-	/** Uses {@link CIE2#D65}. */
+	/** Uses {@link Observer#CIE2} D65. */
 	public XYZ XYZ () {
-		return XYZ(CIE2.D65);
+		return XYZ(Observer.CIE2.D65);
 	}
 
 	public XYZ XYZ (XYZ whitePoint) {
