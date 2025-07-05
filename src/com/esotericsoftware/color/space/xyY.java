@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color.space;
 
-import com.esotericsoftware.color.Color;
-
 /** CIE xyY combining chromaticity with luminance. */
 public record xyY (
 	/** x chromaticity [0..1]. */
@@ -21,5 +19,10 @@ public record xyY (
 
 	public xy xy () {
 		return new xy(x, y);
+	}
+
+	@SuppressWarnings("all")
+	public xyY xyY () {
+		return this;
 	}
 }

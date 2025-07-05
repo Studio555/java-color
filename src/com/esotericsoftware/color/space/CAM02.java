@@ -4,7 +4,6 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 public record CAM02 (
@@ -42,45 +41,20 @@ public record CAM02 (
 		return new CAM02UCS(Jstar, Mstar * (float)Math.cos(h), Mstar * (float)Math.sin(h));
 	}
 
-	/** Uses {@link CAM02.VC#sRGB}. */
-	public Lab Lab () {
-		return XYZ(CAM02.VC.sRGB).Lab();
-	}
-
 	public Lab Lab (CAM02.VC vc) {
 		return XYZ(vc).Lab();
-	}
-
-	/** Uses {@link CAM02.VC#sRGB}. */
-	public LinearRGB LinearRGB () {
-		return XYZ(CAM02.VC.sRGB).LinearRGB();
 	}
 
 	public LinearRGB LinearRGB (CAM02.VC vc) {
 		return XYZ(vc).LinearRGB();
 	}
 
-	/** Uses {@link CAM02.VC#sRGB}. */
-	public RGB RGB () {
-		return XYZ(CAM02.VC.sRGB).RGB();
-	}
-
 	public RGB RGB (CAM02.VC vc) {
 		return XYZ(vc).RGB();
 	}
 
-	/** Uses {@link CAM02.VC#sRGB}. */
-	public uv uv () {
-		return XYZ(CAM02.VC.sRGB).uv();
-	}
-
 	public uv uv (CAM02.VC vc) {
 		return XYZ(vc).uv();
-	}
-
-	/** Uses {@link CAM02.VC#sRGB}. */
-	public xy xy () {
-		return XYZ(CAM02.VC.sRGB).xy();
 	}
 
 	public xy xy (CAM02.VC vc) {
@@ -145,8 +119,13 @@ public record CAM02 (
 
 	/** @return JCh are interpolated, QMs are NaN. */
 	public CAM02 lerp (CAM02 other, float t) {
-		return new CAM02(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), Float.NaN, Float.NaN,
-			Float.NaN);
+		return new CAM02(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), //
+			Float.NaN, Float.NaN, Float.NaN);
+	}
+
+	@SuppressWarnings("all")
+	public CAM02 CAM02 () {
+		return this;
 	}
 
 	/** {@link CAM02} viewing conditions. */

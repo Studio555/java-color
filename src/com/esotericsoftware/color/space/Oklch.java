@@ -3,7 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Cylindrical Oklab. */
@@ -43,5 +42,10 @@ public record Oklch (
 
 	public Oklch lerp (Oklch other, float t) {
 		return new Oklch(Util.lerp(L, other.L, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t));
+	}
+
+	@SuppressWarnings("all")
+	public Oklch Oklch () {
+		return this;
 	}
 }

@@ -421,8 +421,8 @@ public class ColorsTest extends Tests {
 
 		// Test default (CAT02) conversions
 		LMS lmsDefault = xyz.LMS();
-		LMS lmsCat02 = xyz.LMS(CAT.CAT02);
-		assertClose(lmsDefault, lmsCat02, EPSILON_F, "Default LMS is CAT02");
+		LMS lmsCat16 = xyz.LMS(CAT.CAT16);
+		assertClose(lmsDefault, lmsCat16, EPSILON_F, "Default LMS is CAT16");
 	}
 
 	@Test

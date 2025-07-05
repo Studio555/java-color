@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color.space;
 
-import com.esotericsoftware.color.Color;
-
 /** Intensity, Hue, Saturation. Alternative to HSI with different hue calculation. */
 public record IHS (
 	/** Intensity [0..1]. */
@@ -32,5 +30,10 @@ public record IHS (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public IHS IHS () {
+		return this;
 	}
 }

@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color.space;
 
-import com.esotericsoftware.color.Color;
-
 /** Academy Color Encoding System ACES2065-1 archival format (linear, AP0 primaries). */
 public record ACES2065_1 (
 	/** Red [0..1]. */
@@ -28,5 +26,10 @@ public record ACES2065_1 (
 		float Y = 0.7281660966f * g;
 		float Z = 0.0000936786f * r + -0.0721325464f * g + 1.0088251844f * b;
 		return new XYZ(X * 100, Y * 100, Z * 100);
+	}
+
+	@SuppressWarnings("all")
+	public ACES2065_1 ACES2065_1 () {
+		return this;
 	}
 }

@@ -83,4 +83,9 @@ public record CAM16LCD (
 	public CAM16LCD withJ (float J) {
 		return new CAM16LCD(J, a, b);
 	}
+
+	@SuppressWarnings("all")
+	public CAM16LCD CAM16LCD () {
+		return this;
+	}
 }

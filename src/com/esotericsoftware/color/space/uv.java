@@ -3,9 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Illuminant;
-import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** CIE 1976 u'v' chromaticity coordinates. */
@@ -108,53 +105,16 @@ public record uv (
 		return new CCT(K, Duv * Math.signum(v - (vp + (vn - vp) * ds)));
 	}
 
-	/** Uses {@link CIE2#D65}. */
-	public Lab Lab () {
-		return Lab(CIE2.D65);
-	}
-
-	/** @param whitePoint See {@link Illuminant}. */
-	public Lab Lab (XYZ whitePoint) {
-		return XYZ().Lab(whitePoint);
-	}
-
 	/** @return Normalized. */
 	public LinearRGB LinearRGB () {
 		xy xy = xy();
-		return new xyY(xy.x(), xy.y(), 1).XYZ().LinearRGB().nor();
-	}
-
-	/** Uses {@link CIE2#D65}. */
-	public LCh LCh () {
-		return LCh(CIE2.D65);
-	}
-
-	/** @param whitePoint See {@link Illuminant}. */
-	public LCh LCh (XYZ whitePoint) {
-		return Lab(whitePoint).LCh();
-	}
-
-	/** Uses {@link CIE2#D65}.
-	 * @return NaN if invalid. */
-	public LCHuv LChuv () {
-		return Luv().LCHuv();
-	}
-
-	/** Uses {@link CIE2#D65}.
-	 * @return NaN if invalid. */
-	public Luv Luv () {
-		return XYZ().Luv(CIE2.D65);
-	}
-
-	/** @return NaN if invalid. */
-	public Luv Luv (XYZ whitePoint) {
-		return XYZ().Luv(whitePoint);
+		return new xyY(xy.x(), xy.y(), 1).LinearRGB().nor();
 	}
 
 	/** @return Normalized. */
 	public RGB RGB () {
 		xy xy = xy();
-		return new xyY(xy.x(), xy.y(), 1).XYZ().RGB().nor();
+		return new xyY(xy.x(), xy.y(), 1).RGB().nor();
 	}
 
 	public uv1960 uv1960 () {
@@ -188,11 +148,6 @@ public record uv (
 
 	public uv add (uv uv) {
 		return new uv(u + uv.u, v + uv.v);
-	}
-
-	/** {@link Lab#deltaE2000(Lab, float, float, float)} with 1 for lightness, chroma, and hue. */
-	public float deltaE2000 (uv other) {
-		return XYZ().Lab().deltaE2000(other.XYZ().Lab(), 1, 1, 1);
 	}
 
 	public uv lerp (uv other, float t) {
@@ -245,5 +200,10 @@ public record uv (
 
 	public float len2 () {
 		return u * u + v * v;
+	}
+
+	@SuppressWarnings("all")
+	public uv uv () {
+		return this;
 	}
 }

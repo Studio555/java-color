@@ -3,7 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** CIE 1960 UCS chromaticity coordinates. */
@@ -116,5 +115,10 @@ public record uv1960 (
 
 	public float len2 () {
 		return u * u + v * v;
+	}
+
+	@SuppressWarnings("all")
+	public uv1960 uv1960 () {
+		return this;
 	}
 }

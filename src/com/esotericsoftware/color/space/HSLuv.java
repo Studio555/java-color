@@ -3,7 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Human-friendly {@link HSL}. Perceptually uniform saturation and lightness. */
@@ -51,5 +50,10 @@ public record HSLuv (
 			}
 		}
 		return min;
+	}
+
+	@SuppressWarnings("all")
+	public HSLuv HSLuv () {
+		return this;
 	}
 }

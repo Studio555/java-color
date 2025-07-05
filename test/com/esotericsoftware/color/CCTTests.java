@@ -67,7 +67,7 @@ public class CCTTests extends Tests {
 	private void checkMaxError (CCT.Method method, float start, float end, float step, float expectedMaxError, float epsilonDuv) {
 		float max = 0, maxK = 0;
 		for (float K = start; K < end; K += step) {
-			CCT roundTrip = new CCT(K).XYZ().uv().CCT(method);
+			CCT roundTrip = new CCT(K).PlanckianXYZ().CCT(method);
 			assertEquals(0, roundTrip.Duv(), epsilonDuv, "Wrong Duv: " + K + " K, " + method);
 			float error = Math.abs(K - roundTrip.K());
 			if (error > max) {
@@ -434,7 +434,7 @@ public class CCTTests extends Tests {
 		for (float expectedK : criticalTemperatures) {
 			// Create exact blackbody at this temperature
 			CCT cct = new CCT(expectedK);
-			uv uv = cct.XYZ().uv();
+			uv uv = cct.PlanckianXYZ().uv();
 
 			// Calculate CCT back from uv coordinates
 			CCT calculated = uv.CCT(CCT.Method.RobertsonImproved);

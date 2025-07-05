@@ -4,8 +4,6 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
-import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 import com.esotericsoftware.color.space.LMS.CAT;
 
@@ -49,11 +47,6 @@ public record XYZ (
 		};
 	}
 
-	/** Uses {@link CAM02.VC#sRGB}. */
-	public CAM02 CAM02 () {
-		return CAM02(CAM02.VC.sRGB);
-	}
-
 	public CAM02 CAM02 (CAM02.VC vc) {
 		float rT = X * 0.7328f + Y * 0.4296f + Z * -0.1624f; // CAT02.
 		float gT = X * -0.7036f + Y * 1.6975f + Z * 0.0061f;
@@ -82,11 +75,6 @@ public record XYZ (
 		float M = C * vc.FLRoot(); // Colorfulness.
 		float s = (M == 0 || Q == 0) ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q)); // Saturation.
 		return new CAM02(J, C, h, Q, M, s);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public CAM16 CAM16 () {
-		return CAM16(CAM16.VC.sRGB);
 	}
 
 	public CAM16 CAM16 (CAM16.VC vc) {
@@ -120,25 +108,11 @@ public record XYZ (
 			50 * (float)Math.sqrt((alpha * vc.c()) / (vc.Aw() + 4)));
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public CAM16UCS CAM16UCS () {
-		return CAM16().CAM16UCS();
-	}
-
-	public CAM16UCS CAM16UCS (CAM16.VC vc) {
-		return CAM16(vc).CAM16UCS();
-	}
-
 	/** @return NaN if invalid. */
 	public HunterLab HunterLab () {
 		if (Y < EPSILON) return new HunterLab(0, 0, 0);
 		float sqrt = (float)Math.sqrt(Y);
 		return new HunterLab(10 * sqrt, 17.5f * ((1.02f * X - Y) / sqrt), 7 * ((Y - 0.847f * Z) / sqrt));
-	}
-
-	/** Uses {@link CIE2#D65}. */
-	public Lab Lab () {
-		return Lab(CIE2.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
@@ -150,10 +124,17 @@ public record XYZ (
 		return new Lab(116 * Y - 16, 500 * (X - Y), 200 * (Y - Z));
 	}
 
-	/** Uses {@link CIE2#D65}.
-	 * @return NaN if invalid. */
-	public Luv Luv () {
-		return Luv(CIE2.D65);
+	public LinearRGB LinearRGB () {
+		float X = this.X / 100, Y = this.Y / 100, Z = this.Z / 100;
+		return new LinearRGB( //
+			3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z, //
+			-0.969266f * X + 1.8760108f * Y + 0.041556f * Z, //
+			0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z);
+	}
+
+	public LMS LMS (CAT matrix) {
+		float[] lms = matrixMultiply(X, Y, Z, matrix.forward);
+		return new LMS(lms[0], lms[1], lms[2]);
 	}
 
 	/** @return NaN if invalid. */
@@ -165,38 +146,6 @@ public record XYZ (
 		float u_prime = 4 * X / divisor, v_prime = 9 * Y / divisor;
 		float un_prime = 4 * Xn / divisorN, vn_prime = 9 * Yn / divisorN;
 		return new Luv(L, 13 * L * (u_prime - un_prime), 13 * L * (v_prime - vn_prime));
-	}
-
-	public LinearRGB LinearRGB () {
-		float X = this.X / 100, Y = this.Y / 100, Z = this.Z / 100;
-		return new LinearRGB( //
-			3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z, //
-			-0.969266f * X + 1.8760108f * Y + 0.041556f * Z, //
-			0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z);
-	}
-
-	/** Uses the LMS CIECAM02 transformation matrix. */
-	public LMS LMS () {
-		return LMS(CAT.CAT02);
-	}
-
-	public LMS LMS (CAT matrix) {
-		float[] lms = matrixMultiply(X, Y, Z, matrix.forward);
-		return new LMS(lms[0], lms[1], lms[2]);
-	}
-
-	public Oklab Oklab () {
-		float X = this.X / 100, Y = this.Y / 100, Z = this.Z / 100;
-		float r = 3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z; // To linear RGB without clamp, D65.
-		float g = -0.969266f * X + 1.8760108f * Y + 0.041556f * Z;
-		float b = 0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z;
-		float l = (float)Math.cbrt(0.4122214708f * r + 0.5363325363f * g + 0.0514459929f * b);
-		float m = (float)Math.cbrt(0.2119034982f * r + 0.6806995451f * g + 0.1073969566f * b);
-		float s = (float)Math.cbrt(0.0883024619f * r + 0.2817188376f * g + 0.6299787005f * b);
-		return new Oklab( //
-			0.2104542553f * l + 0.793617785f * m - 0.0040720468f * s, //
-			1.9779984951f * l - 2.428592205f * m + 0.4505937099f * s, //
-			0.0259040371f * l + 0.7827717662f * m - 0.808675766f * s);
 	}
 
 	public RGB RGB () {
@@ -219,14 +168,14 @@ public record XYZ (
 	}
 
 	public UVW UVW (XYZ whitePoint) {
+		float yRatio = Y / whitePoint.Y();
+		if (yRatio <= 0) return new UVW(0, 0, -17);
 		float denom = X() + 15 * Y + 3 * Z;
 		float denomWhite = whitePoint.X() + 15 * whitePoint.Y() + 3 * whitePoint.Z();
 		if (denom < EPSILON || denomWhite < EPSILON) return new UVW(0, 0, 0);
 		float u = 4 * X / denom, v = 9 * Y / denom;
 		float un = 4 * whitePoint.X() / denomWhite;
 		float vn = 9 * whitePoint.Y() / denomWhite;
-		float yRatio = Y / whitePoint.Y();
-		if (yRatio <= 0) return new UVW(0, 0, -17);
 		float W = 25 * (float)Math.pow(yRatio, 1 / 3f) - 17;
 		return new UVW(13 * W * (u - un), 13 * W * (v - vn), W);
 	}
@@ -243,11 +192,6 @@ public record XYZ (
 		float sum = X + Y + Z;
 		if (sum < EPSILON) return new xyY(Float.NaN, Float.NaN, Float.NaN);
 		return new xyY(X / sum, Y / sum, Y);
-	}
-
-	@SuppressWarnings("all")
-	public XYZ XYZ () {
-		return this;
 	}
 
 	public XYZ add (float value) {
@@ -356,6 +300,11 @@ public record XYZ (
 
 	public XYZ withY (float Y) {
 		return set(1, Y);
+	}
+
+	@SuppressWarnings("all")
+	public XYZ XYZ () {
+		return this;
 	}
 
 	/** CIE 1931 x-bar color matching function (380-780nm at 5nm intervals). **/

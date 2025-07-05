@@ -3,18 +3,17 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
+import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Spectrum;
 
 public record CCT ( //
-	/** [427K+] */
 	float K,
 	float Duv) implements Color {
 
 	static float[] KPlanckian, uvPlanckian;
 
 	public CCT {
-		if (K < 427 || !Float.isFinite(K) || !Float.isFinite(Duv)) {
+		if (!Float.isFinite(K) || !Float.isFinite(Duv)) {
 			K = Float.NaN;
 			Duv = Float.NaN;
 		}
@@ -82,8 +81,8 @@ public record CCT ( //
 	 * @param w2 Second white LED color.
 	 * @return NaN if invalid. */
 	public RGBWW RGBWW (float brightness, LinearRGB w1, LinearRGB w2) {
-		float K1 = w1.uv().CCT().K;
-		float K2 = w2.uv().CCT().K;
+		float K1 = w1.CCT().K;
+		float K2 = w2.CCT().K;
 		float W1, W2;
 		if (Math.abs(K2 - K1) < EPSILON) // Both whites have same CCT.
 			W1 = W2 = 0.5f;
@@ -177,10 +176,14 @@ public record CCT ( //
 		return new xy(x, 2.87f * x - 3.0f * x * x - 0.275f);
 	}
 
-	/** Uses exact Planck calculation [427K+].
-	 * @return Normalized with Y=100 or NaN if invalid. */
+	/** @return Normalized with Y=100. Requires [1000K+] else returns NaN. */
 	public XYZ XYZ () {
-		if (K < 427) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		return uv1960().XYZ();
+	}
+
+	/** Uses exact Planck's law for spectral power distribution.
+	 * @return Normalized with Y=100. Requires [26.3K+] else returns NaN. */
+	public XYZ PlanckianXYZ () {
 		double X = 0, Y = 0, Z = 0;
 		for (int i = 0; i < 81; i++) {
 			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
@@ -190,13 +193,13 @@ public record CCT ( //
 			Y += B * XYZ.Ybar[i];
 			Z += B * XYZ.Zbar[i];
 		}
-		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		if (Y == 0) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		double scale = 100 / Y;
 		return new XYZ((float)(X * scale), 100, (float)(Z * scale));
 	}
 
 	/** @return Normalized to Y=100. */
-	public Spectrum blackbody (int start, int end, int step) { // BOZO - Rename blackbody.
+	public Spectrum blackbody (int start, int end, int step) {
 		int length = ((end - start) / step) + 1;
 		float[] values = new float[length];
 		for (int i = 0; i < length; i++) {
@@ -211,39 +214,12 @@ public record CCT ( //
 	/** Returns a reference illuminant spectrum for this CCT. Uses Planckian radiator for CCT < 5000K, CIE daylight for >= 5000K.
 	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. Requires [1000K+] else returns NaN. */
 	public Spectrum reference () {
-		return K < 5000 ? blackbody(380, 780, 5) : xyDaylight().daylightD();
+		return K < 5000 ? blackbody(380, 780, 5) : Illuminant.D(xyDaylight());
 	}
 
-	static uv1960 perpendicular (float K, xy xyPoint) { // BOZO - Improve.
-		float x = xyPoint.x(), y = xyPoint.y();
-		float dx_dT, dy_dx, t2 = K * K;
-		if (K <= 4000)
-			dx_dT = 0.2661239f * 3e9f / (t2 * t2) + 0.2343589f * 2e6f / t2 * K - 0.8776956f * 1e3f / t2;
-		else
-			dx_dT = 3.0258469f * 3e9f / (t2 * t2) - 2.1070379f * 2e6f / t2 * K - 0.2226347f * 1e3f / t2;
-		if (K <= 2222)
-			dy_dx = -3.3191442f * x * x - 2.6962204f * x + 2.18555832f;
-		else if (K <= 4000)
-			dy_dx = -2.8648428f * x * x - 2.74837186f * x + 2.09137015f;
-		else
-			dy_dx = 9.245274f * x * x - 11.7467734f * x + 3.75112997f;
-		float dy_dT = dy_dx * dx_dT;
-		float denom2 = -2 * x + 12 * y + 3;
-		denom2 *= denom2;
-		float du_dx = 4 * (12 * y + 3) / denom2, du_dy = -4 * x * 12 / denom2;
-		float dv_dx = 6 * y * 2 / denom2, dv_dy = 6 * (-2 * x + 3) / denom2;
-		float du_dT = du_dx * dx_dT + du_dy * dy_dT, dv_dT = dv_dx * dx_dT + dv_dy * dy_dT;
-		float length = (float)Math.sqrt(du_dT * du_dT + dv_dT * dv_dT);
-		if (length < EPSILON) return new uv1960(0, 0);
-		// Ensure consistent orientation: positive Duv should increase v (towards green)
-		float perp_u = -dv_dT / length;
-		float perp_v = du_dT / length;
-		// If perp_v is negative, flip the vector to maintain consistent orientation
-		if (perp_v < 0) {
-			perp_u = -perp_u;
-			perp_v = -perp_v;
-		}
-		return new uv1960(perp_u, perp_v);
+	@SuppressWarnings("all")
+	public CCT CCT () {
+		return this;
 	}
 
 	/** Ohno (2013) with 1.0134 spacing. */
@@ -265,7 +241,7 @@ public record CCT ( //
 					kTable[513] = 99999;
 					kTable[514] = 100000;
 					for (int i = 0; i < 515; i++) {
-						uv uv = new CCT(kTable[i]).uv();
+						uv uv = new CCT(kTable[i]).PlanckianXYZ().uv();
 						uvTable[i * 2] = uv.u();
 						uvTable[i * 2 + 1] = uv.v();
 					}

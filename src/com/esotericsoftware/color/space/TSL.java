@@ -10,7 +10,7 @@ public record TSL (
 	/** Saturation [0..1]. */
 	float S,
 	/** Lightness [0..1]. */
-	float L) {
+	float L) implements Color {
 
 	public RGB RGB () {
 		if (L < EPSILON) return new RGB(0, 0, 0); // Black.
@@ -27,5 +27,14 @@ public record TSL (
 		}
 		float k = L / (0.185f * r1 + 0.473f * g1 + 1 / 3f), r = k * (r1 + 1 / 3f), g = k * (g1 + 1 / 3f);
 		return new RGB(clamp(r), clamp(g), clamp(k - r - g));
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public TSL TSL () {
+		return this;
 	}
 }

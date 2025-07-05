@@ -3,8 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
-
 /** NTSC analog TV color encoding. */
 public record YIQ (
 	/** Luma (Y') [0..1]. */
@@ -30,5 +28,10 @@ public record YIQ (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public YIQ YIQ () {
+		return this;
 	}
 }

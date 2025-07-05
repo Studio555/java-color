@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color.space;
 
-import com.esotericsoftware.color.Color;
-
 /** Academy Color Encoding System for color grading (logarithmic, AP1 primaries). */
 public record ACEScc (
 	/** Red [0..1]. */
@@ -35,5 +33,10 @@ public record ACEScc (
 		if (encoded < -0.3014698893f) // (9.72 - 15) / 17.52
 			return (float)((Math.pow(2, encoded * 17.52f - 9.72f) - 0.00001525878906f) * 2);
 		return (float)Math.pow(2, encoded * 17.52f - 9.72f);
+	}
+
+	@SuppressWarnings("all")
+	public ACEScc ACEScc () {
+		return this;
 	}
 }

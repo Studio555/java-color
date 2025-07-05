@@ -3,7 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Hue, Saturation, Lightness. Cylindrical RGB. */
@@ -58,5 +57,10 @@ public record HSL (
 		if (2 * vH < 1) return v2;
 		if (3 * vH < 2) return v1 + (v2 - v1) * (2 / 3f - vH) * 6;
 		return v1;
+	}
+
+	@SuppressWarnings("all")
+	public HSL HSL () {
+		return this;
 	}
 }

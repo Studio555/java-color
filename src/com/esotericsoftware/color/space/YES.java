@@ -3,8 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
-
 /** Xerox YES color space. */
 public record YES (
 	/** Luminance [0..1]. */
@@ -23,5 +21,10 @@ public record YES (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public YES YES () {
+		return this;
 	}
 }

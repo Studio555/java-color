@@ -3,8 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
-
 public interface CAM16Space extends Color {
 	public float J ();
 
@@ -30,52 +28,20 @@ public interface CAM16Space extends Color {
 		};
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	default public CAM16 CAM16 () {
-		return CAM16(CAM16.VC.sRGB);
-	}
-
-	public CAM16 CAM16 (CAM16.VC vc);
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	default public Lab Lab () {
-		return Lab(CAM16.VC.sRGB);
-	}
-
 	default public Lab Lab (CAM16.VC vc) {
 		return CAM16(vc).Lab(vc);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	default public LinearRGB LinearRGB () {
-		return LinearRGB(CAM16.VC.sRGB);
 	}
 
 	default public LinearRGB LinearRGB (CAM16.VC vc) {
 		return CAM16(vc).LinearRGB(vc);
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	default public RGB RGB () {
-		return RGB(CAM16.VC.sRGB);
-	}
-
 	default public RGB RGB (CAM16.VC vc) {
 		return CAM16(vc).RGB(vc);
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	default public uv uv () {
-		return uv(CAM16.VC.sRGB);
-	}
-
 	default public uv uv (CAM16.VC vc) {
 		return CAM16(vc).uv(vc);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	default public xy xy () {
-		return xy(CAM16.VC.sRGB);
 	}
 
 	default public xy xy (CAM16.VC vc) {

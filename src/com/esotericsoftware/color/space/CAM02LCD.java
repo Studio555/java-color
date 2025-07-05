@@ -24,12 +24,13 @@ public record CAM02LCD (
 	}
 
 	public CAM02 CAM02 (CAM02.VC vc) {
+		if (J == 0) return new CAM02(0, 0, 0, 0, 0, 0);
 		float c1 = 0.007f, c2 = 0.0053f, J = -this.J / (c1 * this.J - 1 - 100 * c1);
 		float Mstar = (float)Math.sqrt(a * a + b * b), h = (float)Math.atan2(b, a) * radDeg;
 		h = h < 0 ? h + 360 : h;
-		float M = (float)(Math.expm1(Mstar / (1 / c2)) / c2), C = M / (float)Math.pow(vc.FL(), 0.25);
-		float Q = 4 / vc.c() * (float)Math.sqrt(Math.abs(J) / 100) * (vc.Aw() + 4) * (float)Math.pow(vc.FL(), 0.25);
-		float s = (M == 0 || Q == 0) ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q));
+		float M = Mstar == 0 ? 0 : (float)(Math.expm1(Mstar / (1 / c2)) / c2), C = M / (float)Math.pow(vc.FL(), 0.25);
+		float Q = J == 0 ? 0 : 4 / vc.c() * (float)Math.sqrt(Math.abs(J) / 100) * (vc.Aw() + 4) * (float)Math.pow(vc.FL(), 0.25);
+		float s = M == 0 || Q == 0 ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q));
 		return new CAM02(J, C, h, Q, M, s);
 	}
 
@@ -82,5 +83,10 @@ public record CAM02LCD (
 
 	public CAM02LCD withJ (float J) {
 		return new CAM02LCD(J, a, b);
+	}
+
+	@SuppressWarnings("all")
+	public CAM02LCD CAM02LCD () {
+		return this;
 	}
 }

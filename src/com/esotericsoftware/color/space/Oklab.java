@@ -3,7 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Perceptually uniform color space. Based on CAM16 and IPT. */
@@ -139,5 +138,10 @@ public record Oklab (
 
 	public Oklab withL (float L) {
 		return new Oklab(L, a, b);
+	}
+
+	@SuppressWarnings("all")
+	public Oklab Oklab () {
+		return this;
 	}
 }

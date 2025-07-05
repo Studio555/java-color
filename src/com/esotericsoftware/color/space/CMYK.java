@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color.space;
 
-import com.esotericsoftware.color.Color;
-
 /** Subtractive color model for printing. */
 public record CMYK (
 	/** Cyan [0..1]. */
@@ -23,5 +21,10 @@ public record CMYK (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public CMYK CMYK () {
+		return this;
 	}
 }

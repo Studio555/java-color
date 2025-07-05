@@ -3,8 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
-
 /** Photo YCC for Kodak PhotoCD. */
 public record YCC (
 	/** Luma [0..1]. */
@@ -30,5 +28,10 @@ public record YCC (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public YCC YCC () {
+		return this;
 	}
 }

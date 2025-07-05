@@ -4,6 +4,7 @@ package com.esotericsoftware.color;
 import java.util.Arrays;
 
 import com.esotericsoftware.color.space.XYZ;
+import com.esotericsoftware.color.space.xy;
 
 /** Tristimulus values [0..100]. */
 public class Illuminant {
@@ -65,7 +66,21 @@ public class Illuminant {
 		5.1f, 5.9f, 6.7f, 7, 7.3f, 7.95f, 8.6f, 9.2f, 9.8f, 10, 10.2f, 9.25f, 8.3f, 8.95f, 9.6f, 9.05f, 8.5f, 7.75f, 7, 7.3f, 7.6f,
 		7.8f, 8, 7.35f, 6.7f, 5.95f, 5.2f, 6.3f, 7.4f, 7.1f, 6.8f};
 
-	/** Returns an equal energy spectrum (all values 1, illuminantE). */
+	/** Returns a CIE daylight illuminant spectrum for the given xy chromaticity coordinate. For CRI calculations.
+	 * @param xy The chromaticity coordinate of the daylight illuminant
+	 * @return 380-780nm @ 5nm, 81 values unnormalized. */
+	static public Spectrum D (xy xy) {
+		float x = xy.x(), y = xy.y();
+		float M = (0.0241f + 0.2562f * x - 0.7341f * y);
+		float M1 = (-1.3515f - 1.7703f * x + 5.9114f * y) / M;
+		float M2 = (0.03f - 31.4424f * x + 30.0717f * y) / M;
+		float[] values = new float[81];
+		for (int i = 0; i < 81; i++)
+			values[i] = S0[i] + M1 * S1[i] + M2 * S2[i];
+		return new Spectrum(values, 5);
+	}
+
+	/** Returns an equal energy spectrum (all values 1, illuminant E). */
 	static public Spectrum E (int start, int end, int step) {
 		float[] values = new float[(end - start) / step + 1];
 		Arrays.fill(values, 1);

@@ -3,8 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
-
 /** Normalized red-green color space. */
 public record rg (
 	/** Red chromaticity [0..1]. */
@@ -24,5 +22,10 @@ public record rg (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public rg rg () {
+		return this;
 	}
 }

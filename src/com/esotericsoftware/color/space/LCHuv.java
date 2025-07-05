@@ -5,7 +5,6 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.Color;
 
 /** Cylindrical CIELUV. */
 public record LCHuv (
@@ -22,19 +21,9 @@ public record LCHuv (
 		return new Luv(L, C * (float)Math.cos(rad), C * (float)Math.sin(rad));
 	}
 
-	/** Uses {@link CIE2#D65}. */
-	public RGB RGB () {
-		return XYZ(CIE2.D65).RGB();
-	}
-
 	/** @param whitePoint See {@link Illuminant}. */
 	public RGB RGB (XYZ whitePoint) {
 		return XYZ(whitePoint).RGB();
-	}
-
-	/** Uses {@link CIE2#D65}. */
-	public LinearRGB LinearRGB () {
-		return XYZ(CIE2.D65).LinearRGB();
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
@@ -42,19 +31,9 @@ public record LCHuv (
 		return XYZ(whitePoint).LinearRGB();
 	}
 
-	/** Uses {@link CIE2#D65}. */
-	public uv uv () {
-		return XYZ(CIE2.D65).uv();
-	}
-
 	/** @param whitePoint See {@link Illuminant}. */
 	public uv uv (XYZ whitePoint) {
 		return XYZ(whitePoint).uv();
-	}
-
-	/** Uses {@link CIE2#D65}. */
-	public xy xy () {
-		return XYZ(CIE2.D65).xy();
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
@@ -70,5 +49,10 @@ public record LCHuv (
 	/** @param whitePoint See {@link Illuminant}. */
 	public XYZ XYZ (XYZ whitePoint) {
 		return Luv().XYZ(whitePoint);
+	}
+
+	@SuppressWarnings("all")
+	public LCHuv LCHuv () {
+		return this;
 	}
 }

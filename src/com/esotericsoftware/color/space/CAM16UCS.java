@@ -82,4 +82,9 @@ public record CAM16UCS (
 	public CAM16UCS withJ (float J) {
 		return new CAM16UCS(J, a, b);
 	}
+
+	@SuppressWarnings("all")
+	public CAM16UCS CAM16UCS () {
+		return this;
+	}
 }

@@ -3,8 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
-
 /** PAL analog TV color encoding. */
 public record YUV (
 	/** Luma (Y') [0..1]. */
@@ -30,5 +28,10 @@ public record YUV (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public YUV YUV () {
+		return this;
 	}
 }

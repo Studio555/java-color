@@ -44,6 +44,11 @@ public record YCbCr (
 		return RGB(colorSpace).XYZ();
 	}
 
+	@SuppressWarnings("all")
+	public YCbCr YCbCr () {
+		return this;
+	}
+
 	public enum YCbCrColorSpace {
 		ITU_BT_601, ITU_BT_709_HDTV
 	}

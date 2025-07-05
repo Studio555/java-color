@@ -4,9 +4,6 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Gamut;
-import com.esotericsoftware.color.Illuminant;
-import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** RGB without gamma correction. Values are not clamped. */
@@ -41,84 +38,6 @@ public record LinearRGB (
 		case 2 -> new LinearRGB(r, g, value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
-	}
-
-	/** Uses {@link CAM02.VC#sRGB}. */
-	public CAM02 CAM02 () {
-		return CAM02(CAM02.VC.sRGB);
-	}
-
-	public CAM02 CAM02 (CAM02.VC vc) {
-		return XYZ().CAM02(vc);
-	}
-
-	/** Uses {@link CAM02.VC#sRGB}. */
-	public CAM02UCS CAM02UCS () {
-		return CAM02().CAM02UCS();
-	}
-
-	public CAM02UCS CAM02UCS (CAM02.VC vc) {
-		return CAM02(vc).CAM02UCS();
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public CAM16 CAM16 () {
-		return CAM16(CAM16.VC.sRGB);
-	}
-
-	public CAM16 CAM16 (CAM16.VC vc) {
-		return XYZ().CAM16(vc);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public CAM16UCS CAM16UCS () {
-		return CAM16().CAM16UCS();
-	}
-
-	public CAM16UCS CAM16UCS (CAM16.VC vc) {
-		return CAM16(vc).CAM16UCS();
-	}
-
-	/** Uses {@link CIE2#D65}. */
-	public Lab Lab () {
-		return Lab(CIE2.D65);
-	}
-
-	/** @param whitePoint See {@link Illuminant}. */
-	public Lab Lab (XYZ whitePoint) {
-		return XYZ().Lab(whitePoint);
-	}
-
-	@SuppressWarnings("all")
-	public LinearRGB LinearRGB () {
-		return XYZ().LinearRGB();
-	}
-
-	/** Uses {@link CIE2#D65}. */
-	public LCh LCh () {
-		return LCh(CIE2.D65);
-	}
-
-	/** @param whitePoint See {@link Illuminant}. */
-	public LCh LCh (XYZ whitePoint) {
-		return Lab(whitePoint).LCh();
-	}
-
-	/** Uses {@link CIE2#D65}.
-	 * @return NaN if invalid. */
-	public LCHuv LChuv () {
-		return Luv().LCHuv();
-	}
-
-	/** Uses {@link CIE2#D65}.
-	 * @return NaN if invalid. */
-	public Luv Luv () {
-		return XYZ().Luv(CIE2.D65);
-	}
-
-	/** @return NaN if invalid. */
-	public Luv Luv (XYZ whitePoint) {
-		return XYZ().Luv(whitePoint);
 	}
 
 	public RGB RGB () {
@@ -257,5 +176,10 @@ public record LinearRGB (
 
 	public float len2 () {
 		return r * r + g * g + b * b;
+	}
+
+	@SuppressWarnings("all")
+	public LinearRGB LinearRGB () {
+		return this;
 	}
 }

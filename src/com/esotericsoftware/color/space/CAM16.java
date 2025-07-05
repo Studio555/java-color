@@ -4,7 +4,6 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Color Appearance Model 2016. Predicts color appearance under viewing conditions. */
@@ -43,45 +42,20 @@ public record CAM16 (
 		return new CAM16UCS(Jstar, Mstar * (float)Math.cos(h), Mstar * (float)Math.sin(h));
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public Lab Lab () {
-		return XYZ(CAM16.VC.sRGB).Lab();
-	}
-
 	public Lab Lab (CAM16.VC vc) {
 		return XYZ(vc).Lab();
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public LinearRGB LinearRGB () {
-		return XYZ(CAM16.VC.sRGB).LinearRGB();
 	}
 
 	public LinearRGB LinearRGB (CAM16.VC vc) {
 		return XYZ(vc).LinearRGB();
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public RGB RGB () {
-		return XYZ(CAM16.VC.sRGB).RGB();
-	}
-
 	public RGB RGB (CAM16.VC vc) {
 		return XYZ(vc).RGB();
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public uv uv () {
-		return XYZ(CAM16.VC.sRGB).uv();
-	}
-
 	public uv uv (CAM16.VC vc) {
 		return XYZ(vc).uv();
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public xy xy () {
-		return XYZ(CAM16.VC.sRGB).xy();
 	}
 
 	public xy xy (CAM16.VC vc) {
@@ -120,8 +94,13 @@ public record CAM16 (
 
 	/** @return JCh are interpolated, QMs are NaN. */
 	public CAM16 lerp (CAM16 other, float t) {
-		return new CAM16(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), Float.NaN, Float.NaN,
-			Float.NaN);
+		return new CAM16(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), //
+			Float.NaN, Float.NaN, Float.NaN);
+	}
+
+	@SuppressWarnings("all")
+	public CAM16 CAM16 () {
+		return this;
 	}
 
 	/** {@link CAM16} viewing conditions. */

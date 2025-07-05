@@ -5,7 +5,6 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** CIELAB perceptually uniform color space. */
@@ -38,11 +37,6 @@ public record Lab (
 		};
 	}
 
-	/** Uses {@link CIE2#D65}. */
-	public LinearRGB LinearRGB () {
-		return XYZ(CIE2.D65).LinearRGB();
-	}
-
 	/** @param whitePoint See {@link Illuminant}. */
 	public LinearRGB LinearRGB (XYZ whitePoint) {
 		return XYZ(whitePoint).LinearRGB();
@@ -53,11 +47,6 @@ public record Lab (
 		float h = C < EPSILON ? Float.NaN : (float)Math.atan2(b, a) * radDeg;
 		if (h < 0) h += 360;
 		return new LCh(L, C, h);
-	}
-
-	/** Uses {@link CIE2#D65}. */
-	public RGB RGB () {
-		return XYZ(CIE2.D65).RGB();
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
@@ -167,7 +156,7 @@ public record Lab (
 		return new Lab(this.L - L, this.a - a, this.b - b);
 	}
 
-	/** CIE76 color difference (distance in Lab space). */
+	/** CIE76 color difference (Euclidian distance in Lab space). */
 	public float dst (Lab other) {
 		return (float)Math.sqrt(dst2(other));
 	}
@@ -187,6 +176,11 @@ public record Lab (
 
 	public Lab withL (float L) {
 		return new Lab(L, a, b);
+	}
+
+	@SuppressWarnings("all")
+	public Lab Lab () {
+		return this;
 	}
 
 	/** @return [0..100] */

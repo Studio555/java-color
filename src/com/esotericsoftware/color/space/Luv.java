@@ -5,7 +5,6 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** CIELUV perceptually uniform color space. */
@@ -41,20 +40,10 @@ public record Luv (
 		};
 	}
 
-	/** @return NaN if invalid. */
-	public LinearRGB LinearRGB () {
-		return LinearRGB(CIE2.D65);
-	}
-
 	/** @param whitePoint See {@link Illuminant}.
 	 * @return NaN if invalid. */
 	public LinearRGB LinearRGB (XYZ whitePoint) {
 		return XYZ(whitePoint).LinearRGB();
-	}
-
-	/** @return NaN if invalid. */
-	public RGB RGB () {
-		return RGB(CIE2.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}.
@@ -161,5 +150,10 @@ public record Luv (
 
 	public Luv withL (float L) {
 		return new Luv(L, u, v);
+	}
+
+	@SuppressWarnings("all")
+	public Luv Luv () {
+		return this;
 	}
 }

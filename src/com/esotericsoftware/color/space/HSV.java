@@ -3,7 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Hue, Saturation, Value. Also known as HSB. */
@@ -105,5 +104,10 @@ public record HSV (
 
 	public HSV lerp (HSV other, float t) {
 		return new HSV(lerpAngle(H, other.H, t), Util.lerp(S, other.S, t), Util.lerp(V, other.V, t));
+	}
+
+	@SuppressWarnings("all")
+	public HSV HSV () {
+		return this;
 	}
 }

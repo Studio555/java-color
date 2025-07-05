@@ -30,7 +30,7 @@ public record CAM02UCS (
 		h = h < 0 ? h + 360 : h;
 		float M = Mstar == 0 ? 0 : (float)(Math.expm1(Mstar / (1 / c2)) / c2), C = M / (float)Math.pow(vc.FL(), 0.25);
 		float Q = J == 0 ? 0 : 4 / vc.c() * (float)Math.sqrt(Math.abs(J) / 100) * (vc.Aw() + 4) * (float)Math.pow(vc.FL(), 0.25);
-		float s = (M == 0 || Q == 0) ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q));
+		float s = M == 0 || Q == 0 ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q));
 		return new CAM02(J, C, h, Q, M, s);
 	}
 
@@ -83,5 +83,10 @@ public record CAM02UCS (
 
 	public CAM02UCS withJ (float J) {
 		return new CAM02UCS(J, a, b);
+	}
+
+	@SuppressWarnings("all")
+	public CAM02UCS CAM02UCS () {
+		return this;
 	}
 }

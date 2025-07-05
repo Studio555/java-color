@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color.space;
 
-import com.esotericsoftware.color.Color;
-
 /** Academy Color Encoding System working space for CGI (linear, AP1 primaries). */
 public record ACEScg (
 	/** Red [0..1]. */
@@ -28,5 +26,10 @@ public record ACEScg (
 		float Y = 0.1340042065f * r + 0.6740817658f * g + 0.0040607335f * b;
 		float Z = 0.156187687f * r + 0.0536951054f * g + 0.7237067219f * b;
 		return new XYZ(X * 100, Y * 100, Z * 100);
+	}
+
+	@SuppressWarnings("all")
+	public ACEScg ACEScg () {
+		return this;
 	}
 }

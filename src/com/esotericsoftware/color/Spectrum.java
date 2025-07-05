@@ -54,20 +54,20 @@ public record Spectrum (float[] values, int step, int start) {
 	public CRI CRI (CRI.Method method) {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
-		CCT cct = testXYZ.uv().CCT();
+		CCT cct = testXYZ.CCT();
 		if (cct.invalid()) throw new IllegalStateException("Cannot calculate CRI for spectrum with invalid CCT.");
 		Spectrum reference = cct.reference();
 		XYZ refXYZ = reference.XYZ();
 		uv1960 testuv = null, refuv = null;
 		VC testVC = null, refVC = null;
 		switch (method) {
-		case UVW -> {
-			testuv = testXYZ.uv1960();
-			refuv = refXYZ.uv1960();
-		}
 		case CAM16UCS -> {
 			testVC = VC.with(testXYZ, 100, 20, 1, false);
 			refVC = VC.with(refXYZ, 100, 20, 1, false);
+		}
+		case UVW -> {
+			testuv = testXYZ.uv1960();
+			refuv = refXYZ.uv1960();
 		}
 		}
 		float[] samples = new float[14];
@@ -103,7 +103,7 @@ public record Spectrum (float[] values, int step, int start) {
 	public TM30 TM30 () {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ();
-		CCT cct = testXYZ.uv().CCT();
+		CCT cct = testXYZ.CCT();
 		if (cct.invalid()) throw new IllegalStateException("Cannot calculate TM30 for spectrum with invalid CCT.");
 		Spectrum reference = cct.reference();
 		float[] colorSamples = new float[99], chromaShift = new float[16], hueShift = new float[16];

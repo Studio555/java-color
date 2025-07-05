@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color.space;
 
-import com.esotericsoftware.color.Color;
-
 /** Predecessor to CIELAB. More perceptually uniform than XYZ. */
 public record HunterLab (
 	/** Lightness [0..100]. */
@@ -18,5 +16,10 @@ public record HunterLab (
 		float tempZ = b / 7 * L / 10;
 		float Y = tempY * tempY;
 		return new XYZ((tempX + Y) / 1.02f, Y, -(tempZ - Y) / 0.847f);
+	}
+
+	@SuppressWarnings("all")
+	public HunterLab HunterLab () {
+		return this;
 	}
 }

@@ -83,4 +83,9 @@ public record CAM16SCD (
 	public CAM16SCD withJ (float J) {
 		return new CAM16SCD(J, a, b);
 	}
+
+	@SuppressWarnings("all")
+	public CAM16SCD CAM16SCD () {
+		return this;
+	}
 }

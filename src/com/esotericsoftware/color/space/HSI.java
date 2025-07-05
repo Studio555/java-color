@@ -3,8 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
-
 /** Hue, Saturation, Intensity. */
 public record HSI (
 	/** Hue [0..360] or NaN if achromatic. */
@@ -62,5 +60,10 @@ public record HSI (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public HSI HSI () {
+		return this;
 	}
 }

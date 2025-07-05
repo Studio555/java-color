@@ -3,8 +3,6 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Color;
-
 /** Luma with orange and green chroma. Simple reversible transform. */
 public record YCoCg (
 	/** Luma [0..1]. */
@@ -30,5 +28,10 @@ public record YCoCg (
 
 	public XYZ XYZ () {
 		return RGB().XYZ();
+	}
+
+	@SuppressWarnings("all")
+	public YCoCg YCoCg () {
+		return this;
 	}
 }
