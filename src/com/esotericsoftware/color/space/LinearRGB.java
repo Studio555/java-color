@@ -6,6 +6,7 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.Gamut;
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** RGB without gamma correction. Values are not clamped. */
@@ -15,7 +16,7 @@ public record LinearRGB (
 	/** Green [0..1]. */
 	float g,
 	/** Blue [0..1]. */
-	float b) {
+	float b) implements Color {
 
 	public LinearRGB (int rgb) {
 		this( //
@@ -86,6 +87,11 @@ public record LinearRGB (
 	/** @param whitePoint See {@link Illuminant}. */
 	public Lab Lab (XYZ whitePoint) {
 		return XYZ().Lab(whitePoint);
+	}
+
+	@SuppressWarnings("all")
+	public LinearRGB LinearRGB () {
+		return XYZ().LinearRGB();
 	}
 
 	/** Uses {@link CIE2#D65}. */

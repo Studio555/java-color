@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 import com.esotericsoftware.color.space.CAM02;
-import com.esotericsoftware.color.space.CAM02LCD;
-import com.esotericsoftware.color.space.CAM02SCD;
 import com.esotericsoftware.color.space.CAM02UCS;
 import com.esotericsoftware.color.space.CAM16;
 import com.esotericsoftware.color.space.CAM16UCS;
@@ -136,16 +134,6 @@ public class Gradients {
 			CAM02UCS c2 = to.CAM02().CAM02UCS();
 			yield c1.lerp(c2, t).CAM02(CAM02.VC.sRGB).RGB();
 		}
-		case "CAM02LCD" -> {
-			CAM02LCD c1 = from.CAM02().CAM02LCD();
-			CAM02LCD c2 = to.CAM02().CAM02LCD();
-			yield c1.lerp(c2, t).CAM02(CAM02.VC.sRGB).RGB();
-		}
-		case "CAM02SCD" -> {
-			CAM02SCD c1 = from.CAM02().CAM02SCD();
-			CAM02SCD c2 = to.CAM02().CAM02SCD();
-			yield c1.lerp(c2, t).CAM02(CAM02.VC.sRGB).RGB();
-		}
 		case "HSLuv" -> from.HSLuv().lerp(to.HSLuv(), t).RGB();
 		case "Luv" -> from.Luv().lerp(to.Luv(), t).RGB();
 		case "LCh" -> from.LCh().lerp(to.LCh(), t).RGB();
@@ -189,8 +177,6 @@ public class Gradients {
 		config.colorSpaces.add("Oklab+L");
 		config.colorSpaces.add("Luv");
 		config.colorSpaces.add("CAM02UCS");
-		config.colorSpaces.add("CAM02LCD");
-		config.colorSpaces.add("CAM02SCD");
 		config.colorSpaces.add("CAM16UCS");
 		config.colorSpaces.add("Oklab");
 		config.colorSpaces.add("HCT");

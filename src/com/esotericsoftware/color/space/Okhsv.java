@@ -3,6 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Oklab-based {@link HSV}. More perceptually uniform than HSV. */
@@ -12,7 +13,7 @@ public record Okhsv (
 	/** Saturation [0..1]. */
 	float s,
 	/** Value [0..1]. */
-	float v) {
+	float v) implements Color {
 
 	static private final float k_3 = 1.206f / 1.03f;
 
@@ -34,6 +35,10 @@ public record Okhsv (
 		float scale = (float)Math.cbrt(1 / Math.max(0, max(l_r.r(), l_r.g(), l_r.b())));
 		C *= scale;
 		return new Oklab(L_new * scale, C * a_, C * b_).RGB();
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
 	}
 
 	public Okhsv lerp (Okhsv other, float t) {

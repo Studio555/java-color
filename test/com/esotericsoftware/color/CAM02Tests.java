@@ -21,7 +21,6 @@ class CAM02Tests {
 		XYZ xyz = new XYZ(19.01f, 20.00f, 21.78f);
 		CAM02 cam02 = xyz.CAM02();
 
-		// Values from colour-science implementation
 		assertEquals(41.73f, cam02.J(), 2.0f, "Lightness J");
 		assertEquals(0.1047f, cam02.C(), 0.1f, "Chroma C");
 		// Note: Hue angle can vary between implementations due to different

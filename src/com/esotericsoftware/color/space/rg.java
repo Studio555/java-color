@@ -3,6 +3,8 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
+
 /** Normalized red-green color space. */
 public record rg (
 	/** Red chromaticity [0..1]. */
@@ -14,9 +16,13 @@ public record rg (
 	/** Saturation [0..1]. */
 	float s,
 	/** Hue [0..360] or NaN if achromatic. */
-	float h) {
+	float h) implements Color {
 
 	public RGB RGB (float luminance) {
 		return new RGB(clamp(r * luminance), clamp(g * luminance), clamp(b * luminance));
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
 	}
 }

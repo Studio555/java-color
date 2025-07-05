@@ -82,6 +82,11 @@ class CAMUCSTests {
 
 		CAM02SCD updated = color1.set(0, 60.0f);
 		assertEquals(60.0f, updated.J(), EPSILON, "set(0) should update J");
+
+		// Test distance between color1 and color2
+		float dist = color1.dst(color2);
+		assertTrue(dist > 0, "Distance between different colors should be positive");
+		assertEquals(dist, color2.dst(color1), EPSILON, "Distance should be symmetric");
 	}
 
 	// CAM16 UCS Tests

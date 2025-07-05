@@ -3,6 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Human-friendly {@link HSL}. Perceptually uniform saturation and lightness. */
@@ -12,7 +13,7 @@ public record HSLuv (
 	/** Saturation [0..100]. */
 	float S,
 	/** Lightness [0..100]. */
-	float L) {
+	float L) implements Color {
 
 	static private final float[][] XYZ_RGB = {{3.2404542f, -1.5371385f, -0.4985314f}, {-0.969266f, 1.8760108f, 0.041556f},
 		{0.0556434f, -0.2040259f, 1.0572252f}};
@@ -22,6 +23,10 @@ public record HSLuv (
 		if (L > 100 - EPSILON) return new RGB(1, 1, 1);
 		if (L < EPSILON) return new RGB(0, 0, 0);
 		return new LCHuv(L, maxChromaForLH(L, H) * S / 100, H).Luv().RGB();
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
 	}
 
 	public HSLuv lerp (HSLuv other, float t) {

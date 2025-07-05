@@ -5,6 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Cylindrical CIELAB. */
@@ -14,7 +15,7 @@ public record LCh (
 	/** Chroma (C*) [0+]. */
 	float C,
 	/** Hue [0..360] or NaN if achromatic. */
-	float h) {
+	float h) implements Color {
 
 	public Lab Lab () {
 		if (C < EPSILON || Float.isNaN(h)) return new Lab(L, 0, 0);

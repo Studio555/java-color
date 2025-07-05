@@ -6,6 +6,7 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.Gamut;
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 import com.esotericsoftware.color.space.LMS.CAT;
 import com.esotericsoftware.color.space.YCbCr.YCbCrColorSpace;
@@ -18,7 +19,7 @@ public record RGB (
 	/** Green [0..1]. */
 	float g,
 	/** Blue [0..1]. */
-	float b) {
+	float b) implements Color {
 
 	public RGB {
 		r = clamp(r);
@@ -141,9 +142,9 @@ public record RGB (
 			(1 - b - K) / (1 - K), K);
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
+	/** Uses {@link CAM16.VC#HCT}. */
 	public HCT HCT () {
-		return HCT(CAM16.VC.sRGB);
+		return HCT(CAM16.VC.HCT);
 	}
 
 	public HCT HCT (CAM16.VC vc) {
@@ -376,6 +377,11 @@ public record RGB (
 		float s = (float)Math.sqrt(rS * rS + gS * gS);
 		float h = s < EPSILON ? Float.NaN : ((float)Math.atan2(rS, gS) * radDeg + 360) % 360;
 		return new rg(rNorm, gNorm, bNorm, s, h);
+	}
+
+	@SuppressWarnings("all")
+	public RGB RGB () {
+		return this;
 	}
 
 	public TSL TSL () {

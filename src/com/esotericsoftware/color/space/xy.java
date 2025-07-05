@@ -6,6 +6,7 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.Gamut;
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Spectrum;
 import com.esotericsoftware.color.Util;
 
@@ -14,7 +15,7 @@ public record xy (
 	/** x chromaticity [0..1]. */
 	float x,
 	/** y chromaticity [0..1]. */
-	float y) {
+	float y) implements Color {
 
 	/** @return [1000K+] or NaN out of range.
 	 * @see uv#CCT(CCT.Method) */

@@ -1,6 +1,8 @@
 
 package com.esotericsoftware.color.space;
 
+import com.esotericsoftware.color.Color;
+
 /** Academy Color Encoding System for color grading (logarithmic, AP1 primaries). */
 public record ACEScc (
 	/** Red [0..1]. */
@@ -8,7 +10,7 @@ public record ACEScc (
 	/** Green [0..1]. */
 	float g,
 	/** Blue [0..1]. */
-	float b) {
+	float b) implements Color {
 
 	public LinearRGB LinearRGB () {
 		return new ACEScg(decode(r), decode(g), decode(b)).LinearRGB();

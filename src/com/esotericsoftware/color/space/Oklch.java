@@ -3,6 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Cylindrical Oklab. */
@@ -12,7 +13,7 @@ public record Oklch (
 	/** Chroma [0+]. */
 	float C,
 	/** Hue [0..360] or NaN if achromatic. */
-	float h) {
+	float h) implements Color {
 
 	public Oklab Oklab () {
 		float h = this.h * degRad;

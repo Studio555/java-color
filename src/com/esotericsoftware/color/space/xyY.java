@@ -1,6 +1,8 @@
 
 package com.esotericsoftware.color.space;
 
+import com.esotericsoftware.color.Color;
+
 /** CIE xyY combining chromaticity with luminance. */
 public record xyY (
 	/** x chromaticity [0..1]. */
@@ -8,7 +10,7 @@ public record xyY (
 	/** y chromaticity [0..1]. */
 	float y,
 	/** Luminance Y [0+]. */
-	float Y) {
+	float Y) implements Color {
 
 	/** @return NaN X and Z if y is 0. */
 	public XYZ XYZ () {

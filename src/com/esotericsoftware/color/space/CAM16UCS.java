@@ -5,32 +5,14 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Util;
 
-/** Uniform Color Space based on CAM16, for color difference calculations. */
+/** Uniform Color Space based on CAM16, for general color difference calculations. */
 public record CAM16UCS (
 	/** Lightness (J*) [0..100]. */
 	float J,
 	/** Red-green component (a*) [-50..50]. */
 	float a,
 	/** Yellow-blue component (b*) [-50..50]. */
-	float b) {
-
-	public float C () {
-		return (float)Math.sqrt(a * a + b * b);
-	}
-
-	public float h () {
-		float h = (float)Math.atan2(b, a) * radDeg;
-		return h < 0 ? h + 360 : h;
-	}
-
-	public float get (int index) {
-		return switch (index) {
-		case 0 -> J;
-		case 1 -> a;
-		case 2 -> b;
-		default -> throw new IndexOutOfBoundsException(index);
-		};
-	}
+	float b) implements CAM16Space {
 
 	public CAM16UCS set (int index, float value) {
 		return switch (index) {
@@ -41,72 +23,13 @@ public record CAM16UCS (
 		};
 	}
 
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public CAM16 CAM16 () {
-		return CAM16(CAM16.VC.sRGB);
-	}
-
-	public CAM16 CAM16 (CAM16.VC vc) { // Based on Copyright 2021 Google LLC (Apache 2.0).
+	public CAM16 CAM16 (CAM16.VC vc) {
 		float C = (float)(Math.expm1(C() * 0.0228) / 0.0228) / vc.FLRoot();
 		float h = (float)Math.atan2(b, a) * radDeg;
 		if (h < 0) h += 360;
 		float J = this.J / (1 - (this.J - 100) * 0.007f), sqrtJ = (float)Math.sqrt(J / 100);
 		return new CAM16(J, C, h, 4 / vc.c() * sqrtJ * (vc.Aw() + 4) * vc.FLRoot(), C * vc.FLRoot(),
 			50 * (float)Math.sqrt((C / sqrtJ * vc.c()) / (vc.Aw() + 4)));
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public Lab Lab () {
-		return Lab(CAM16.VC.sRGB);
-	}
-
-	public Lab Lab (CAM16.VC vc) {
-		return CAM16(vc).Lab(vc);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public LinearRGB LinearRGB () {
-		return LinearRGB(CAM16.VC.sRGB);
-	}
-
-	public LinearRGB LinearRGB (CAM16.VC vc) {
-		return CAM16(vc).LinearRGB(vc);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public RGB RGB () {
-		return RGB(CAM16.VC.sRGB);
-	}
-
-	public RGB RGB (CAM16.VC vc) {
-		return CAM16(vc).RGB(vc);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public uv uv () {
-		return uv(CAM16.VC.sRGB);
-	}
-
-	public uv uv (CAM16.VC vc) {
-		return CAM16(vc).uv(vc);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public xy xy () {
-		return xy(CAM16.VC.sRGB);
-	}
-
-	public xy xy (CAM16.VC vc) {
-		return CAM16(vc).xy(vc);
-	}
-
-	/** Uses {@link CAM16.VC#sRGB}. */
-	public XYZ XYZ () {
-		return XYZ(CAM16.VC.sRGB);
-	}
-
-	public XYZ XYZ (CAM16.VC vc) {
-		return CAM16(vc).XYZ(vc);
 	}
 
 	public CAM16UCS add (float value) {
@@ -154,14 +77,6 @@ public record CAM16UCS (
 	public float dst2 (CAM16UCS other) {
 		float dJ = J - other.J, da = a - other.a, db = b - other.b;
 		return dJ * dJ + da * da + db * db;
-	}
-
-	public float len () {
-		return (float)Math.sqrt(len2());
-	}
-
-	public float len2 () {
-		return J * J + a * a + b * b;
 	}
 
 	public CAM16UCS withJ (float J) {

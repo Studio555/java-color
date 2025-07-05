@@ -4,6 +4,7 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Color Appearance Model 2016. Predicts color appearance under viewing conditions. */
@@ -19,7 +20,7 @@ public record CAM16 (
 	/** Colorfulness [0+]. */
 	float M,
 	/** Saturation [0+]. */
-	float s) {
+	float s) implements Color {
 
 	public CAM16LCD CAM16LCD () {
 		float h = this.h * degRad;
@@ -35,7 +36,7 @@ public record CAM16 (
 		return new CAM16SCD(Jstar, Mstar * (float)Math.cos(h), Mstar * (float)Math.sin(h));
 	}
 
-	public CAM16UCS CAM16UCS () { // Based on Copyright 2021 Google LLC (Apache 2.0).
+	public CAM16UCS CAM16UCS () {
 		float h = this.h * degRad;
 		float Jstar = 1.7f * J / (1 + 0.007f * J);
 		float Mstar = 1 / 0.0228f * (float)Math.log1p(0.0228f * M);
@@ -92,7 +93,7 @@ public record CAM16 (
 		return XYZ(CAM16.VC.sRGB);
 	}
 
-	public XYZ XYZ (CAM16.VC vc) { // Based on Copyright 2021 Google LLC (Apache 2.0).
+	public XYZ XYZ (CAM16.VC vc) {
 		float h = this.h * degRad;
 		float alpha = C == 0 || J == 0 ? 0 : C / (float)Math.sqrt(J / 100);
 		float t = (float)Math.pow(alpha / Math.pow(1.64 - Math.pow(0.29, vc.n), 0.73), 1 / 0.9);
@@ -124,35 +125,49 @@ public record CAM16 (
 	}
 
 	/** {@link CAM16} viewing conditions. */
-	public record VC (float Aw, float Nbb, float Ncb, float c, float Nc, float n, float[] rgbD, float FL, float FLRoot, float z) {
+	public record VC (
+		float Aw,
+		float Nbb,
+		float Ncb,
+		float c,
+		float Nc,
+		float n,
+		float[] rgbD,
+		float FL,
+		float FLRoot,
+		float z,
+		XYZ wp,
+		float La,
+		float Yb) {
+
 		/** @param La Adapting luminance in cd/m², typically 20% of white luminance.
-		 * @param bgL Background L* value (typically 50).
+		 * @param Yb Background luminous factor (typically 20 for average surround).
 		 * @param surround Surround factor, typically: 0=dark (0% surround), 1=dim (0-20% surround), 2=average (>20% surround).
 		 * @param discounting True when the eye is assumed to be fully adapted. False for most applications (incomplete chromatic
 		 *           adaptation). */
-		static public VC with (XYZ wp, float La, float bgL, float surround, boolean discounting) {
-			// Based on Copyright 2021 Google LLC (Apache 2.0).
-			bgL = Math.max(0.1f, bgL); // Avoid non-physical black infinities.
+		static public VC with (XYZ wp, float La, float Yb, float surround, boolean discounting) {
+			Yb = Math.max(0.1f, Yb); // Avoid non-physical black infinities.
 			float rW = wp.X() * 0.401288f + wp.Y() * 0.650173f + wp.Z() * -0.051461f; // To cone/RGB responses.
 			float gW = wp.X() * -0.250268f + wp.Y() * 1.204414f + wp.Z() * 0.045854f;
 			float bW = wp.X() * -0.002079f + wp.Y() * 0.048952f + wp.Z() * 0.953127f;
-			float f = 0.8f + surround / 10;
-			float c = f >= 0.9f ? Util.lerp(0.59f, 0.69f, (f - 0.9f) * 10) : Util.lerp(0.525f, 0.59f, (f - 0.8f) * 10);
-			float d = clamp(discounting ? 1 : f * (1 - 1 / 3.6f * (float)Math.exp((-La - 42) / 92)));
+			float Nc = 0.8f + surround / 10;
+			float c = Nc >= 0.9f ? Util.lerp(0.59f, 0.69f, (Nc - 0.9f) * 10) : Util.lerp(0.525f, 0.59f, (Nc - 0.8f) * 10);
+			float d = clamp(discounting ? 1 : Nc * (1 - 1 / 3.6f * (float)Math.exp((-La - 42) / 92)));
 			float[] rgbD = {d * (100 / rW) + 1 - d, d * (100 / gW) + 1 - d, d * (100 / bW) + 1 - d};
 			float k = 1 / (5 * La + 1), k4 = k * k * k * k, k4F = 1 - k4;
-			float fl = k4 * La + 0.1f * k4F * k4F * (float)Math.cbrt(5 * La);
-			float n = Lab.LstarToY(bgL) / wp.Y(), z = 1.48f + (float)Math.sqrt(n), nbb = 0.725f / (float)Math.pow(n, 0.2);
-			float rAF = (float)Math.pow(fl * rgbD[0] * rW / 100, 0.42);
-			float gAF = (float)Math.pow(fl * rgbD[1] * gW / 100, 0.42);
-			float bAF = (float)Math.pow(fl * rgbD[2] * bW / 100, 0.42);
+			float FL = k4 * La + 0.1f * k4F * k4F * (float)Math.cbrt(5 * La);
+			float n = Lab.LstarToY(Yb) / wp.Y(), z = 1.48f + (float)Math.sqrt(n), Nbb = 0.725f / (float)Math.pow(n, 0.2);
+			float rAF = (float)Math.pow(FL * rgbD[0] * rW / 100, 0.42);
+			float gAF = (float)Math.pow(FL * rgbD[1] * gW / 100, 0.42);
+			float bAF = (float)Math.pow(FL * rgbD[2] * bW / 100, 0.42);
 			float rA = 400 * rAF / (rAF + 27.13f);
 			float gA = 400 * gAF / (gAF + 27.13f);
 			float bA = 400 * bAF / (bAF + 27.13f);
-			float aw = (2 * rA + gA + 0.05f * bA) * nbb;
-			return new VC(aw, nbb, nbb, c, f, n, rgbD, fl, (float)Math.pow(fl, 0.25), z);
+			float Aw = (2 * rA + gA + 0.05f * bA) * Nbb;
+			return new VC(Aw, Nbb, Nbb, c, Nc, n, rgbD, FL, (float)Math.pow(FL, 0.25), z, wp, La, Yb);
 		}
 
-		static public final VC sRGB = VC.with(CIE2.D65, 200 / PI * Lab.LstarToYn(50), 50, 2, false);
+		static public final VC sRGB = VC.with(CIE2.D65, 200 / PI * Lab.LstarToYn(20), 20, 2, false);
+		static public final VC HCT = VC.with(CIE2.D65, 200 / PI * Lab.LstarToYn(50), 50, 2, false);
 	}
 }

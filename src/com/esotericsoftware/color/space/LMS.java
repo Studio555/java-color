@@ -3,6 +3,8 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
+
 /** Human cone cell responses. */
 public record LMS (
 	/** Long wavelength (red) cone response [0+]. */
@@ -10,15 +12,20 @@ public record LMS (
 	/** Medium wavelength (green) cone response [0+]. */
 	float M,
 	/** Short wavelength (blue) cone response [0+]. */
-	float S) {
+	float S) implements Color {
 
-	/** Uses the LMS CIECAM02 transformation matrix. */
+	/** Uses {@link LMS.CAT#CAT16}. */
 	public RGB RGB () {
-		return RGB(CAT.CAT02);
+		return RGB(CAT.CAT16);
 	}
 
 	public RGB RGB (CAT matrix) {
 		return XYZ(matrix).RGB();
+	}
+
+	/** Uses {@link LMS.CAT#CAT16}. */
+	public XYZ XYZ () {
+		return XYZ(CAT.CAT16);
 	}
 
 	public XYZ XYZ (CAT matrix) {

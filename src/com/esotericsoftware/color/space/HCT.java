@@ -3,6 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Material color system. {@link CAM16} hue/chroma with {@link Lab} L* tone. */
@@ -12,11 +13,16 @@ public record HCT (
 	/** Chroma [0+]. */
 	float C,
 	/** Tone (L*) [0..100]. */
-	float T) {
+	float T) implements Color {
 
-	/** Uses {@link CAM16.VC#sRGB}. */
+	/** Uses {@link CAM16.VC#HCT}. */
+	public LinearRGB LinearRGB () {
+		return RGB().LinearRGB();
+	}
+
+	/** Uses {@link CAM16.VC#HCT}. */
 	public RGB RGB () {
-		return RGB(CAM16.VC.sRGB);
+		return RGB(CAM16.VC.HCT);
 	}
 
 	public RGB RGB (CAM16.VC vc) {
@@ -30,6 +36,10 @@ public record HCT (
 		float Y = Lab.LstarToY(T);
 		RGB rgb = findRGB(h, C, Y, vc);
 		return rgb != null ? rgb : bisectToLimit(Y, h);
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
 	}
 
 	public HCT lerp (HCT other, float t) {

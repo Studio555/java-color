@@ -3,12 +3,13 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Spectrum;
 
 public record CCT ( //
 	/** [427K+] */
 	float K,
-	float Duv) {
+	float Duv) implements Color {
 
 	static float[] KPlanckian, uvPlanckian;
 
@@ -28,8 +29,13 @@ public record CCT ( //
 	}
 
 	/** @return Requires [1000K+] else returns NaN. */
+	public LinearRGB LinearRGB () {
+		return uv1960().LinearRGB();
+	}
+
+	/** @return Requires [1000K+] else returns NaN. */
 	public RGB RGB () {
-		return xy().RGB();
+		return uv1960().RGB();
 	}
 
 	/** Convert to RGBW using one calibrated white LED color. Brightness is maximized.
@@ -127,24 +133,6 @@ public record CCT ( //
 		return uv1960().uv();
 	}
 
-	/** Uses exact Planck calculation [427K+].
-	 * @return Normalized with Y=100 or NaN if invalid. */
-	public XYZ XYZ () {
-		if (K < 427) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
-		double X = 0, Y = 0, Z = 0;
-		for (int i = 0; i < 81; i++) {
-			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
-			double exponent = XYZ.c2 / (lambda * K);
-			double B = exponent > 700 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
-			X += B * XYZ.Xbar[i];
-			Y += B * XYZ.Ybar[i];
-			Z += B * XYZ.Zbar[i];
-		}
-		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
-		double scale = 100 / Y;
-		return new XYZ((float)(X * scale), 100, (float)(Z * scale));
-	}
-
 	/** @return Requires [1000K+] else returns NaN. */
 	public uv1960 uv1960 () {
 		if (K < 1000) return new uv1960(Float.NaN, Float.NaN);
@@ -187,6 +175,24 @@ public record CCT ( //
 		else
 			x = -2.0064e9f / K3 + 1.9018e6f / K2 + 0.24748e3f / K + 0.23704f;
 		return new xy(x, 2.87f * x - 3.0f * x * x - 0.275f);
+	}
+
+	/** Uses exact Planck calculation [427K+].
+	 * @return Normalized with Y=100 or NaN if invalid. */
+	public XYZ XYZ () {
+		if (K < 427) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		double X = 0, Y = 0, Z = 0;
+		for (int i = 0; i < 81; i++) {
+			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
+			double exponent = XYZ.c2 / (lambda * K);
+			double B = exponent > 700 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
+			X += B * XYZ.Xbar[i];
+			Y += B * XYZ.Ybar[i];
+			Z += B * XYZ.Zbar[i];
+		}
+		if (Y < EPSILON) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
+		double scale = 100 / Y;
+		return new XYZ((float)(X * scale), 100, (float)(Z * scale));
 	}
 
 	/** @return Normalized to Y=100. */
@@ -259,7 +265,7 @@ public record CCT ( //
 					kTable[513] = 99999;
 					kTable[514] = 100000;
 					for (int i = 0; i < 515; i++) {
-						uv uv = new CCT(kTable[i]).XYZ().uv();
+						uv uv = new CCT(kTable[i]).uv();
 						uvTable[i * 2] = uv.u();
 						uvTable[i * 2 + 1] = uv.v();
 					}

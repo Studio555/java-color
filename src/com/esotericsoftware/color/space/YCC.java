@@ -3,6 +3,8 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
+
 /** Photo YCC for Kodak PhotoCD. */
 public record YCC (
 	/** Luma [0..1]. */
@@ -10,7 +12,14 @@ public record YCC (
 	/** Chroma 1 [-0.5..0.5]. */
 	float C1,
 	/** Chroma 2 [-0.5..0.5]. */
-	float C2) {
+	float C2) implements Color {
+
+	public LinearRGB LinearRGB () {
+		float r = 1.402525f * Y + 0.002952f * (C1 - 0.612f) + 1.881096f * (C2 - 0.537f);
+		float g = 1.402525f * Y - 0.444393f * (C1 - 0.612f) - 0.956979f * (C2 - 0.537f);
+		float b = 1.402525f * Y + 2.291013f * (C1 - 0.612f) + 0.003713f * (C2 - 0.537f);
+		return new LinearRGB(linear(r), linear(g), linear(b));
+	}
 
 	public RGB RGB () {
 		float r = 1.402525f * Y + 0.002952f * (C1 - 0.612f) + 1.881096f * (C2 - 0.537f);

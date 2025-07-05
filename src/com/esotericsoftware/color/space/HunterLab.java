@@ -1,6 +1,8 @@
 
 package com.esotericsoftware.color.space;
 
+import com.esotericsoftware.color.Color;
+
 /** Predecessor to CIELAB. More perceptually uniform than XYZ. */
 public record HunterLab (
 	/** Lightness [0..100]. */
@@ -8,11 +10,7 @@ public record HunterLab (
 	/** Red-green axis [-100..100]. */
 	float a,
 	/** Yellow-blue axis [-100..100]. */
-	float b) {
-
-	public RGB RGB () {
-		return XYZ().RGB();
-	}
+	float b) implements Color {
 
 	public XYZ XYZ () {
 		float tempY = L / 10;

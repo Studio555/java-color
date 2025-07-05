@@ -3,6 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Perceptually uniform color space. Based on CAM16 and IPT. */
@@ -12,7 +13,7 @@ public record Oklab (
 	/** Red-green axis [-0.5..0.5]. */
 	float a,
 	/** Yellow-blue axis [-0.5..0.5]. */
-	float b) {
+	float b) implements Color {
 
 	public float get (int index) {
 		return switch (index) {
@@ -63,14 +64,6 @@ public record Oklab (
 			sRGB(clamp(4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s)), //
 			sRGB(clamp(-1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s)), //
 			sRGB(clamp(-0.0041960863f * l - 0.7034186147f * m + 1.707614701f * s)));
-	}
-
-	public uv uv () {
-		return XYZ().uv();
-	}
-
-	public xy xy () {
-		return XYZ().xy();
 	}
 
 	public XYZ XYZ () {

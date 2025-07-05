@@ -5,6 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 
 /** Cylindrical CIELUV. */
 public record LCHuv (
@@ -13,7 +14,7 @@ public record LCHuv (
 	/** Chroma (C*) [0+]. */
 	float C,
 	/** Hue [0..360] or NaN if achromatic. */
-	float H) {
+	float H) implements Color {
 
 	public Luv Luv () {
 		if (C < EPSILON || Float.isNaN(H)) return new Luv(L, 0, 0);

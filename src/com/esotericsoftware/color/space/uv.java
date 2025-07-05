@@ -5,6 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** CIE 1976 u'v' chromaticity coordinates. */
@@ -12,7 +13,7 @@ public record uv (
 	/** u' chromaticity [0..1]. */
 	float u,
 	/** v' chromaticity [0..1]. */
-	float v) {
+	float v) implements Color {
 
 	/** Uses {@link CCT.Method#RobertsonImproved}. Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K
 	 * [60000-100000K].

@@ -5,6 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** CIELAB perceptually uniform color space. */
@@ -14,7 +15,7 @@ public record Lab (
 	/** Red-green axis (a*) [-100..100]. */
 	float a,
 	/** Yellow-blue axis (b*) [-100..100]. */
-	float b) {
+	float b) implements Color {
 
 	static public final float k = 24389 / 27f;
 	static public final float e = 216 / 24389f;
@@ -62,6 +63,11 @@ public record Lab (
 	/** @param whitePoint See {@link Illuminant}. */
 	public RGB RGB (XYZ whitePoint) {
 		return XYZ(whitePoint).RGB();
+	}
+
+	/** Uses {@link CIE2#D65}. */
+	public XYZ XYZ () {
+		return XYZ(CIE2.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */

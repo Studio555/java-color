@@ -5,6 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** CIELUV perceptually uniform color space. */
@@ -14,7 +15,7 @@ public record Luv (
 	/** Red-green chromaticity (u*) [-100..100]. */
 	float u,
 	/** Yellow-blue chromaticity (v*) [-100..100]. */
-	float v) {
+	float v) implements Color {
 
 	public LCHuv LCHuv () {
 		float C = (float)Math.sqrt(u * u + v * v);
@@ -38,6 +39,17 @@ public record Luv (
 		case 2 -> new Luv(L, u, value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
+	}
+
+	/** @return NaN if invalid. */
+	public LinearRGB LinearRGB () {
+		return LinearRGB(CIE2.D65);
+	}
+
+	/** @param whitePoint See {@link Illuminant}.
+	 * @return NaN if invalid. */
+	public LinearRGB LinearRGB (XYZ whitePoint) {
+		return XYZ(whitePoint).LinearRGB();
 	}
 
 	/** @return NaN if invalid. */

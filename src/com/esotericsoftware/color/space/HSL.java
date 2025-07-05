@@ -3,6 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 
 /** Hue, Saturation, Lightness. Cylindrical RGB. */
@@ -12,7 +13,21 @@ public record HSL (
 	/** Saturation [0..1]. */
 	float S,
 	/** Lightness [0..1]. */
-	float L) {
+	float L) implements Color {
+
+	public LinearRGB LinearRGB () {
+		float r = 0, g = 0, b = 0;
+		if (S < EPSILON) // Gray.
+			r = g = b = L;
+		else {
+			float H = this.H / 360;
+			float v2 = L < 0.5f ? L * (1 + S) : L + S - L * S, v1 = 2 * L - v2;
+			r = hueToRGB(v1, v2, H + 1 / 3f);
+			g = hueToRGB(v1, v2, H);
+			b = hueToRGB(v1, v2, H - 1 / 3f);
+		}
+		return new LinearRGB(linear(r), linear(g), linear(b));
+	}
 
 	public RGB RGB () {
 		float r = 0, g = 0, b = 0;
@@ -26,10 +41,6 @@ public record HSL (
 			b = hueToRGB(v1, v2, H - 1 / 3f);
 		}
 		return new RGB(clamp(r), clamp(g), clamp(b));
-	}
-
-	public LinearRGB LinearRGB () {
-		return RGB().LinearRGB();
 	}
 
 	public XYZ XYZ () {

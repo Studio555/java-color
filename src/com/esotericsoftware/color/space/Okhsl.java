@@ -3,6 +3,8 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Color;
+
 /** Oklab-based {@link HSL}. More perceptually uniform than HSL. */
 public record Okhsl (
 	/** Hue [0..360] or NaN if achromatic. */
@@ -10,7 +12,7 @@ public record Okhsl (
 	/** Saturation [0..1]. */
 	float s,
 	/** Lightness [0..1]. */
-	float l) {
+	float l) implements Color {
 
 	public RGB RGB () {
 		float L = Okhsv.toeInv(l), h = this.h * degRad;
@@ -29,5 +31,9 @@ public record Okhsl (
 			C = k_0 + t * k_1 / (1 - k_2 * t);
 		}
 		return new Oklab(L, C * a_, C * b_).RGB();
+	}
+
+	public XYZ XYZ () {
+		return RGB().XYZ();
 	}
 }

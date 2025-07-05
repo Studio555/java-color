@@ -1,6 +1,8 @@
 
 package com.esotericsoftware.color.space;
 
+import com.esotericsoftware.color.Color;
+
 /** Academy Color Encoding System working space for CGI (linear, AP1 primaries). */
 public record ACEScg (
 	/** Red [0..1]. */
@@ -8,7 +10,8 @@ public record ACEScg (
 	/** Green [0..1]. */
 	float g,
 	/** Blue [0..1]. */
-	float b) {
+	float b) implements Color {
+
 	public LinearRGB LinearRGB () {
 		float rLinear = 1.70482663f * r + -0.62151743f * g + -0.0833092f * b; // ACES AP1 to linear sRGB.
 		float gLinear = -0.13028185f * r + 1.14085365f * g + -0.0105718f * b;

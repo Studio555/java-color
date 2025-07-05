@@ -5,6 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Illuminant.CIE2;
+import com.esotericsoftware.color.Color;
 import com.esotericsoftware.color.Util;
 import com.esotericsoftware.color.space.LMS.CAT;
 
@@ -15,7 +16,7 @@ public record XYZ (
 	/** Y tristimulus (luminance) [0+]. */
 	float Y,
 	/** Z tristimulus [0+]. */
-	float Z) {
+	float Z) implements Color {
 
 	/** Planck constant. **/
 	static public double h = 6.62607015e-34;
@@ -54,61 +55,32 @@ public record XYZ (
 	}
 
 	public CAM02 CAM02 (CAM02.VC vc) {
-		// CAT02 forward transform
-		float rT = X * 0.7328f + Y * 0.4296f + Z * -0.1624f;
+		float rT = X * 0.7328f + Y * 0.4296f + Z * -0.1624f; // CAT02.
 		float gT = X * -0.7036f + Y * 1.6975f + Z * 0.0061f;
 		float bT = X * 0.0030f + Y * 0.0136f + Z * 0.9834f;
-
-		// Chromatic adaptation
-		float rC = vc.rgbD()[0] * rT;
-		float gC = vc.rgbD()[1] * gT;
-		float bC = vc.rgbD()[2] * bT;
-
-		// Hunt-Pointer-Estevez transform
-		// First apply inverse CAT02, then HPE (combined matrix)
-		float rP = rC * 0.7409791f + gC * 0.21802516f + bC * 0.04100575f;
+		float rC = vc.rgbD()[0] * rT, gC = vc.rgbD()[1] * gT, bC = vc.rgbD()[2] * bT; // Chromatic adaptation.
+		float rP = rC * 0.7409791f + gC * 0.21802516f + bC * 0.04100575f; // HPE.
 		float gP = rC * 0.28535329f + gC * 0.62420157f + bC * 0.09044513f;
 		float bP = rC * -0.00962761f + gC * -0.00569803f + bC * 1.01532564f;
-
-		// Post-adaptation non-linear response compression
-		float rAF = (float)Math.pow(vc.FL() * Math.abs(rP) / 100, 0.42);
+		float rAF = (float)Math.pow(vc.FL() * Math.abs(rP) / 100, 0.42); // Post-adaptation non-linear response compression.
 		float gAF = (float)Math.pow(vc.FL() * Math.abs(gP) / 100, 0.42);
 		float bAF = (float)Math.pow(vc.FL() * Math.abs(bP) / 100, 0.42);
 		float rA = Math.signum(rP) * 400 * rAF / (rAF + 27.13f) + 0.1f;
 		float gA = Math.signum(gP) * 400 * gAF / (gAF + 27.13f) + 0.1f;
 		float bA = Math.signum(bP) * 400 * bAF / (bAF + 27.13f) + 0.1f;
-
-		// Opponent color dimensions
-		float a = (11 * rA + -12 * gA + bA) / 11;
-		float b = (rA + gA - 2 * bA) / 9;
+		float a = (11 * rA + -12 * gA + bA) / 11, b = (rA + gA - 2 * bA) / 9; // Opponent color dimensions.
 		float h = (float)Math.atan2(b, a) * radDeg;
 		h = h < 0 ? h + 360 : h;
-
-		// Eccentricity factor
-		float hRad = h * degRad;
-		float eT = 0.25f * ((float)Math.cos(hRad + 2) + 3.8f);
-
-		// Achromatic response
-		float A = (2 * rA + gA + 0.05f * bA) * vc.Nbb();
-
-		// Lightness
-		// Use signed power to handle negative A values
+		float hRad = h * degRad, eT = 0.25f * ((float)Math.cos(hRad + 2) + 3.8f); // Eccentricity factor.
+		float A = (2 * rA + gA + 0.05f * bA) * vc.Nbb(); // Achromatic response.
+		// Lightness, signed power to handle negative A values.
 		float J = 100 * Math.signum(A) * (float)Math.pow(Math.abs(A) / vc.Aw(), vc.c() * vc.z());
-
-		// Chroma
-		float t = (50000 / 13f * vc.Nc() * vc.Ncb() * eT * (float)Math.sqrt(a * a + b * b)) / (rA + gA + 21 / 20f * bA);
+		float t = (50000 / 13f * vc.Nc() * vc.Ncb() * eT * (float)Math.sqrt(a * a + b * b)) / (rA + gA + 21 / 20f * bA); // Chroma.
 		float C = J == 0 ? 0
 			: (float)Math.pow(t, 0.9) * (float)Math.sqrt(Math.abs(J) / 100) * (float)Math.pow(1.64 - Math.pow(0.29, vc.n()), 0.73);
-
-		// Brightness (use absolute value of J for sqrt)
-		float Q = J == 0 ? 0 : 4 / vc.c() * (float)Math.sqrt(Math.abs(J) / 100) * (vc.Aw() + 4) * vc.FLRoot();
-
-		// Colorfulness
-		float M = C * vc.FLRoot();
-
-		// Saturation (use absolute values for sqrt)
-		float s = (M == 0 || Q == 0) ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q));
-
+		float Q = J == 0 ? 0 : 4 / vc.c() * (float)Math.sqrt(Math.abs(J) / 100) * (vc.Aw() + 4) * vc.FLRoot(); // Brightness.
+		float M = C * vc.FLRoot(); // Colorfulness.
+		float s = (M == 0 || Q == 0) ? 0 : 100 * (float)Math.sqrt(Math.abs(M / Q)); // Saturation.
 		return new CAM02(J, C, h, Q, M, s);
 	}
 
@@ -117,7 +89,7 @@ public record XYZ (
 		return CAM16(CAM16.VC.sRGB);
 	}
 
-	public CAM16 CAM16 (CAM16.VC vc) { // Based on Copyright 2021 Google LLC (Apache 2.0).
+	public CAM16 CAM16 (CAM16.VC vc) {
 		float rT = (X * 0.401288f) + (Y * 0.650173f) + (Z * -0.051461f); // To cone/RGB responses.
 		float gT = (X * -0.250268f) + (Y * 1.204414f) + (Z * 0.045854f);
 		float bT = (X * -0.002079f) + (Y * 0.048952f) + (Z * 0.953127f);
@@ -271,6 +243,11 @@ public record XYZ (
 		float sum = X + Y + Z;
 		if (sum < EPSILON) return new xyY(Float.NaN, Float.NaN, Float.NaN);
 		return new xyY(X / sum, Y / sum, Y);
+	}
+
+	@SuppressWarnings("all")
+	public XYZ XYZ () {
+		return this;
 	}
 
 	public XYZ add (float value) {
