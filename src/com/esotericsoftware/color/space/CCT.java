@@ -246,10 +246,10 @@ public record CCT ( //
 					}
 					kTable[513] = 99999;
 					kTable[514] = 100000;
-					for (int i = 0; i < 515; i++) {
-						uv uv = new CCT(kTable[i]).PlanckianXYZ().uv();
-						uvTable[i * 2] = uv.u();
-						uvTable[i * 2 + 1] = uv.v();
+					for (int k = 0, u = 0; k < 515; k++, u += 2) {
+						uv uv = new CCT(kTable[k]).PlanckianXYZ().uv();
+						uvTable[u] = uv.u();
+						uvTable[u + 1] = uv.v();
 					}
 					KPlanckian = kTable;
 					uvPlanckian = uvTable;

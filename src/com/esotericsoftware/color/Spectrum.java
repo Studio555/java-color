@@ -63,8 +63,8 @@ public record Spectrum (float[] values, int step, int start) {
 		CAM16.VC testVC = null, refVC = null;
 		switch (method) {
 		case CAM16UCS -> {
-			testVC = CAM16.VC.with(testXYZ, 100, 20, 1, false);
-			refVC = CAM16.VC.with(refXYZ, 100, 20, 1, false);
+			refVC = CAM16.VC.with(refXYZ.scl(100 / refXYZ.Y()), 100, 20, 2, true);
+			testVC = CAM16.VC.with(testXYZ.scl(100 / testXYZ.Y()), 100, 20, 2, true);
 		}
 		case UVW -> {
 			testuv = testXYZ.uv1960();
@@ -100,8 +100,13 @@ public record Spectrum (float[] values, int step, int start) {
 		return XYZ(observer).Lab(whitePoint);
 	}
 
-	/** ANSI/IES TM-30-18. Requires 380nm @ 5nm to [700..780+]nm. */
+	/** ANSI/IES TM-30-18 with {@link TM30.Method#CAM02UCS}. Requires 380nm @ 5nm to [700..780+]nm. */
 	public TM30 TM30 () {
+		return TM30(TM30.Method.CAM02UCS);
+	}
+
+	/** ANSI/IES TM-30-18. Requires 380nm @ 5nm to [700..780+]nm. */
+	public TM30 TM30 (TM30.Method method) {
 		checkVisibleRange();
 		XYZ testXYZ = XYZ(Observer.CIE10);
 		CCT cct = testXYZ.CCT();
@@ -110,34 +115,68 @@ public record Spectrum (float[] values, int step, int start) {
 		XYZ refXYZ = reference.XYZ(Observer.CIE10);
 		XYZ refWP = refXYZ.scl(100 / refXYZ.Y());
 		XYZ testWP = testXYZ.scl(100 / testXYZ.Y());
-		CAM02.VC refVC = CAM02.VC.with(refWP, 100, 20, 2, true);
-		CAM02.VC testVC = CAM02.VC.with(testWP, 100, 20, 2, true);
-		CAM02UCS[] testColors = new CAM02UCS[99], refColors = new CAM02UCS[99];
-		for (int i = 0; i < 99; i++) {
-			float[] ces = TM30.CES[i];
-			testColors[i] = illuminate(ces, Observer.CIE10).scl(100 / testXYZ.Y()).CAM02UCS(testVC);
-			refColors[i] = reference.illuminate(ces, Observer.CIE10).scl(100 / refXYZ.Y()).CAM02UCS(refVC);
-		}
+
 		float[] colorSamples = new float[99], chromaShift = new float[16], hueShift = new float[16];
-		float sum = 0;
-		for (int i = 0; i < 99; i++) {
-			float deltaE = testColors[i].dst(refColors[i]);
-			colorSamples[i] = deltaEtoRf(deltaE);
-			sum += deltaE;
-		}
-		int[] binCounts = new int[16];
 		float[][] testBinSums = new float[16][2], refBinSums = new float[16][2];
-		for (int i = 0; i < 99; i++) {
-			float hue = refColors[i].h(), refChroma = refColors[i].C();
-			int bin = (int)((hue + 11.25f) / 22.5f) % 16;
-			hueShift[bin] += angleDifference(refColors[i].h(), testColors[i].h());
-			chromaShift[bin] += (testColors[i].C() - refChroma) / refChroma;
-			binCounts[bin]++;
-			testBinSums[bin][0] += testColors[i].a();
-			testBinSums[bin][1] += testColors[i].b();
-			refBinSums[bin][0] += refColors[i].a();
-			refBinSums[bin][1] += refColors[i].b();
+		int[] binCounts = new int[16];
+		float sum = 0;
+
+		switch (method) {
+		case CAM02UCS -> {
+			CAM02.VC refVC = CAM02.VC.with(refWP, 100, 20, 2, true);
+			CAM02.VC testVC = CAM02.VC.with(testWP, 100, 20, 2, true);
+			for (int i = 0; i < 99; i++) {
+				float[] ces = TM30.CES[i];
+				CAM02UCS testColor = illuminate(ces, Observer.CIE10).scl(100 / testXYZ.Y()).CAM02UCS(testVC);
+				CAM02UCS refColor = reference.illuminate(ces, Observer.CIE10).scl(100 / refXYZ.Y()).CAM02UCS(refVC);
+
+				float deltaE = testColor.dst(refColor);
+				colorSamples[i] = deltaEtoRf(deltaE);
+				sum += deltaE;
+
+				float hue = refColor.h();
+				int bin = (int)((hue + 11.25f) / 22.5f) % 16;
+				hueShift[bin] += angleDifference(refColor.h(), testColor.h());
+				chromaShift[bin] += (testColor.C() - refColor.C()) / refColor.C();
+				binCounts[bin]++;
+				testBinSums[bin][0] += testColor.a();
+				testBinSums[bin][1] += testColor.b();
+				refBinSums[bin][0] += refColor.a();
+				refBinSums[bin][1] += refColor.b();
+			}
 		}
+		case CAM16UCS -> {
+			CAM16.VC refVC = CAM16.VC.with(refWP, 100, 20, 2, true);
+			CAM16.VC testVC = CAM16.VC.with(testWP, 100, 20, 2, true);
+			for (int i = 0; i < 99; i++) {
+				float[] ces = TM30.CES[i];
+				CAM16UCS testColor = illuminate(ces, Observer.CIE10).scl(100 / testXYZ.Y()).CAM16UCS(testVC);
+				CAM16UCS refColor = reference.illuminate(ces, Observer.CIE10).scl(100 / refXYZ.Y()).CAM16UCS(refVC);
+
+				float deltaE = testColor.dst(refColor);
+				colorSamples[i] = deltaEtoRf(deltaE);
+				sum += deltaE;
+
+				float hue = (float)(Math.atan2(refColor.b(), refColor.a()) * radDeg);
+				if (hue < 0) hue += 360;
+				float testHue = (float)(Math.atan2(testColor.b(), testColor.a()) * radDeg);
+				if (testHue < 0) testHue += 360;
+
+				int bin = (int)((hue + 11.25f) / 22.5f) % 16;
+				hueShift[bin] += angleDifference(hue, testHue);
+
+				float refChroma = (float)Math.sqrt(refColor.a() * refColor.a() + refColor.b() * refColor.b());
+				float testChroma = (float)Math.sqrt(testColor.a() * testColor.a() + testColor.b() * testColor.b());
+				chromaShift[bin] += (testChroma - refChroma) / refChroma;
+				binCounts[bin]++;
+				testBinSums[bin][0] += testColor.a();
+				testBinSums[bin][1] += testColor.b();
+				refBinSums[bin][0] += refColor.a();
+				refBinSums[bin][1] += refColor.b();
+			}
+		}
+		}
+
 		float[][] testAverages = new float[16][2], refAverages = new float[16][2];
 		float[] hueAngleBins = new float[16];
 		for (int i = 0; i < 16; i++) {

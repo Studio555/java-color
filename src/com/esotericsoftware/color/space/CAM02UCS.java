@@ -4,6 +4,7 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.space.CAMSpace.CAM02Space;
 
 /** Uniform Color Space based on CAM02, for general color difference calculations. */
 public record CAM02UCS (

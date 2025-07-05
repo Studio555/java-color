@@ -4,6 +4,7 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.space.CAMSpace.CAM16Space;
 
 /** Uniform Color Space based on CAM16, specialized for large color difference calculations. */
 public record CAM16LCD (
