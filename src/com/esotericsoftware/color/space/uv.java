@@ -12,48 +12,45 @@ public record uv (
 	/** v' chromaticity [0..1]. */
 	float v) implements Color {
 
-	/** Uses {@link CCT.Method#RobertsonImproved}. Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K
-	 * [60000-100000K].
+	/** Uses {@link CCT.Method#RobertsonImproved}.
 	 * @return [1000K+] or NaN out of range. */
 	public CCT CCT () {
-		return CCT(CCT.Method.RobertsonImproved);
+		return CCT_Robertson(CCT.RobertsonImproved, 645);
 	}
 
 	public CCT CCT (CCT.Method method) {
 		return switch (method) {
-		case RobertsonImproved -> CCT(CCT.RobertsonImproved, 650);
-		case Robertson1968 -> CCT(CCT.Robertson1968, 155);
+		case RobertsonImproved -> CCT_Robertson(CCT.RobertsonImproved, 645);
+		case Robertson1968 -> CCT_Robertson(CCT.Robertson1968, 150);
 		case Ohno2013 -> CCT_Ohno();
 		};
 	}
 
-	private CCT CCT (float[] Robertson, int count) {
-		uv1960 uv = uv1960();
-		float u = uv.u(), v = uv.v(), pu = Robertson[1], pv = Robertson[2], pDt = 0, pDu = 0, pDv = 0;
-		for (int i = 5, last = count - 5;; i += 5) {
+	private CCT CCT_Robertson (float[] Robertson, int last) {
+		float u = this.u, v = this.v / 1.5f, pdt = 0;
+		for (int i = 5;; i += 5) {
 			float cu = Robertson[i + 1], cv = Robertson[i + 2], du = Robertson[i + 3], dv = Robertson[i + 4];
-			float dt = -(u - cu) * dv + (v - cv) * du;
+			float dt = (v - cv) * du - (u - cu) * dv;
+			if (i >= 565) dt = -dt;
 			if (dt <= 0 || i == last) {
+				float pu = Robertson[i - 4], pv = Robertson[i - 3], pdu = Robertson[i - 2], pdv = Robertson[i - 1];
 				dt = -Math.min(dt, 0);
-				float f = i == 5 ? 0 : dt / (pDt + dt), fc = 1 - f;
-				du = du * fc + pDu * f;
-				dv = dv * fc + pDv * f;
+				float f = i == 5 ? 0 : dt / (pdt + dt), fc = 1 - f;
+				if (i == 565) {
+					pdu = -pdu;
+					pdv = -pdv;
+				}
+				du = du * fc + pdu * f;
+				dv = dv * fc + pdv * f;
 				float length = (float)Math.sqrt(du * du + dv * dv);
-				du /= length;
-				dv /= length;
+				if (i >= 565) length = -length;
 				return new CCT(1e6f / (Robertson[i] * fc + Robertson[i - 5] * f),
-					(cu * fc + pu * f - u) * du + (cv * fc + pv * f - v) * dv);
+					((cu * fc + pu * f - u) * du + (cv * fc + pv * f - v) * dv) / length);
 			}
-			pDt = dt;
-			pDu = du;
-			pDv = dv;
-			pu = cu;
-			pv = cv;
+			pdt = dt;
 		}
 	}
 
-	/** Maximum error 1K [1000..7000K], 2.7K [7000..20000K], 3.52K [20000-100000K].
-	 * @return [1000K+] or NaN out of range. */
 	private CCT CCT_Ohno () {
 		CCT.PlanckianTable();
 		float[] KPlanckian = CCT.KPlanckian, uvPlanckian = CCT.uvPlanckian;
@@ -101,7 +98,6 @@ public record uv (
 			K = Kp + (Kn - Kp) * ds;
 			Duv = (float)Math.sqrt(Math.max(0, Duv));
 		}
-		if (K < 999.99) return new CCT(Float.NaN, Float.NaN);
 		return new CCT(K, Duv * Math.signum(v - (vp + (vn - vp) * ds)));
 	}
 

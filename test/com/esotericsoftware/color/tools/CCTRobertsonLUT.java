@@ -16,8 +16,8 @@ public class CCTRobertsonLUT {
 		List<float[]> entries = new ArrayList();
 
 		// 131 entries, 655 length:
-		// 1000.0..2000.0: 0.09814453 @ 1014.3965
-		// 2000.0..7000.0: 0.106933594 @ 5353.7134
+		// 1000.0..2000.0: 0.09698486 @ 1014.59644
+		// 2000.0..7000.0: 0.10644531 @ 5353.7134
 		// 7000.0..20000.0: 1.0742188 @ 19944.176
 		// 20000.0..60000.0: 2.0195312 @ 59854.04
 		// 60000.0..100000.0: 2.1953125 @ 94087.12
@@ -73,10 +73,9 @@ public class CCTRobertsonLUT {
 	}
 
 	static private float[] entry (double K, double mired) {
-		double[] uv = CCT2uv(K);
+		double[] uv = uv1960(K);
 		float u = (float)uv[0], v = (float)uv[1];
 		double slope = calculateSlope(K);
-		if (slope > 0) slope = -slope; // Prevents needing to check slope signs for interpolation!
 		return new float[] {(float)mired, u, v, (float)slope};
 	}
 
@@ -107,15 +106,15 @@ public class CCTRobertsonLUT {
 	static private double calculateSlopeWithStep (double K, double deltaK, int depth) {
 		if (depth > 3) throw new RuntimeException();
 		if (K - deltaK < 427) deltaK = K - 427;
-		double[] uv1 = CCT2uv(K - deltaK);
-		double[] uv2 = CCT2uv(K + deltaK);
+		double[] uv1 = uv1960(K - deltaK);
+		double[] uv2 = uv1960(K + deltaK);
 		double du_dK = (uv2[0] - uv1[0]) / (2 * deltaK);
 		double dv_dK = (uv2[1] - uv1[1]) / (2 * deltaK);
 		if (Math.abs(dv_dK) < 1e-10) throw new RuntimeException();
 		return -du_dK / dv_dK;
 	}
 
-	static private double[] CCT2uv (double K) {
+	static private double[] uv1960 (double K) {
 		if (K < 427) throw new RuntimeException();
 		double X = 0, Y = 0, Z = 0;
 		for (int i = 0; i < 81; i++) {

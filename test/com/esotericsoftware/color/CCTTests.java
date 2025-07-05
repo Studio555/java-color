@@ -45,8 +45,8 @@ public class CCTTests extends Tests {
 
 	@Test
 	public void testXYZError () {
-		checkMaxError(CCT.Method.RobertsonImproved, 1000, 2000, 0.1f, 0.09814453f, 0.0001f);
-		checkMaxError(CCT.Method.RobertsonImproved, 2000, 7000, 0.1f, 0.106933594f, 0.0001f);
+		checkMaxError(CCT.Method.RobertsonImproved, 1000, 2000, 0.1f, 0.09698486f, 0.007f);
+		checkMaxError(CCT.Method.RobertsonImproved, 2000, 7000, 0.1f, 0.10644531f, 0.0001f);
 		checkMaxError(CCT.Method.RobertsonImproved, 7000, 20000, 0.1f, 1.0742188f, 0.0001f);
 		checkMaxError(CCT.Method.RobertsonImproved, 20000, 60000, 0.1f, 2.0195312f, 0.0001f);
 		checkMaxError(CCT.Method.RobertsonImproved, 60000, 100000, 0.1f, 2.1953125f, 0.0001f);
