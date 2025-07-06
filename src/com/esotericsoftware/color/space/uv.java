@@ -3,6 +3,7 @@ package com.esotericsoftware.color.space;
 
 import static com.esotericsoftware.color.Util.*;
 
+import com.esotericsoftware.color.Gamut;
 import com.esotericsoftware.color.Util;
 
 /** CIE 1976 u'v' chromaticity coordinates. */
@@ -114,10 +115,10 @@ public record uv (
 		return new xyY(xy.x(), xy.y(), 1).LinearRGB().nor();
 	}
 
-	/** @return Normalized. */
+	/** Uses {@link Gamut#sRGB}.
+	 * @return Normalized or NaN if invalid. */
 	public RGB RGB () {
-		xy xy = xy();
-		return new xyY(xy.x(), xy.y(), 1).RGB().nor();
+		return Gamut.sRGB.RGB(this);
 	}
 
 	public uv1960 uv1960 () {

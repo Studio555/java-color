@@ -4,7 +4,6 @@ package com.esotericsoftware.color;
 import static com.esotericsoftware.color.Gamut.*;
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.space.LinearRGB;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;
@@ -383,10 +382,12 @@ public interface Gamut {
 			return closest;
 		}
 
+		/** Unsupported by default. Override and implement if needed. */
 		public XYZ XYZ (LinearRGB rgb) {
 			throw new UnsupportedOperationException();
 		}
 
+		/** Unsupported by default. Override and implement if needed. */
 		public LinearRGB LinearRGB (XYZ XYZ) {
 			throw new UnsupportedOperationException();
 		}

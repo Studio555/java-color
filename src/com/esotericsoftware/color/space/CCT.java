@@ -30,12 +30,12 @@ public record CCT ( //
 
 	/** @return Requires [1000K+] else returns NaN. */
 	public LinearRGB LinearRGB () {
-		return uv1960().LinearRGB();
+		return uv().LinearRGB();
 	}
 
 	/** @return Requires [1000K+] else returns NaN. */
 	public RGB RGB () {
-		return uv1960().RGB();
+		return uv().RGB();
 	}
 
 	/** Convert to RGBW using one calibrated white LED color. Brightness is maximized.
@@ -163,7 +163,6 @@ public record CCT ( //
 					u -= (du + t * (du2 - du)) * Duv;
 					v -= (dv + t * (dv2 - dv)) * Duv;
 				}
-				// Convert from uv1960 to u'v' (multiply v by 1.5)
 				return new uv(u, v * 1.5f);
 			}
 			pr = cr;
@@ -215,7 +214,7 @@ public record CCT ( //
 	/** Returns Planckian locus coordinates for {@link #K()} and {@link #Duv()}.
 	 * @return Requires [1000K+] else returns NaN. */
 	public xy xy () {
-		return uv1960().xy();
+		return uv().xy();
 	}
 
 	/** Returns CIE Illuminant D Series daylight locus coordinates for {@link #K()}.
@@ -234,7 +233,7 @@ public record CCT ( //
 
 	/** @return Normalized with Y=100. Requires [1000K+] else returns NaN. */
 	public XYZ XYZ () {
-		return uv1960().XYZ();
+		return uv().XYZ();
 	}
 
 	/** Uses {@link Observer#Default} D65. */
@@ -242,7 +241,7 @@ public record CCT ( //
 		return PlanckianXYZ(Observer.Default);
 	}
 
-	/** Uses exact Planck's law for spectral power distribution.
+	/** Uses exact Planck's law for spectral power distribution then applies {@link #Duv} with high precision.
 	 * @return Normalized with Y=100. Requires [26.3K+] else returns NaN. */
 	public XYZ PlanckianXYZ (Observer observer) {
 		double X = 0, Y = 0, Z = 0;
@@ -256,7 +255,40 @@ public record CCT ( //
 		}
 		if (Y == 0) return new XYZ(Float.NaN, Float.NaN, Float.NaN);
 		double scale = 100 / Y;
-		return new XYZ((float)(X * scale), 100, (float)(Z * scale));
+		XYZ xyz = new XYZ((float)(X * scale), 100, (float)(Z * scale));
+		if (Duv == 0) return xyz;
+		double miredStep = K >= 20000 ? 0.005 : K >= 5000 ? 0.1 : 0.2; // Adaptive step size in mired.
+		double deltaK = K - 1e6 / (1e6 / K + miredStep), halfStep = deltaK / 2;
+		double X_minus = 0, Y_minus = 0, Z_minus = 0, K_minus = K - halfStep; // Before.
+		double X_plus = 0, Y_plus = 0, Z_plus = 0, K_plus = K + halfStep; // After.
+		for (int i = 0; i < 81; i++) {
+			double lambda = (380 + i * 5) * 1e-9, lambda5 = lambda * lambda * lambda * lambda * lambda;
+			double exponent = XYZ.c2 / (lambda * K_minus);
+			double B = exponent > 700 ? 0 : XYZ.c1 / (lambda5 * (Math.exp(exponent) - 1));
+			X_minus += B * observer.xbar[i];
+			Y_minus += B * observer.ybar[i];
+			Z_minus += B * observer.zbar[i];
+			exponent = XYZ.c2 / (lambda * K_plus);
+			B = exponent > 700 ? 0 : XYZ.c1 / (lambda5 * (Math.exp(exponent) - 1));
+			X_plus += B * observer.xbar[i];
+			Y_plus += B * observer.ybar[i];
+			Z_plus += B * observer.zbar[i];
+		}
+		scale = 100 / Y_minus;
+		X_minus *= scale;
+		Z_minus *= scale;
+		scale = 100 / Y_plus;
+		X_plus *= scale;
+		Z_plus *= scale;
+		double sum = xyz.X() + 1500 + 3 * xyz.Z(); // To uv1960.
+		double u1 = 4 * xyz.X() / sum, v1 = 6 * xyz.Y() / sum;
+		sum = X_minus + 1500 + 3 * Z_minus;
+		double u_minus = 4 * X_minus / sum, v_minus = 600 / sum;
+		sum = X_plus + 1500 + 3 * Z_plus;
+		double u_plus = 4 * X_plus / sum, v_plus = 600 / sum;
+		double du = (u_plus - u_minus) / deltaK, dv = (v_plus - v_minus) / deltaK; // Central difference for derivative.
+		double factor = Duv / Math.sqrt(du * du + dv * dv);
+		return new uv1960((float)(u1 + dv * factor), (float)(v1 - du * factor)).XYZ();
 	}
 
 	/** @return Normalized to Y=100. */
