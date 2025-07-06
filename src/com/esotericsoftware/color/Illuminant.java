@@ -3,6 +3,7 @@ package com.esotericsoftware.color;
 
 import java.util.Arrays;
 
+import com.esotericsoftware.color.space.CCT;
 import com.esotericsoftware.color.space.xy;
 
 public class Illuminant {
@@ -46,5 +47,11 @@ public class Illuminant {
 		float[] values = new float[(end - start) / step + 1];
 		Arrays.fill(values, 1);
 		return new Spectrum(values, step, start);
+	}
+
+	/** Return a CIE Standard Illuminant A (incandescent/tungsten), Planckian radiator at T=2856K.
+	 * @return 380-780nm @ 5nm, 81 values unnormalized. */
+	static public Spectrum A () {
+		return new CCT(2856).blackbody(380, 780, 5);
 	}
 }

@@ -7,9 +7,9 @@ import com.esotericsoftware.color.Observer;
 
 /** CIE 1964 U*V*W* space (obsolete). */
 public record UVW (float U, float V, float W) implements Color {
-	/** Uses {@link Observer#CIE2} D65. */
+	/** Uses {@link Observer#Default} D65. */
 	public XYZ XYZ () {
-		return XYZ(Observer.CIE2.D65);
+		return XYZ(Observer.Default.D65);
 	}
 
 	public XYZ XYZ (XYZ whitePoint) {

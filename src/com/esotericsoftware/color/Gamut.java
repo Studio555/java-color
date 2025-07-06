@@ -102,14 +102,14 @@ public interface Gamut {
 		public final XYZ whitePoint;
 		public final float[][] RGB_XYZ, XYZ_RGB;
 
-		/** Uses {@link Observer#CIE2} D65. */
+		/** Uses {@link Observer#Default} D65. */
 		public RGBGamut (uv red, uv green, uv blue) {
-			this(red.xy(), green.xy(), blue.xy(), Observer.CIE2.D65);
+			this(red.xy(), green.xy(), blue.xy(), Observer.Default.D65);
 		}
 
-		/** Uses {@link Observer#CIE2} D65. */
+		/** Uses {@link Observer#Default} D65. */
 		public RGBGamut (xy red, xy green, xy blue) {
-			this(red, green, blue, Observer.CIE2.D65);
+			this(red, green, blue, Observer.Default.D65);
 		}
 
 		public RGBGamut (uv red, uv green, uv blue, XYZ whitePoint) {

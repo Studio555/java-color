@@ -274,7 +274,7 @@ class CAM16Tests extends Tests {
 		assertTrue(Math.abs(blue.h() - 282) < 5, "Blue hue approximately 282°");
 
 		// Test 5: Custom viewing conditions
-		var vc = CAM16.VC.with(Observer.CIE2.D50, 30, 15, 1, false);
+		var vc = CAM16.VC.with(Observer.Default.D50, 30, 15, 1, false);
 		var cam2 = rgb.CAM16(vc);
 		assertTrue(Math.abs(cam.J() - cam2.J()) > 0.01, "Different viewing conditions produce different J");
 
@@ -343,7 +343,7 @@ class CAM16Tests extends Tests {
 		assertEquals(0, grayUCS.b(), 1.5, "Gray has b* near 0");
 
 		// Test 7: Custom viewing conditions
-		var vc = CAM16.VC.with(Observer.CIE2.D50, 30, 15, 1, false);
+		var vc = CAM16.VC.with(Observer.Default.D50, 30, 15, 1, false);
 		var ucsCustom = rgb.CAM16UCS(vc);
 		RGB rgbBackCustom = ucsCustom.RGB(vc);
 		assertClose(rgb, rgbBackCustom, 0.01f, "CAM16-UCS round trip with custom VC");

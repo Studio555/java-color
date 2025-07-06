@@ -204,9 +204,9 @@ public interface Color {
 			4.378173828f * L + -4.245605469f * M + -0.132568359f * S);
 	}
 
-	/** Uses {@link Observer#CIE2} D65. */
+	/** Uses {@link Observer#Default} D65. */
 	default public Lab Lab () {
-		return Lab(Observer.CIE2.D65);
+		return Lab(Observer.Default.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
@@ -214,9 +214,9 @@ public interface Color {
 		return XYZ().Lab(whitePoint);
 	}
 
-	/** Uses {@link Observer#CIE2} D65. */
+	/** Uses {@link Observer#Default} D65. */
 	default public LCh LCh () {
-		return LCh(Observer.CIE2.D65);
+		return LCh(Observer.Default.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
@@ -224,7 +224,7 @@ public interface Color {
 		return Lab(whitePoint).LCh();
 	}
 
-	/** Uses {@link Observer#CIE2} D65.
+	/** Uses {@link Observer#Default} D65.
 	 * @return NaN if invalid. */
 	default public LCHuv LChuv () {
 		return Luv().LCHuv();
@@ -243,10 +243,10 @@ public interface Color {
 		return XYZ().LMS(matrix);
 	}
 
-	/** Uses {@link Observer#CIE2} D65.
+	/** Uses {@link Observer#Default} D65.
 	 * @return NaN if invalid. */
 	default public Luv Luv () {
-		return XYZ().Luv(Observer.CIE2.D65);
+		return XYZ().Luv(Observer.Default.D65);
 	}
 
 	/** @return NaN if invalid. */

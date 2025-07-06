@@ -231,9 +231,9 @@ public record CCT ( //
 		return uv1960().XYZ();
 	}
 
-	/** Uses {@link Observer#CIE2} D65. */
+	/** Uses {@link Observer#Default} D65. */
 	public XYZ PlanckianXYZ () {
-		return PlanckianXYZ(Observer.CIE2);
+		return PlanckianXYZ(Observer.Default);
 	}
 
 	/** Uses exact Planck's law for spectral power distribution.

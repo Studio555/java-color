@@ -114,9 +114,9 @@ public class SpectralLocus {
 		return bestWavelength;
 	}
 
-	/** Uses {@link Observer#CIE2} D65. */
+	/** Uses {@link Observer#Default} D65. */
 	static public float dominantWavelength (uv color) {
-		return dominantWavelength(color, Observer.CIE2.D65);
+		return dominantWavelength(color, Observer.Default.D65);
 	}
 
 	/** Returns the ratio of the distance from the white point to the color divided by the distance from the white point to the

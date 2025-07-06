@@ -103,7 +103,7 @@ public class SpectrumTests extends Tests {
 		assertEquals(exY, xyz.Y(), 0.1f, "Spectrum XYZ#Y: " + name);
 		assertEquals(exZ, xyz.Z(), 0.1f, "Spectrum XYZ#Z: " + name);
 
-		assertEquals(exLER, spectrum.LER(Observer.CIE2), 0.1f, "Spectrum LER: " + name);
+		assertEquals(exLER, spectrum.LER(Observer.Default), 0.1f, "Spectrum LER: " + name);
 
 		CRI cri = spectrum.CRI(CRI.Method.UVW);
 		// System.out.println("CRI: actual, expected");

@@ -91,7 +91,7 @@ public record Spectrum (float[] values, int step, int start) {
 		return new CRI(sumRa / 8, samples);
 	}
 
-	/** Uses {@link Observer#CIE2} D65. */
+	/** Uses {@link Observer#Default} D65. */
 	public Lab Lab () {
 		return XYZ().Lab();
 	}
@@ -201,7 +201,7 @@ public record Spectrum (float[] values, int step, int start) {
 		return Math.abs(area);
 	}
 
-	/** Uses {@link Observer#CIE2}.
+	/** Uses {@link Observer#Default}.
 	 * @return NaN if invalid. */
 	public uv uv () {
 		return XYZ().uv();
@@ -211,7 +211,7 @@ public record Spectrum (float[] values, int step, int start) {
 		return XYZ(observer).uv();
 	}
 
-	/** Uses {@link Observer#CIE2}.
+	/** Uses {@link Observer#Default}.
 	 * @return NaN if invalid. */
 	public xy xy () {
 		return XYZ().xy();
@@ -221,9 +221,9 @@ public record Spectrum (float[] values, int step, int start) {
 		return XYZ(observer).xy();
 	}
 
-	/** Uses {@link Observer#CIE2}. */
+	/** Uses {@link Observer#Default}. */
 	public XYZ XYZ () {
-		return XYZ(Observer.CIE2);
+		return XYZ(Observer.Default);
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm. Missing wavelengths are treated as zero.
@@ -242,7 +242,7 @@ public record Spectrum (float[] values, int step, int start) {
 		return new XYZ(X * factor, Y * factor, Z * factor);
 	}
 
-	/** Uses {@link Observer#CIE2}. Requires 380nm @ 5nm to [700..780+]nm. */
+	/** Uses {@link Observer#Default}. Requires 380nm @ 5nm to [700..780+]nm. */
 	public float Y () {
 		return XYZ().Y();
 	}
@@ -308,9 +308,9 @@ public record Spectrum (float[] values, int step, int start) {
 		return scl(1 / max);
 	}
 
-	/** Uses {@link Observer#CIE2}. */
+	/** Uses {@link Observer#Default}. */
 	public XYZ illuminate (float[] reflectance) {
-		return illuminate(reflectance, Observer.CIE2);
+		return illuminate(reflectance, Observer.Default);
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm.

@@ -121,9 +121,9 @@ public class CCTRobertsonLUT {
 			double lambda = (380 + i * 5) * 1e-9; // nm to meters.
 			double exponent = XYZ.c2 / (lambda * K);
 			double B = exponent > 700 ? 0 : XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1));
-			X += B * Observer.CIE2.xbar[i];
-			Y += B * Observer.CIE2.ybar[i];
-			Z += B * Observer.CIE2.zbar[i];
+			X += B * Observer.Default.xbar[i];
+			Y += B * Observer.Default.ybar[i];
+			Z += B * Observer.Default.zbar[i];
 		}
 		if (Y > 0) {
 			double scale = 100 / Y;

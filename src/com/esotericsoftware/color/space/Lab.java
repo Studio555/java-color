@@ -54,9 +54,9 @@ public record Lab (
 		return XYZ(whitePoint).RGB();
 	}
 
-	/** Uses {@link Observer#CIE2} D65. */
+	/** Uses {@link Observer#Default} D65. */
 	public XYZ XYZ () {
-		return XYZ(Observer.CIE2.D65);
+		return XYZ(Observer.Default.D65);
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */

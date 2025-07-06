@@ -393,10 +393,10 @@ public class ColorsTest extends Tests {
 		assertClose(rgb, rgbBack, EPSILON_F, "RGB-LCh round trip");
 
 		// Test RGB to LCh with custom illuminant
-		LCh lchFromRgbD50 = rgb.LCh(Observer.CIE2.D50);
+		LCh lchFromRgbD50 = rgb.LCh(Observer.Default.D50);
 		// Convert back through Lab with the same illuminant
 		Lab labFromLch = lchFromRgbD50.Lab();
-		RGB rgbBackD50 = labFromLch.RGB(Observer.CIE2.D50);
+		RGB rgbBackD50 = labFromLch.RGB(Observer.Default.D50);
 		assertClose(rgb, rgbBackD50, EPSILON_F, "RGB-LCh round trip with D50 illuminant");
 	}
 
@@ -958,7 +958,7 @@ public class ColorsTest extends Tests {
 		// Test Lab with D50 illuminant
 		XYZ xyzD65 = testColor.XYZ();
 		Lab labD65 = xyzD65.Lab();
-		Lab labD50 = xyzD65.Lab(Observer.CIE2.D50);
+		Lab labD50 = xyzD65.Lab(Observer.Default.D50);
 
 		// Colors should be different under different illuminants
 		assertTrue(Math.abs(labD65.L() - labD50.L()) > 0.01 //
