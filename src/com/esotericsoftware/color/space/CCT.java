@@ -128,28 +128,58 @@ public record CCT ( //
 		return new RGBWW(r, g, b, W1, W2);
 	}
 
-	/** @return NaN if invalid. */
-	public uv uv () {
-		return uv1960().uv();
-	}
-
-	/** Uses {@link Method#RobertsonImproved} by default.
+	/** Uses {@link Method#RobertsonImproved}.
 	 * @return NaN if invalid. */
-	public uv1960 uv1960 () {
-		return uv1960_Robertson(RobertsonImproved, 645);
+	public uv uv () {
+		return uv_Robertson(RobertsonImproved, 645);
 	}
 
-	public uv1960 uv1960 (Method method) {
+	/** Requires [1000K+] else returns NaN. */
+	public uv uv (Method method) {
 		return switch (method) {
-		case RobertsonImproved -> uv1960_Robertson(RobertsonImproved, 645);
-		case Robertson1968 -> uv1960_Robertson(Robertson1968, 150);
-		case Ohno2013 -> uv1960_Ohno();
+		case RobertsonImproved -> uv_Robertson(RobertsonImproved, 645);
+		case Robertson1968 -> uv_Robertson(Robertson1968, 150);
+		case Ohno2013 -> uv_Ohno();
 		};
 	}
 
-	/** @return Requires [1000K+] else returns NaN. */
-	private uv1960 uv1960_Ohno () {
-		if (K < 1000) return new uv1960(Float.NaN, Float.NaN);
+	private uv uv_Robertson (float[] Robertson, int last) {
+		if (K < 1000) return new uv(Float.NaN, Float.NaN);
+		float pr = Robertson[0], mired = 1e6f / K;
+		for (int i = 5; i <= last; i += 5) {
+			float cr = Robertson[i];
+			if (mired >= pr && mired <= cr) {
+				float t = (mired - pr) / (cr - pr), u = Robertson[i - 4], v = Robertson[i - 3];
+				u += (Robertson[i + 1] - u) * t;
+				v += (Robertson[i + 2] - v) * t;
+				if (Duv != 0) {
+					float du = Robertson[i - 2], dv = Robertson[i - 1];
+					float du2 = Robertson[i + 3], dv2 = Robertson[i + 4];
+					if (i == 565) {
+						du2 = -du2;
+						dv2 = -dv2;
+					}
+					float Duv = i >= 565 ? -this.Duv : this.Duv;
+					u -= (du + t * (du2 - du)) * Duv;
+					v -= (dv + t * (dv2 - dv)) * Duv;
+				}
+				// Convert from uv1960 to u'v' (multiply v by 1.5)
+				return new uv(u, v * 1.5f);
+			}
+			pr = cr;
+		}
+		if (mired < Robertson[0]) {
+			float u = Robertson[1] - Robertson[4] * Duv;
+			float v = Robertson[2] + Robertson[3] * Duv;
+			return new uv(u, v * 1.5f);
+		}
+		float u = Robertson[last + 6] - Robertson[last + 9] * Duv;
+		float v = Robertson[last + 7] + Robertson[last + 8] * Duv;
+		return new uv(u, v * 1.5f);
+	}
+
+	private uv uv_Ohno () {
+		if (K < 1000) return new uv(Float.NaN, Float.NaN);
 		PlanckianTable();
 		float[] KPlanckian = CCT.KPlanckian, uvPlanckian = CCT.uvPlanckian;
 		int k, i, i1, i2;
@@ -170,40 +200,16 @@ public record CCT ( //
 		}
 		float t = (K - KPlanckian[k]) / (KPlanckian[k + 1] - KPlanckian[k]);
 		float u0 = uvPlanckian[i] + t * (uvPlanckian[i + 2] - uvPlanckian[i]);
-		float v0 = (uvPlanckian[i + 1] + t * (uvPlanckian[i + 3] - uvPlanckian[i + 1])) / 1.5f;
-		if (Duv == 0) return new uv1960(u0, v0);
-		float du = uvPlanckian[i2] - uvPlanckian[i1], dv = uvPlanckian[i2 + 1] / 1.5f - uvPlanckian[i1 + 1] / 1.5f;
+		float v0 = uvPlanckian[i + 1] + t * (uvPlanckian[i + 3] - uvPlanckian[i + 1]);
+		if (Duv == 0) return new uv(u0, v0);
+		float du = uvPlanckian[i2] - uvPlanckian[i1], dv = uvPlanckian[i2 + 1] - uvPlanckian[i1 + 1];
 		float factor = Duv / (float)Math.sqrt(du * du + dv * dv);
-		return new uv1960(u0 + dv * factor, v0 - du * factor);
+		return new uv(u0 + dv * factor, v0 - du * factor);
 	}
 
-	/** @return Requires [1000K+] else returns NaN. */
-	private uv1960 uv1960_Robertson (float[] Robertson, int last) {
-		if (K < 1000) return new uv1960(Float.NaN, Float.NaN);
-		float pr = Robertson[0], mired = 1e6f / K;
-		for (int i = 5; i <= last; i += 5) {
-			float cr = Robertson[i];
-			if (mired >= pr && mired <= cr) {
-				float t = (mired - pr) / (cr - pr), u = Robertson[i - 4], v = Robertson[i - 3];
-				u += (Robertson[i + 1] - u) * t;
-				v += (Robertson[i + 2] - v) * t;
-				if (Duv != 0) {
-					float du = Robertson[i - 2], dv = Robertson[i - 1];
-					float du2 = Robertson[i + 3], dv2 = Robertson[i + 4];
-					if (i == 565) {
-						du2 = -du2;
-						dv2 = -dv2;
-					}
-					float Duv = i >= 565 ? -this.Duv : this.Duv;
-					u -= (du + t * (du2 - du)) * Duv;
-					v -= (dv + t * (dv2 - dv)) * Duv;
-				}
-				return new uv1960(u, v);
-			}
-			pr = cr;
-		}
-		if (mired < Robertson[0]) return new uv1960(Robertson[1] - Robertson[4] * Duv, Robertson[2] + Robertson[3] * Duv);
-		return new uv1960(Robertson[last + 6] - Robertson[last + 9] * Duv, Robertson[last + 7] + Robertson[last + 8] * Duv);
+	/** @return NaN if invalid. */
+	public uv1960 uv1960 () {
+		return uv().uv1960();
 	}
 
 	/** Returns Planckian locus coordinates for {@link #K()} and {@link #Duv()}.
