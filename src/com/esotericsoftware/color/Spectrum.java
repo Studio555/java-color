@@ -108,11 +108,11 @@ public record Spectrum (float[] values, int step, int start) {
 	/** ANSI/IES TM-30-18. Requires 380nm @ 5nm to [700..780+]nm. */
 	public TM30 TM30 (TM30.Method method) {
 		checkVisibleRange();
-		XYZ testXYZ = XYZ(Observer.CIE10);
+		XYZ testXYZ = XYZ(Observer.CIE10_1964);
 		CCT cct = testXYZ.CCT();
 		if (cct.invalid()) throw new IllegalStateException("Cannot calculate TM30 for spectrum with invalid CCT.");
 		Spectrum reference = cct.reference();
-		XYZ refXYZ = reference.XYZ(Observer.CIE10);
+		XYZ refXYZ = reference.XYZ(Observer.CIE10_1964);
 		XYZ refWP = refXYZ.scl(100 / refXYZ.Y());
 		XYZ testWP = testXYZ.scl(100 / testXYZ.Y());
 		float[] colorSamples = new float[99], chromaShift = new float[16], hueShift = new float[16];
@@ -125,8 +125,8 @@ public record Spectrum (float[] values, int step, int start) {
 			CAM02.VC testVC = CAM02.VC.with(testWP, 100, 20, 2, true);
 			for (int i = 0; i < 99; i++) {
 				float[] ces = TM30.CES[i];
-				CAM02UCS testColor = illuminate(ces, Observer.CIE10).scl(100 / testXYZ.Y()).CAM02UCS(testVC);
-				CAM02UCS refColor = reference.illuminate(ces, Observer.CIE10).scl(100 / refXYZ.Y()).CAM02UCS(refVC);
+				CAM02UCS testColor = illuminate(ces, Observer.CIE10_1964).scl(100 / testXYZ.Y()).CAM02UCS(testVC);
+				CAM02UCS refColor = reference.illuminate(ces, Observer.CIE10_1964).scl(100 / refXYZ.Y()).CAM02UCS(refVC);
 				float deltaE = testColor.dst(refColor);
 				colorSamples[i] = deltaEtoRf(deltaE);
 				Rf += deltaE;
@@ -146,8 +146,8 @@ public record Spectrum (float[] values, int step, int start) {
 			CAM16.VC testVC = CAM16.VC.with(testWP, 100, 20, 2, true);
 			for (int i = 0; i < 99; i++) {
 				float[] ces = TM30.CES[i];
-				CAM16UCS testColor = illuminate(ces, Observer.CIE10).scl(100 / testXYZ.Y()).CAM16UCS(testVC);
-				CAM16UCS refColor = reference.illuminate(ces, Observer.CIE10).scl(100 / refXYZ.Y()).CAM16UCS(refVC);
+				CAM16UCS testColor = illuminate(ces, Observer.CIE10_1964).scl(100 / testXYZ.Y()).CAM16UCS(testVC);
+				CAM16UCS refColor = reference.illuminate(ces, Observer.CIE10_1964).scl(100 / refXYZ.Y()).CAM16UCS(refVC);
 				float deltaE = testColor.dst(refColor);
 				colorSamples[i] = deltaEtoRf(deltaE);
 				Rf += deltaE;
