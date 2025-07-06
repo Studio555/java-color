@@ -115,12 +115,10 @@ public record Spectrum (float[] values, int step, int start) {
 		XYZ refXYZ = reference.XYZ(Observer.CIE10);
 		XYZ refWP = refXYZ.scl(100 / refXYZ.Y());
 		XYZ testWP = testXYZ.scl(100 / testXYZ.Y());
-
 		float[] colorSamples = new float[99], chromaShift = new float[16], hueShift = new float[16];
 		float[][] testBinSums = new float[16][2], refBinSums = new float[16][2];
 		int[] binCounts = new int[16];
-		float sum = 0;
-
+		float Rf = 0;
 		switch (method) {
 		case CAM02UCS -> {
 			CAM02.VC refVC = CAM02.VC.with(refWP, 100, 20, 2, true);
@@ -129,11 +127,9 @@ public record Spectrum (float[] values, int step, int start) {
 				float[] ces = TM30.CES[i];
 				CAM02UCS testColor = illuminate(ces, Observer.CIE10).scl(100 / testXYZ.Y()).CAM02UCS(testVC);
 				CAM02UCS refColor = reference.illuminate(ces, Observer.CIE10).scl(100 / refXYZ.Y()).CAM02UCS(refVC);
-
 				float deltaE = testColor.dst(refColor);
 				colorSamples[i] = deltaEtoRf(deltaE);
-				sum += deltaE;
-
+				Rf += deltaE;
 				float hue = refColor.h();
 				int bin = (int)((hue + 11.25f) / 22.5f) % 16;
 				hueShift[bin] += angleDifference(refColor.h(), testColor.h());
@@ -152,19 +148,15 @@ public record Spectrum (float[] values, int step, int start) {
 				float[] ces = TM30.CES[i];
 				CAM16UCS testColor = illuminate(ces, Observer.CIE10).scl(100 / testXYZ.Y()).CAM16UCS(testVC);
 				CAM16UCS refColor = reference.illuminate(ces, Observer.CIE10).scl(100 / refXYZ.Y()).CAM16UCS(refVC);
-
 				float deltaE = testColor.dst(refColor);
 				colorSamples[i] = deltaEtoRf(deltaE);
-				sum += deltaE;
-
+				Rf += deltaE;
 				float hue = (float)(Math.atan2(refColor.b(), refColor.a()) * radDeg);
 				if (hue < 0) hue += 360;
 				float testHue = (float)(Math.atan2(testColor.b(), testColor.a()) * radDeg);
 				if (testHue < 0) testHue += 360;
-
 				int bin = (int)((hue + 11.25f) / 22.5f) % 16;
 				hueShift[bin] += angleDifference(hue, testHue);
-
 				float refChroma = (float)Math.sqrt(refColor.a() * refColor.a() + refColor.b() * refColor.b());
 				float testChroma = (float)Math.sqrt(testColor.a() * testColor.a() + testColor.b() * testColor.b());
 				chromaShift[bin] += (testChroma - refChroma) / refChroma;
@@ -176,7 +168,6 @@ public record Spectrum (float[] values, int step, int start) {
 			}
 		}
 		}
-
 		float[][] testAverages = new float[16][2], refAverages = new float[16][2];
 		float[] hueAngleBins = new float[16];
 		for (int i = 0; i < 16; i++) {
@@ -191,8 +182,8 @@ public record Spectrum (float[] values, int step, int start) {
 			} else
 				hueAngleBins[i] = 100;
 		}
-		float Rg = 100 * (polygonArea(testAverages) / polygonArea(refAverages));
-		return new TM30(deltaEtoRf(sum / 99), Rg, chromaShift, hueShift, hueAngleBins, colorSamples);
+		float Rg = polygonArea(testAverages) / polygonArea(refAverages) * 100;
+		return new TM30(deltaEtoRf(Rf / 99), Rg, chromaShift, hueShift, hueAngleBins, colorSamples);
 	}
 
 	static private float deltaEtoRf (float deltaE) {

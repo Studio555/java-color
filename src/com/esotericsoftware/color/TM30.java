@@ -38,57 +38,6 @@ public record TM30 (
 		return sum / Rcs.length;
 	}
 
-	public enum Method {
-		CAM02UCS, CAM16UCS
-	}
-
-	/** TM-30-20 Design Intent (Annex E). */
-	public enum Intent {
-		/** Ssubjective evaluations of pleasantness, naturalness, acceptability. Used in retail, office, hospitality, and
-		 * residential lighting. */
-		Preference,
-		/** Match between test light source and reference. Used in healthcare and color matching applications. */
-		Fidelity,
-		/** Subjective evaluations of color vibrancy or saturation. Used in entertainment, display, or specific retail lighting. */
-		Vividness
-	}
-
-	/** TM-30-20 Priority Level for design intents. */
-	public enum Priority {
-		/** Strictest requirements, highest satisfaction of design intent. */
-		P1(1),
-		/** Moderate requirements, good satisfaction of design intent. */
-		P2(2),
-		/** Loosest requirements, acceptable satisfaction of design intent. */
-		P3(3),
-		/** Does not meet any priority level. */
-		None(0);
-
-		public final int level;
-
-		Priority (int level) {
-			this.level = level;
-		}
-	}
-
-	/** TM-30-20 Design Intent specification criteria. */
-	public record IntentCriteria (Intent intent, Priority priority) {
-		public boolean meets (TM30 tm30) {
-			Priority achieved = tm30.getPriority(intent);
-			if (achieved == Priority.None) return false;
-			// P1 (level 1) satisfies P1, P2, and P3 requirements.
-			// P2 (level 2) satisfies P2 and P3 requirements.
-			// P3 (level 3) only satisfies P3 requirements.
-			return achieved.level <= priority.level && achieved.level > 0;
-		}
-
-		/** @return P1, F2, V3, V-, etc. */
-		public String shorthand () {
-			if (priority == Priority.None) return intent.name().charAt(0) + "-";
-			return intent.name().charAt(0) + String.valueOf(priority.level);
-		}
-	}
-
 	/** Returns the red hue bin chroma shift (Rcs,h1). Important for preference evaluation. */
 	public float Rcs_h1 () {
 		return (Rcs[0] + Rcs[1]) / 2;
@@ -97,43 +46,85 @@ public record TM30 (
 	/** Determine the priority level achieved for a given design intent based on TM-30-20 Annex E criteria. */
 	public Priority getPriority (Intent intent) {
 		return switch (intent) {
-		case Preference -> {
+		case preference -> {
 			float rcs_h1 = Rcs_h1();
-			// Priority 1: Rf >= 78, Rg 92-110, Rcs,h1 >= 0%.
 			if (Rf >= 78 && Rg >= 92 && Rg <= 110 && rcs_h1 >= 0) yield Priority.P1;
-			// Priority 2: Rf >= 74, Rg 89-113, Rcs,h1 >= -7%.
 			if (Rf >= 74 && Rg >= 89 && Rg <= 113 && rcs_h1 >= -0.07f) yield Priority.P2;
-			// Priority 3: Rf >= 70, Rg 85-115, Rcs,h1 >= -15%.
 			if (Rf >= 70 && Rg >= 85 && Rg <= 115 && rcs_h1 >= -0.15f) yield Priority.P3;
-			yield Priority.None;
+			yield Priority.none;
 		}
-		case Fidelity -> {
-			// Priority 1: Rf >= 90, Rg 97-103.
+		case fidelity -> {
 			if (Rf >= 90 && Rg >= 97 && Rg <= 103) yield Priority.P1;
-			// Priority 2: Rf >= 85, Rg 95-105.
 			if (Rf >= 85 && Rg >= 95 && Rg <= 105) yield Priority.P2;
-			// Priority 3: Rf >= 80, Rg 92-108.
 			if (Rf >= 80 && Rg >= 92 && Rg <= 108) yield Priority.P3;
-			yield Priority.None;
+			yield Priority.none;
 		}
-		case Vividness -> {
-			// Priority 1: Rf >= 80, Rg >= 110.
+		case vividness -> {
 			if (Rf >= 80 && Rg >= 110) yield Priority.P1;
-			// Priority 2: Rf >= 75, Rg >= 105.
 			if (Rf >= 75 && Rg >= 105) yield Priority.P2;
-			// Priority 3: Rf >= 70, Rg >= 100.
 			if (Rf >= 70 && Rg >= 100) yield Priority.P3;
-			yield Priority.None;
+			yield Priority.none;
 		}
 		};
 	}
 
 	/** Get the design intent classification (eg P1, F2, V-) for all three intents. */
 	public String getIntentClassification () {
-		String p = getPriority(Intent.Preference) == Priority.None ? "P-" : "P" + getPriority(Intent.Preference).level;
-		String f = getPriority(Intent.Fidelity) == Priority.None ? "F-" : "F" + getPriority(Intent.Fidelity).level;
-		String v = getPriority(Intent.Vividness) == Priority.None ? "V-" : "V" + getPriority(Intent.Vividness).level;
+		String p = getPriority(Intent.preference) == Priority.none ? "P-" : "P" + getPriority(Intent.preference).level;
+		String f = getPriority(Intent.fidelity) == Priority.none ? "F-" : "F" + getPriority(Intent.fidelity).level;
+		String v = getPriority(Intent.vividness) == Priority.none ? "V-" : "V" + getPriority(Intent.vividness).level;
 		return p + " " + f + " " + v;
+	}
+
+	public enum Method {
+		CAM02UCS, CAM16UCS
+	}
+
+	/** TM-30-20 design intent (Annex E). */
+	public enum Intent {
+		/** Ssubjective evaluations of pleasantness, naturalness, acceptability. Used in retail, office, hospitality, and
+		 * residential lighting. */
+		preference,
+		/** Match between test light source and reference. Used in healthcare and color matching applications. */
+		fidelity,
+		/** Subjective evaluations of color vibrancy or saturation. Used in entertainment, display, or specific retail lighting. */
+		vividness
+	}
+
+	/** TM-30-20 priority level for design intents. */
+	public enum Priority {
+		/** Strictest requirements, highest satisfaction of design intent. */
+		P1(1),
+		/** Moderate requirements, good satisfaction of design intent. */
+		P2(2),
+		/** Loosest requirements, acceptable satisfaction of design intent. */
+		P3(3),
+		/** Does not meet any priority level. */
+		none(0);
+
+		public final int level;
+
+		Priority (int level) {
+			this.level = level;
+		}
+	}
+
+	/** TM-30-20 design intent specification criteria. */
+	public record IntentCriteria (Intent intent, Priority priority) {
+		public boolean meets (TM30 tm30) {
+			Priority achieved = tm30.getPriority(intent);
+			if (achieved == Priority.none) return false;
+			// P1 (level 1) satisfies P1, P2, and P3 requirements.
+			// P2 (level 2) satisfies P2 and P3 requirements.
+			// P3 (level 3) only satisfies P3 requirements.
+			return achieved.level <= priority.level && achieved.level > 0;
+		}
+
+		/** @return P1, F2, V3, V-, etc. */
+		public String shorthand () {
+			if (priority == Priority.none) return intent.name().charAt(0) + "-";
+			return intent.name().charAt(0) + String.valueOf(priority.level);
+		}
 	}
 
 	/** Color Evaluation Sample (CES) reflectance data at 5nm intervals (380-780nm, 99 colors, 81 entries each). */
