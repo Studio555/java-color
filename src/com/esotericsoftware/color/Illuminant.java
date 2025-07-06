@@ -49,15 +49,14 @@ public class Illuminant {
 		return new Spectrum(values, step, start);
 	}
 
-	/** Return a CIE Standard Illuminant A (incandescent/tungsten), Planckian radiator at T=2856K.
+	/** Returns a CIE Standard Illuminant A (incandescent/tungsten), Planckian radiator at ~2856K.
 	 * @return 380-780nm @ 5nm, 81 values unnormalized. */
 	static public Spectrum A () {
-		double K = 2848; // CIE specified temperature using 1931 constants.
 		double c2_1931 = 0.014350; // mK CIE 1931 value to get nominal ~2855.5K.
 		float[] values = new float[81];
 		for (int i = 0; i < 81; i++) {
 			double lambda = (380 + i * 5) * 1e-9; // nm to meters
-			double exponent = c2_1931 / (lambda * K);
+			double exponent = c2_1931 / (lambda * 2848); // CIE specified temperature using 1931 constants.
 			values[i] = (float)(exponent > 700 ? 0
 				: XYZ.c1 / (lambda * lambda * lambda * lambda * lambda * (Math.exp(exponent) - 1)));
 		}
