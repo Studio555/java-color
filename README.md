@@ -115,7 +115,7 @@ These numbers are with 0 Duv.
 
 At ~1620K the Planckian locus slope changes from positive to negative, wrecking the line-side check that detects which 2 lines the point is between. The sign changes in the LUT at index 565, so the line-side check is reversed >= 565. Next problem interpolation between 560 (negative slope) and 565 (positive) is adjusted and Duv is flipped >= 565.
 
-The [same code](https://github.com/EsotericSoftware/color/blob/main/src/com/esotericsoftware/color/space/uv.java#L29-L52) accepts either the improved Robertson LUT or the original (modified to store direction instead of slope) for u'v to CCT. The improved Robertson is also used for the [inverse conversion](https://github.com/EsotericSoftware/color/blob/main/src/com/esotericsoftware/color/space/CCT.java#L146-L179), from CCT to u'v'.
+The [same code](https://github.com/EsotericSoftware/color/blob/main/src/com/esotericsoftware/color/space/uv.java#L29-L59) accepts either the improved Robertson LUT or the original (modified to store direction instead of slope) for u'v to CCT. The improved Robertson is also used for the [inverse conversion](https://github.com/EsotericSoftware/color/blob/main/src/com/esotericsoftware/color/space/CCT.java#L146-L179), from CCT to u'v'.
 
 ### RGB + White LEDs
 Convert linear RGB or CCT to RGBW or RGBWW, using calibrated white LED colors.
