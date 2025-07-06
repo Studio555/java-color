@@ -15,12 +15,10 @@ import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;
 
 class CAM16Tests extends Tests {
-
 	private static final float EPSILON = 0.1f;
 
 	@Test
 	void testXYZtoCAM16 () {
-		// Test case similar to Google's Material Design color implementation
 		XYZ xyz = new XYZ(19.01f, 20.00f, 21.78f);
 		CAM16 cam16 = xyz.CAM16();
 
@@ -252,7 +250,7 @@ class CAM16Tests extends Tests {
 		// White
 		var white = new RGB(1, 1, 1).CAM16();
 		assertEquals(100, white.J(), 0.001, "White lightness J");
-		assertEquals(3.736f, white.C(), 0.001, "White chroma C");
+		assertEquals(2.024f, white.C(), 0.001, "White chroma C");
 
 		// Black
 		var black = new RGB(0, 0, 0).CAM16();

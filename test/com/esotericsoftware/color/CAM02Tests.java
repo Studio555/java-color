@@ -1,8 +1,6 @@
 
 package com.esotericsoftware.color;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.CAM02;
@@ -11,8 +9,7 @@ import com.esotericsoftware.color.space.CAM02SCD;
 import com.esotericsoftware.color.space.CAM02UCS;
 import com.esotericsoftware.color.space.XYZ;
 
-class CAM02Tests {
-
+class CAM02Tests extends Tests {
 	private static final float EPSILON = 0.1f;
 
 	@Test

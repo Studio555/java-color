@@ -146,7 +146,7 @@ public record CAM16 (
 			return new VC(Aw, Nbb, Nbb, c, Nc, n, rgbD, FL, (float)Math.pow(FL, 0.25), z, wp, La, Yb);
 		}
 
-		static public final VC sRGB = VC.with(Observer.CIE2.D65, 200 / PI * Lab.LstarToYn(20), 20, 2, false);
+		static public final VC sRGB = VC.with(Observer.CIE2.D65, 64, 20, 2, false);
 		static public final VC HCT = VC.with(Observer.CIE2.D65, 200 / PI * Lab.LstarToYn(50), 50, 2, false);
 	}
 }

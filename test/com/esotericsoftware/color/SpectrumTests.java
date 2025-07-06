@@ -95,7 +95,6 @@ public class SpectrumTests extends Tests {
 		Spectrum spectrum = new Spectrum(values);
 
 		CCT cct = spectrum.CCT();
-		System.out.println("CCT: " + cct);
 		assertEquals(exK, cct.K(), 3f, "CCT#K: " + name); // The 380-700nm samples are less accurate.
 		assertEquals(exDuv, cct.Duv(), 0.0001f, "Spectrum Duv: " + name);
 
@@ -116,14 +115,14 @@ public class SpectrumTests extends Tests {
 			assertEquals(exCriSamples[i], cri.samples()[i], 0.4f, "CRI sample " + i + ": " + name);
 
 		TM30 tm30 = spectrum.TM30();
-		System.out.println("TM30: actual, expected");
-		System.out.println("Rf: " + tm30.Rf() + ", " + exRf);
-		System.out.println("Rg: " + tm30.Rg() + ", " + exRg);
-// for (int i = 0; i < exTm30Samples.length; i++)
-// System.out.println("CES" + (i + 1) + ": " + tm30.samples()[i] + ", " + exTm30Samples[i]);
+		// System.out.println("TM30: actual, expected");
+		// System.out.println("Rf: " + tm30.Rf() + ", " + exRf);
+		// System.out.println("Rg: " + tm30.Rg() + ", " + exRg);
+		// for (int i = 0; i < exTm30Samples.length; i++)
+		// System.out.println("CES" + (i + 1) + ": " + tm30.samples()[i] + ", " + exTm30Samples[i]);
 		assertEquals(exRf, tm30.Rf(), 0.9f, "TM30#Rf: " + name);
 		assertEquals(exRg, tm30.Rg(), 1, "TM30#Rg: " + name);
-// for (int i = 0, n = exTm30Samples.length; i < n; i++)
-// assertEquals(exTm30Samples[i], tm30.RfCESi()[i], 3.8f, "TM30 sample " + i + ": " + name);
+		for (int i = 0, n = exTm30Samples.length; i < n; i++)
+			assertEquals(exTm30Samples[i], tm30.RfCESi()[i], 5f, "TM30 sample " + i + ": " + name);
 	}
 }

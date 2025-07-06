@@ -2,14 +2,14 @@
 
 This Java library provides color space conversions and other color related utilities.
 
-- **Color space conversions** 40+, bidirectional
+- **Color space conversions** 50+, bidirectional
+- **Quality metrics** CRI, TM-30-20
 - **Spectral locus** wavelength conversion, dominant wavelength, purity
 - **Gamut management** for multiple display standards, triangular and polygonal
 - **RGBW/RGBWW mixing** for LED systems
-- **Color difference** Delta E 2000, MacAdam steps, WCAG contrast
+- **Color difference** CAM16, CAM02, Delta E 2000, MacAdam steps, WCAG contrast
 - **Color utilities** CCT/Duv, gamma, harmony, formatting, lerp
-- **Industry standard color spaces** video, broadcasting, printing
-- **Extensive tests** 110+
+- **Extensive tests** 160+
 
 The code uses floats and is straightforward, without dependencies, making it easy to port if needed.
 
@@ -81,6 +81,8 @@ Import the color space records:
 import com.esotericsoftware.color.space.*;
 ```
 
+Most color records extend `Color` which provides methods to convert to any other color space.
+
 Records are provided for type safety and method signature clarity rather than using `float[]`. Any record can be converted using `float[] values = Util.floats(record)`.
 
 This library breaks from Java naming conventions to use capitalization that matches the color space names, making the code clearer and more aligned with color science literature.
@@ -110,7 +112,7 @@ This library breaks from Java naming conventions to use capitalization that matc
   Lab lab = rgb.Lab();
   RGB rgb = lab.RGB();
   // With white point:
-  Lab lab = rgb.Lab(Illuminant.CIE2.D50);
+  Lab lab = rgb.Lab(Observer.CIE2.D50);
   Lab lab = xyz.Lab(customWhitePoint);
   ```
 
@@ -329,11 +331,11 @@ RGB[] splitComp = baseColor.splitComplementary();
   
   // With custom viewing conditions
   CAM16.VC vc = CAM16.VC.with(
-    Illuminant.CIE2.D50,  // White point
+    Observer.CIE2.D50,  // White point
     40,                   // Adapting luminance (cd/m²)
     50,                   // Background L* value
     2,                    // Surround (0=dark, 1=dim, 2=average)
-    false                 // Discounting illuminant
+    false                 // Discounting Observer
   );
   CAM16 cam = rgb.CAM16(vc);
   
@@ -369,7 +371,7 @@ Gamut p3 = Gamut.DisplayP3;       // Display P3
 Gamut rec2020 = Gamut.Rec2020;    // Rec. 2020
 Gamut full = Gamut.all;           // Full visible spectrum
 Gamut hueA = Gamut.PhilipsHue.A;  // Philips Hue A
-var triangular = new RGBGamut(red, green blue, Illuminant.CIE2.D65); // Custom
+var triangular = new RGBGamut(red, green blue, Observer.CIE2.D65); // Custom
 var polygonal = new PolygonGamut( // Custom
 	new xy(0.68f, 0.32f),  // Red-ish
 	new xy(0.265f, 0.69f), // Green-ish
@@ -528,7 +530,7 @@ uv magenta = new RGB(1, 0, 1).uv();
 float purpleWave = SpectralLocus.dominantWavelength(magenta);  // Negative value
 
 // Use custom white point
-float wavelength2 = SpectralLocus.dominantWavelength(color, Illuminant.CIE2.A);
+float wavelength2 = SpectralLocus.dominantWavelength(color, Observer.CIE2.A);
 ```
 
 ### Excitation Purity
@@ -545,22 +547,22 @@ uv saturated = new RGB(1, 0, 0).uv();
 float redPurity = SpectralLocus.excitationPurity(saturated);  // > 0.8
 ```
 
-## Standard Illuminants
+## Standard Observers
 
-CIE standard illuminants are included for both 2° and 10° observers:
+CIE standard Observers are included for both 2° and 10° observers:
 
 ```java
-import com.esotericsoftware.color.Illuminant;
+import com.esotericsoftware.color.Observer;
 
-// 2° observer
-XYZ d65_2deg = Illuminant.CIE2.D65;
-XYZ d50_2deg = Illuminant.CIE2.D50;
+// 2° observer
+XYZ d65_2deg = Observer.CIE2.D65;
+XYZ d50_2deg = Observer.CIE2.D50;
 
 // 10° observer
-XYZ d65_10deg = Illuminant.CIE10.D65;
+XYZ d65_10deg = Observer.CIE10.D65;
 ```
 
-Available illuminants: A, C, D50, D55, D65, D75, F2, F7, F11
+Available Observers: A, C, D50, D55, D65, D75, F2, F7, F11
 
 ## Chromatic Adaptation Transforms
 

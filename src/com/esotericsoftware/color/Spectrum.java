@@ -196,7 +196,6 @@ public record Spectrum (float[] values, int step, int start) {
 	}
 
 	static private float deltaEtoRf (float deltaE) {
-// return 100 - 7.18f * deltaE;
 		return 10 * (float)Math.log1p(Math.exp((100 - 6.73f * deltaE) / 10));
 	}
 
