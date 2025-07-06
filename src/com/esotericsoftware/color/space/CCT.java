@@ -14,7 +14,7 @@ public record CCT ( //
 	static float[] KPlanckian, uvPlanckian;
 
 	public CCT {
-		if (!Float.isFinite(K) || !Float.isFinite(Duv)) {
+		if (Float.isNaN(K) || Float.isNaN(Duv)) {
 			K = Float.NaN;
 			Duv = Float.NaN;
 		}
@@ -348,8 +348,8 @@ public record CCT ( //
 		600, 0.33724f, 0.36051f, 0.0085870605f, -0.9999631f, // 1666.6666 K
 	};
 
-	/** Improved Robertson isotemperature lines: larger LUT (131*5) with adaptive increments [1000..100000K], precomputed
-	 * direction. */
+	/** Improved Robertson isotemperature lines: larger LUT (131*5) with adaptive increments [1000..100000K] then linear to
+	 * infinity, with precomputed direction. */
 	static public final float[] RobertsonImproved = { // mired, u, v, du, dv
 		0, 0.18006f, 0.26352f, 0.9716304f, -0.23650457f, // infinity K
 		10, 0.18063825f, 0.2659503f, 0.9688685f, -0.2475758f, // 100000 K
@@ -485,7 +485,7 @@ public record CCT ( //
 	};
 
 	public enum Method {
-		/** Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K [60000-100000K]. */
+		/** Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K [60000-100000K], to infinity. */
 		RobertsonImproved,
 		/** Maximum error 666K [1000..2000K], 2.4K [2000..7000K], 46K [7000..20000K], 377K [20000-60000K], 1959K [60000-100000K]. */
 		Robertson1968,

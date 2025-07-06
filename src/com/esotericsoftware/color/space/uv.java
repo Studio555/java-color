@@ -35,7 +35,14 @@ public record uv (
 			if (dt <= 0 || i == last) {
 				float pu = Robertson[i - 4], pv = Robertson[i - 3], pdu = Robertson[i - 2], pdv = Robertson[i - 1];
 				dt = -Math.min(dt, 0);
-				float f = i == 5 ? 0 : dt / (pdt + dt), fc = 1 - f;
+				if (i == 5) {
+					pdt = (v - pv) * pdu - (u - pu) * pdv;
+					if (pdt <= 0) {
+						float length = (float)Math.sqrt(pdu * pdu + pdv * pdv);
+						return new CCT(Float.POSITIVE_INFINITY, ((pu - u) * pdu + (pv - v) * pdv) / length);
+					}
+				}
+				float f = dt / (pdt + dt), fc = 1 - f;
 				if (i == 565) {
 					pdu = -pdu;
 					pdv = -pdv;

@@ -73,14 +73,14 @@ public interface Color {
 		return CAM16(vc).CAM16UCS();
 	}
 
-	/** @return [1000..100000K] or NaN out of range.
+	/** @return [1000..infinity] or NaN out of range.
 	 * @see uv#CCT(CCT.Method) */
 	default public CCT CCT (CCT.Method method) {
 		return uv().CCT(method);
 	}
 
 	/** Uses {@link com.esotericsoftware.color.space.CCT.Method#RobertsonImproved}.
-	 * @return [1000..100000K] or NaN out of range. */
+	 * @return [1000..infinity] or NaN out of range. */
 	default public CCT CCT () {
 		return uv().CCT();
 	}

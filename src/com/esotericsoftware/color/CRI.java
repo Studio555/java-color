@@ -4,6 +4,9 @@ package com.esotericsoftware.color;
 /** Color Rendering Index (CRI) calculation according to CIE 13.3-1995. Measures how accurately a light source renders colors
  * compared to a reference illuminant. */
 public record CRI (float Ra, float[] samples) {
+	public float Ri (int index) {
+		return samples[index];
+	}
 
 	public enum Method {
 		CAM16UCS, UVW
