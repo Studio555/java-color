@@ -23,14 +23,14 @@ public class Observer {
 		this.age = 0;
 	}
 
-	public Observer (int age, Observer base) {
-		this.age = age;
-		fov = base.fov;
-		xbar = new float[81];
-		ybar = new float[81];
-		zbar = new float[81];
-		// BOZO - Apply age adjustments.
-	}
+	// public Observer (int age, Observer base) {
+	// this.age = age;
+	// fov = base.fov;
+	// xbar = new float[81];
+	// ybar = new float[81];
+	// zbar = new float[81];
+	// // BOZO - Apply age adjustments.
+	// }
 
 	/** CIE 1931 2 degree standard observer. */
 	static public final Observer CIE2_1931 = new Observer(2);
