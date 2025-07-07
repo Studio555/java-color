@@ -6,7 +6,6 @@ import static com.esotericsoftware.color.Util.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.space.C1C2C3;
 import com.esotericsoftware.color.space.CMYK;
 import com.esotericsoftware.color.space.HSL;
@@ -421,7 +420,7 @@ public class ColorsTest extends Tests {
 
 		// Test default (CAT02) conversions
 		LMS lmsDefault = xyz.LMS();
-		LMS lmsCat16 = xyz.LMS(CAT.CAT16);
+		LMS lmsCat16 = xyz.LMS(CAT.Bradford);
 		assertClose(lmsDefault, lmsCat16, EPSILON_F, "Default LMS is CAT16");
 	}
 

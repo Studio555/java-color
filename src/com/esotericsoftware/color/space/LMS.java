@@ -16,9 +16,9 @@ public record LMS (
 		return XYZ(matrix).RGB();
 	}
 
-	/** Uses {@link LMS.CAT#CAT16}. */
+	/** Uses {@link LMS.CAT#Bradford}. */
 	public XYZ XYZ () {
-		return XYZ(CAT.CAT16);
+		return XYZ(CAT.Bradford);
 	}
 
 	public XYZ XYZ (CAT matrix) {

@@ -5,7 +5,6 @@ import static com.esotericsoftware.color.Util.*;
 
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.space.CAM02;
 import com.esotericsoftware.color.space.CAM16;
 import com.esotericsoftware.color.space.CAM16LCD;

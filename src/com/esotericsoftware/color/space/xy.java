@@ -4,8 +4,6 @@ package com.esotericsoftware.color.space;
 import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Gamut;
-import com.esotericsoftware.color.Illuminant;
-import com.esotericsoftware.color.Spectrum;
 import com.esotericsoftware.color.Util;
 
 /** CIE 1931 chromaticity coordinates. */

@@ -4,7 +4,6 @@ package com.esotericsoftware.color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;

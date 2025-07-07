@@ -234,9 +234,9 @@ public interface Color {
 		return XYZ().LinearRGB();
 	}
 
-	/** Uses {@link com.esotericsoftware.color.space.LMS.CAT#CAT16}. */
+	/** Uses {@link com.esotericsoftware.color.space.LMS.CAT#Bradford}. */
 	default public LMS LMS () {
-		return LMS(CAT.CAT16);
+		return LMS(CAT.Bradford);
 	}
 
 	default public LMS LMS (CAT matrix) {
