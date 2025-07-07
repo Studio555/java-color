@@ -87,7 +87,7 @@ XYZ xyz = new CCT(5000).PlanckianXYZ();
 
 ### Improved Robertson Method
 
-This library includes an improved Robertson method with high accuracy from [1000..100000K]:
+This library includes an improved Robertson method for CCT to and from u'v' supporting [1000K..infinity]:
 
 |Method|Duv|K range|Max K error|@ K|Max Duv error|
 |--|--|--|--|--|--|
