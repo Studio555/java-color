@@ -36,7 +36,7 @@ public record uv (
 			if (dt <= 0 || i == last) {
 				float pu = Robertson[i - 4], pv = Robertson[i - 3], pdu = Robertson[i - 2], pdv = Robertson[i - 1];
 				dt = -Math.min(dt, 0);
-				if (i == 5) {
+				if (i == 5) { // 100000K to infinity.
 					pdt = (v - pv) * pdu - (u - pu) * pdv;
 					if (pdt <= 0) {
 						float length = (float)Math.sqrt(pdu * pdu + pdv * pdv);
@@ -62,7 +62,7 @@ public record uv (
 	private CCT CCT_Ohno () {
 		CCT.PlanckianTable();
 		float[] KPlanckian = CCT.KPlanckian, uvPlanckian = CCT.uvPlanckian;
-		float min = Float.MAX_VALUE;
+		float u = this.u, v = this.v / 1.5f, min = Float.MAX_VALUE;
 		int i = 0;
 		for (int t = 0; t < 1030; t += 2) {
 			float dx = uvPlanckian[t] - u, dy = uvPlanckian[t + 1] - v, dist = dx * dx + dy * dy;
