@@ -45,7 +45,7 @@ public class CCTTests extends Tests {
 
 	@Test
 	public void testXYZError0Duv () {
-		checkMaxError(CCT.Method.RobertsonImproved, 1000, 2000, 0.09698486f, 0.007f);
+		checkMaxError(CCT.Method.RobertsonImproved, 1000, 2000, 0.09698486f, 0.0001f);
 		checkMaxError(CCT.Method.RobertsonImproved, 2000, 7000, 0.10644531f, 0.0001f);
 		checkMaxError(CCT.Method.RobertsonImproved, 7000, 20000, 1.0742188f, 0.0001f);
 		checkMaxError(CCT.Method.RobertsonImproved, 20000, 60000, 2.0195312f, 0.0001f);
@@ -75,7 +75,7 @@ public class CCTTests extends Tests {
 				maxKAt = K;
 			}
 		}
-		System.out.println("K: " + start + ".." + end + ": " + maxErrorK + " @ " + maxKAt);
+		// System.out.println("K: " + start + ".." + end + ": " + maxErrorK + " @ " + maxKAt);
 		assertEquals(exactMaxError, maxErrorK, "Wrong max error: " + maxErrorK + " @ " + maxKAt + ", " + method);
 	}
 

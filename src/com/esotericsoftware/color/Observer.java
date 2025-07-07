@@ -170,6 +170,6 @@ public class Observer {
 	}
 
 	/** The observer to use by default for methods where an observer is not specified. Change as needed. Defaults to
-	 * {@link #CIE2_2015}. */
+	 * {@link #CIE2_1931}. */
 	static public Observer Default = CIE2_1931;
 }

@@ -517,12 +517,14 @@ public record CCT ( //
 	};
 
 	public enum Method {
-		/** [1000K..infinity] Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K [60000-100000K]. */
+		/** [1000K..infinity] Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K [60000-100000K]. Based on
+		 * {@link Observer#CIE2_1931}. */
 		RobertsonImproved,
 		/** [1000K..infinity] Maximum error 666K [1000..2000K], 2.4K [2000..7000K], 46K [7000..20000K], 377K [20000-60000K], 1959K
-		 * [60000-100000K]. */
+		 * [60000-100000K]. Based on {@link Observer#CIE2_1931}. */
 		Robertson1968,
-		/** [1000K..100000K] Maximum error 1K [1000..7000K], 2.7K [7000..20000K], 3.52K [20000-100000K]. */
+		/** [1000K..100000K] Maximum error 1K [1000..7000K], 2.7K [7000..20000K], 3.52K [20000-100000K]. Computed dynamically using
+		 * {@link Observer#Default}. */
 		Ohno2013
 	}
 }
