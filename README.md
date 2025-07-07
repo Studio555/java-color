@@ -1,6 +1,6 @@
 # Color
 
-A Java library for color science with 50+ color spaces, spectral calculations, and color metrics.
+A Java library for color science with color space conversions, spectral calculations, and color metrics.
 
 ## Key Features
 
