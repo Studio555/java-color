@@ -167,14 +167,8 @@ public record CCT ( //
 			}
 			pr = cr;
 		}
-		if (mired < Robertson[0]) {
-			float u = Robertson[1] - Robertson[4] * Duv;
-			float v = Robertson[2] + Robertson[3] * Duv;
-			return new uv(u, v * 1.5f);
-		}
-		float u = Robertson[last + 6] - Robertson[last + 9] * Duv;
-		float v = Robertson[last + 7] + Robertson[last + 8] * Duv;
-		return new uv(u, v * 1.5f);
+		if (mired < Robertson[0]) return new uv(Robertson[1] - Robertson[4] * Duv, (Robertson[2] + Robertson[3] * Duv) * 1.5f);
+		return new uv(Robertson[last + 6] - Robertson[last + 9] * Duv, (Robertson[last + 7] + Robertson[last + 8] * Duv) * 1.5f);
 	}
 
 	private uv uv_Ohno () {
