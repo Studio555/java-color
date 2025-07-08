@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.CCT;
+import com.esotericsoftware.color.space.CCT.Method;
 import com.esotericsoftware.color.space.Oklab;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.uv;
@@ -107,7 +108,17 @@ public class CCTTests extends Tests {
 		// System.out.println("\n=== " + method + ": " + Duv + " Duv ===");
 		float maxErrorK = 0, maxKAt = 0, maxErrorDuv = 0, maxDuvAt = 0;
 		for (float K = start; K < end; K += 0.5f) {
-			CCT roundTrip = new CCT(K, Duv).PlanckianXYZ().CCT(method);
+			CCT cct = new CCT(K, Duv);
+			CCT roundTrip = cct.PlanckianXYZ().CCT(method);
+			boolean skipDuvChecks = false;
+			if (method == Method.Robertson1968) skipDuvChecks = true;
+			if (method == Method.Ohno2013 && K > 39000) skipDuvChecks = true;
+			if (!skipDuvChecks) {
+				assertTrue(Math.signum(Duv) == Math.signum(roundTrip.Duv()),
+					"Wrong Duv sign uv -> CCT: " + K + " K, " + Duv + " Duv, " + method);
+				assertTrue(Math.signum(Duv) == Math.signum(cct.uv(method).CCT(method).Duv()),
+					"Wrong Duv sign CCT -> uv -> CCT: " + K + " K, " + Duv + " Duv, " + method);
+			}
 			float error = Math.abs(Duv - roundTrip.Duv());
 			if (error > maxErrorDuv) {
 				maxErrorDuv = error;
@@ -122,9 +133,9 @@ public class CCTTests extends Tests {
 		// System.out.println("Duv: " + start + ".." + end + ": " + maxErrorDuv + " @ " + maxDuvAt);
 		// System.out.println("K: " + start + ".." + end + ": " + maxErrorK + " @ " + maxKAt);
 		assertTrue(maxErrorDuv <= expectedMaxErrorDuv, "Max Duv error too high: " + maxErrorDuv + " <= " + expectedMaxErrorDuv
-			+ " @ " + maxDuvAt + ", " + method + ", " + Duv + " Duv");
-		assertTrue(maxErrorK <= expectedMaxErrorK, "Max K error too high: " + maxErrorK + " <= " + expectedMaxErrorK + " @ "
-			+ maxKAt + ", " + method + ", " + Duv + " Duv");
+			+ " @ " + maxDuvAt + " K, " + Duv + " Duv, " + method);
+		assertTrue(maxErrorK <= expectedMaxErrorK,
+			"Max K error too high: " + maxErrorK + " <= " + expectedMaxErrorK + " @ " + maxKAt + " K, " + Duv + " Duv, " + method);
 	}
 
 	@Test

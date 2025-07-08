@@ -159,7 +159,7 @@ public record CCT ( //
 						du2 = -du2;
 						dv2 = -dv2;
 					}
-					float Duv = i >= 565 ? -this.Duv : this.Duv;
+					float Duv = i >= 566 ? -this.Duv : this.Duv;
 					u -= (du + t * (du2 - du)) * Duv;
 					v -= (dv + t * (dv2 - dv)) * Duv;
 				}
