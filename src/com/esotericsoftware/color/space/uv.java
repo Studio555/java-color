@@ -86,31 +86,24 @@ public record uv (
 		dy = vp - vn;
 		float side = (float)Math.sqrt(dx * dx + dy * dy), iside = 1 / side; // Triangular solution.
 		float dist = (dp * dp - dn * dn + side * side) * 0.5f * iside, ds = dist * iside, Duv = dp * dp - dist * dist, K;
-		if (Duv >= 0.000004f) { // 0.002^2
+		if (Duv >= 0.000004f) { // 0.002^2, try parabolic solution.
 			float Ki = KPlanckian[k], ui = uvPlanckian[i], vi = uvPlanckian[i + 1];
-			float denom = (Kn - Ki) * (Kp - Kn) * (Ki - Kp); // Parabolic solution.
-			if (Math.abs(denom) < EPSILON) {
-				K = Kp + (Kn - Kp) * ds;
-				Duv = (float)Math.sqrt(Duv);
-			} else {
+			float denom = (Kn - Ki) * (Kp - Kn) * (Ki - Kp);
+			if (Math.abs(denom) >= EPSILON) {
 				dx = u - ui;
 				dy = v - vi;
-				float di = (float)Math.sqrt(dx * dx + dy * dy);
-				float a = (Kp * (dn - di) + Ki * (dp - dn) + Kn * (di - dp)) / denom;
-				float b = -(Kp * Kp * (dn - di) + Ki * Ki * (dp - dn) + Kn * Kn * (di - dp)) / denom;
-				float c = -(dp * (Kn - Ki) * Ki * Kn + di * (Kp - Kn) * Kp * Kn + dn * (Ki - Kp) * Kp * Ki) / denom;
-				if (a == 0) { // Degenerate, fallback to triangular.
-					K = Kp + (Kn - Kp) * ds;
-					Duv = (float)Math.sqrt(Duv);
-				} else {
+				float di = (float)Math.sqrt(dx * dx + dy * dy), a = (Kp * (dn - di) + Ki * (dp - dn) + Kn * (di - dp)) / denom;
+				if (a != 0) {
+					float b = -(Kp * Kp * (dn - di) + Ki * Ki * (dp - dn) + Kn * Kn * (di - dp)) / denom;
+					float c = -(dp * (Kn - Ki) * Ki * Kn + di * (Kp - Kn) * Kp * Kn + dn * (Ki - Kp) * Kp * Ki) / denom;
 					K = -b / (2 * a);
 					Duv = a * K * K + b * K + c;
+					return new CCT(K, Duv * Math.signum(v - (vp + (vn - vp) * ds)));
 				}
 			}
-		} else {
-			K = Kp + (Kn - Kp) * ds;
-			Duv = (float)Math.sqrt(Math.max(0, Duv));
 		}
+		K = Kp + (Kn - Kp) * ds;
+		Duv = (float)Math.sqrt(Math.max(0, Duv));
 		return new CCT(K, Duv * Math.signum(v - (vp + (vn - vp) * ds)));
 	}
 
