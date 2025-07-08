@@ -99,8 +99,13 @@ public record uv (
 				float a = (Kp * (dn - di) + Ki * (dp - dn) + Kn * (di - dp)) / denom;
 				float b = -(Kp * Kp * (dn - di) + Ki * Ki * (dp - dn) + Kn * Kn * (di - dp)) / denom;
 				float c = -(dp * (Kn - Ki) * Ki * Kn + di * (Kp - Kn) * Kp * Kn + dn * (Ki - Kp) * Kp * Ki) / denom;
-				K = -b / (2 * a);
-				Duv = a * K * K + b * K + c;
+				if (a == 0) { // Degenerate, fallback to triangular.
+					K = Kp + (Kn - Kp) * ds;
+					Duv = (float)Math.sqrt(Duv);
+				} else {
+					K = -b / (2 * a);
+					Duv = a * K * K + b * K + c;
+				}
 			}
 		} else {
 			K = Kp + (Kn - Kp) * ds;

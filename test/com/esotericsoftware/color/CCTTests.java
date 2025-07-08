@@ -112,7 +112,7 @@ public class CCTTests extends Tests {
 			CCT roundTrip = cct.PlanckianXYZ().CCT(method);
 			boolean skipDuvChecks = false;
 			if (method == Method.Robertson1968) skipDuvChecks = true;
-			if (method == Method.Ohno2013 && K > 39000) skipDuvChecks = true;
+			if (method == Method.Ohno2013 && K > 95000) skipDuvChecks = true;
 			if (!skipDuvChecks) {
 				assertTrue(Math.signum(Duv) == Math.signum(roundTrip.Duv()),
 					"Wrong Duv sign uv -> CCT: " + K + " K, " + Duv + " Duv, " + method);
