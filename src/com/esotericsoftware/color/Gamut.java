@@ -91,8 +91,12 @@ public interface Gamut {
 	}
 
 	public record GamutVertex (xy xy, uv uv) {
-		GamutVertex (xy xy) {
+		public GamutVertex (xy xy) {
 			this(xy, xy.uv());
+		}
+
+		public GamutVertex (uv uv) {
+			this(uv.xy(), uv);
 		}
 	}
 
@@ -288,11 +292,8 @@ public interface Gamut {
 
 	static public class PolygonGamut implements Gamut {
 		public final GamutVertex[] vertices;
+		/** xy coordinate pairs. */
 		public final float[] floats;
-
-		public PolygonGamut (uv... polygon) {
-			this(xy(polygon));
-		}
 
 		public PolygonGamut (xy... polygon) {
 			if (polygon == null) throw new IllegalArgumentException("polygon cannot be null.");
@@ -305,6 +306,21 @@ public interface Gamut {
 				vertices[i] = new GamutVertex(xy);
 				floats[f] = xy.x();
 				floats[f + 1] = xy.y();
+			}
+		}
+
+		public PolygonGamut (uv... polygon) {
+			if (polygon == null) throw new IllegalArgumentException("polygon cannot be null.");
+			int n = polygon.length;
+			if (n < 3) throw new IllegalArgumentException("polygon must have >= 3 points: " + n);
+			vertices = new GamutVertex[n];
+			floats = new float[n << 1];
+			for (int i = 0, f = 0; i < n; i++, f += 2) {
+				uv uv = polygon[i];
+				var vertex = new GamutVertex(uv);
+				vertices[i] = vertex;
+				floats[f] = vertex.xy.x();
+				floats[f + 1] = vertex.xy.y();
 			}
 		}
 
@@ -390,14 +406,6 @@ public interface Gamut {
 		/** Unsupported by default. Override and implement if needed. */
 		public LinearRGB LinearRGB (XYZ XYZ) {
 			throw new UnsupportedOperationException();
-		}
-
-		static private xy[] xy (uv[] uvs) {
-			int n = uvs.length;
-			var xys = new xy[n];
-			for (int i = 0; i < n; i++)
-				xys[i] = uvs[i].xy();
-			return xys;
 		}
 	}
 }
