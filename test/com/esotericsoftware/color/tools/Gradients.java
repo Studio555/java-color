@@ -67,14 +67,8 @@ public class Gradients {
 		int steps = width;
 		for (int i = 0; i < steps; i++) {
 			float t = i / (float)(steps - 1);
-			RGB interpolated = interpolateInColorSpace(colorSpace, from, to, t);
-
-			// Clamp values to valid range
-			float r = Math.max(0, Math.min(1, interpolated.r()));
-			float g = Math.max(0, Math.min(1, interpolated.g()));
-			float b = Math.max(0, Math.min(1, interpolated.b()));
-
-			gr.setColor(new Color(r, g, b));
+			RGB rgb = interpolateInColorSpace(colorSpace, from, to, t);
+			gr.setColor(new Color(rgb.r(), rgb.g(), rgb.b()));
 			gr.fillRect(x + i, y, 1, height);
 		}
 

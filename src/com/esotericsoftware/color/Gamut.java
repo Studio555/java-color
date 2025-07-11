@@ -20,18 +20,22 @@ public interface Gamut {
 
 	public boolean contains (xy xy);
 
-	public xy clamp (xy xy);
+	public xy nearest (xy xy);
+
+	public xy raycast (xy xy);
+
+	public uv nearest (uv uv);
+
+	public uv raycast (uv uv);
 
 	public XYZ XYZ (LinearRGB rgb);
 
 	public LinearRGB LinearRGB (XYZ XYZ);
 
+	public XYZ whitePoint ();
+
 	default public boolean contains (uv uv) {
 		return contains(uv.xy());
-	}
-
-	default public uv clamp (uv uv) {
-		return clamp(uv.xy()).uv();
 	}
 
 	default public XYZ XYZ (RGB rgb) {
@@ -90,6 +94,26 @@ public interface Gamut {
 		return new uv(a.u() + t * xDiff, a.v() + t * yDiff);
 	}
 
+	static private xy lineSegmentIntersect (xy origin, float dx, float dy, xy a, xy b) {
+		float ex = b.x() - a.x(), ey = b.y() - a.y();
+		float denom = dx * ey - dy * ex;
+		if (Math.abs(denom) < EPSILON) return null; // Parallel.
+		float t = ((a.x() - origin.x()) * ey - (a.y() - origin.y()) * ex) / denom;
+		float s = ((a.x() - origin.x()) * dy - (a.y() - origin.y()) * dx) / denom;
+		if (t > EPSILON && s >= 0 && s <= 1) return new xy(origin.x() + t * dx, origin.y() + t * dy);
+		return null;
+	}
+
+	static private uv lineSegmentIntersect (uv origin, float dx, float dy, uv a, uv b) {
+		float ex = b.u() - a.u(), ey = b.v() - a.v();
+		float denom = dx * ey - dy * ex;
+		if (Math.abs(denom) < EPSILON) return null; // Parallel.
+		float t = ((a.u() - origin.u()) * ey - (a.v() - origin.v()) * ex) / denom;
+		float s = ((a.u() - origin.u()) * dy - (a.v() - origin.v()) * dx) / denom;
+		if (t > EPSILON && s >= 0 && s <= 1) return new uv(origin.u() + t * dx, origin.v() + t * dy);
+		return null;
+	}
+
 	public record GamutVertex (xy xy, uv uv) {
 		public GamutVertex (xy xy) {
 			this(xy, xy.uv());
@@ -102,7 +126,9 @@ public interface Gamut {
 
 	static public class RGBGamut implements Gamut {
 		public final GamutVertex red, green, blue;
-		public final XYZ whitePoint;
+		private final XYZ wpXYZ;
+		private final xy wpxy;
+		private final uv wpuv;
 		public final float[][] RGB_XYZ, XYZ_RGB;
 
 		/** Uses {@link Observer#Default} D65. */
@@ -127,16 +153,22 @@ public interface Gamut {
 			this.red = new GamutVertex(red);
 			this.green = new GamutVertex(green);
 			this.blue = new GamutVertex(blue);
-			this.whitePoint = whitePoint;
+			wpXYZ = whitePoint;
+			wpxy = whitePoint.xy();
+			wpuv = whitePoint.uv();
 			RGB_XYZ = RGB_XYZ();
 			XYZ_RGB = invert3x3(RGB_XYZ);
 		}
 
+		public XYZ whitePoint () {
+			return wpXYZ;
+		}
+
 		public boolean contains (xy xy) {
 			// Check inside.
-			if (below(xy, blue, green) && below(xy, green, red) && above(xy, red, blue)) return true;
 			// Check on vertex.
-			if (red.xy.dst2(xy) < EPSILON * EPSILON) return true;
+			if ((below(xy, blue, green) && below(xy, green, red) && above(xy, red, blue)) || (red.xy.dst2(xy) < EPSILON * EPSILON))
+				return true;
 			if (green.xy.dst2(xy) < EPSILON * EPSILON) return true;
 			if (blue.xy.dst2(xy) < EPSILON * EPSILON) return true;
 			// Check on edge.
@@ -146,7 +178,7 @@ public interface Gamut {
 			return false;
 		}
 
-		public xy clamp (xy xy) {
+		public xy nearest (xy xy) {
 			if (contains(xy)) return xy;
 			xy pAB = closestPointOnSegment(xy, red, green);
 			xy pAC = closestPointOnSegment(xy, red, blue);
@@ -160,7 +192,7 @@ public interface Gamut {
 			return dBC < lowest ? pBC : closestPoint;
 		}
 
-		public uv clamp (uv uv) {
+		public uv nearest (uv uv) {
 			if (contains(uv.xy())) return uv;
 			uv pAB = closestPointOnSegment(uv, red, green);
 			uv pAC = closestPointOnSegment(uv, red, blue);
@@ -172,6 +204,70 @@ public interface Gamut {
 				closestPoint = pAC;
 			}
 			return dBC < lowest ? pBC : closestPoint;
+		}
+
+		public xy raycast (xy xy) {
+			if (contains(xy)) return xy;
+			float dx = xy.x() - wpxy.x(), dy = xy.y() - wpxy.y();
+			xy intersection = null;
+			float minT = Float.MAX_VALUE;
+			xy p = lineSegmentIntersect(wpxy, dx, dy, red.xy, green.xy); // Red-green.
+			if (p != null) {
+				float t = dx != 0 ? (p.x() - wpxy.x()) / dx : (p.y() - wpxy.y()) / dy;
+				if (t > EPSILON && t < minT) {
+					minT = t;
+					intersection = p;
+				}
+			}
+			p = lineSegmentIntersect(wpxy, dx, dy, green.xy, blue.xy); // Green-blue.
+			if (p != null) {
+				float t = dx != 0 ? (p.x() - wpxy.x()) / dx : (p.y() - wpxy.y()) / dy;
+				if (t > EPSILON && t < minT) {
+					minT = t;
+					intersection = p;
+				}
+			}
+			p = lineSegmentIntersect(wpxy, dx, dy, blue.xy, red.xy); // Blue-red.
+			if (p != null) {
+				float t = dx != 0 ? (p.x() - wpxy.x()) / dx : (p.y() - wpxy.y()) / dy;
+				if (t > EPSILON && t < minT) {
+					minT = t;
+					intersection = p;
+				}
+			}
+			return intersection != null ? intersection : xy;
+		}
+
+		public uv raycast (uv uv) {
+			if (contains(uv)) return uv;
+			float dx = uv.u() - wpuv.u(), dy = uv.v() - wpuv.v();
+			uv intersection = null;
+			float minT = Float.MAX_VALUE;
+			uv p = lineSegmentIntersect(wpuv, dx, dy, red.uv, green.uv); // Red-green.
+			if (p != null) {
+				float t = dx != 0 ? (p.u() - wpuv.u()) / dx : (p.v() - wpuv.v()) / dy;
+				if (t > EPSILON && t < minT) {
+					minT = t;
+					intersection = p;
+				}
+			}
+			p = lineSegmentIntersect(wpuv, dx, dy, green.uv, blue.uv); // Green-blue.
+			if (p != null) {
+				float t = dx != 0 ? (p.u() - wpuv.u()) / dx : (p.v() - wpuv.v()) / dy;
+				if (t > EPSILON && t < minT) {
+					minT = t;
+					intersection = p;
+				}
+			}
+			p = lineSegmentIntersect(wpuv, dx, dy, blue.uv, red.uv); // Blue-red.
+			if (p != null) {
+				float t = dx != 0 ? (p.u() - wpuv.u()) / dx : (p.v() - wpuv.v()) / dy;
+				if (t > EPSILON && t < minT) {
+					minT = t;
+					intersection = p;
+				}
+			}
+			return intersection != null ? intersection : uv;
 		}
 
 		public XYZ XYZ (LinearRGB rgb) {
@@ -239,7 +335,7 @@ public interface Gamut {
 				{Xr, Xg, Xb}, //
 				{Yr, Yg, Yb}, //
 				{Zr, Zg, Zb}};
-			float[] S = matrixSolve(M, whitePoint.X() / whitePoint.Y(), 1, whitePoint.Z() / whitePoint.Y());
+			float[] S = matrixSolve(M, wpXYZ.X() / wpXYZ.Y(), 1, wpXYZ.Z() / wpXYZ.Y());
 			return new float[][] { //
 				{Xr * S[0], Xg * S[1], Xb * S[2]}, //
 				{Yr * S[0], Yg * S[1], Yb * S[2]}, //
@@ -294,6 +390,9 @@ public interface Gamut {
 		public final GamutVertex[] vertices;
 		/** xy coordinate pairs. */
 		public final float[] floats;
+		private XYZ wpXYZ;
+		private xy wpxy;
+		private uv wpuv;
 
 		public PolygonGamut (xy... polygon) {
 			if (polygon == null) throw new IllegalArgumentException("polygon cannot be null.");
@@ -332,7 +431,7 @@ public interface Gamut {
 			float xj = floats[n - 2], yj = floats[n - 1];
 			for (int i = 0; i < n; i += 2) {
 				float xi = floats[i], yi = floats[i + 1];
-				if ((yi < y) == (yj >= y)) {
+				if (yi < y == yj >= y) {
 					float xint = xi + (y - yi) * (xj - xi) / (yj - yi);
 					if (xint < x - EPSILON)
 						odd = !odd;
@@ -364,7 +463,7 @@ public interface Gamut {
 			return false;
 		}
 
-		public xy clamp (xy xy) {
+		public xy nearest (xy xy) {
 			if (contains(xy)) return xy;
 			float minDist = Float.MAX_VALUE;
 			xy closest = null;
@@ -381,7 +480,7 @@ public interface Gamut {
 			return closest;
 		}
 
-		public uv clamp (uv uv) {
+		public uv nearest (uv uv) {
 			if (contains(uv.xy())) return uv;
 			float minDist = Float.MAX_VALUE;
 			uv closest = null;
@@ -396,6 +495,59 @@ public interface Gamut {
 				a = b;
 			}
 			return closest;
+		}
+
+		/** Requires white point to be set. */
+		public xy raycast (xy xy) {
+			if (contains(xy)) return xy;
+			float dx = xy.x() - wpxy.x(), dy = xy.y() - wpxy.y();
+			xy intersection = null;
+			float minT = Float.MAX_VALUE;
+			GamutVertex a = vertices[vertices.length - 1];
+			for (GamutVertex b : vertices) {
+				xy p = lineSegmentIntersect(wpxy, dx, dy, a.xy, b.xy);
+				if (p != null) {
+					float t = dx != 0 ? (p.x() - wpxy.x()) / dx : (p.y() - wpxy.y()) / dy;
+					if (t > EPSILON && t < minT) {
+						minT = t;
+						intersection = p;
+					}
+				}
+				a = b;
+			}
+			return intersection != null ? intersection : xy;
+		}
+
+		/** Requires white point to be set. */
+		public uv raycast (uv uv) {
+			if (contains(uv)) return uv;
+			float dx = uv.u() - wpuv.u(), dy = uv.v() - wpuv.v();
+			uv intersection = null;
+			float minT = Float.MAX_VALUE;
+			GamutVertex a = vertices[vertices.length - 1];
+			for (GamutVertex b : vertices) {
+				uv p = lineSegmentIntersect(wpuv, dx, dy, a.uv, b.uv);
+				if (p != null) {
+					float t = dx != 0 ? (p.u() - wpuv.u()) / dx : (p.v() - wpuv.v()) / dy;
+					if (t > EPSILON && t < minT) {
+						minT = t;
+						intersection = p;
+					}
+				}
+				a = b;
+			}
+			return intersection != null ? intersection : uv;
+		}
+
+		public void setWhitePoint (XYZ whitePoint) {
+			wpXYZ = whitePoint;
+			wpxy = whitePoint.xy();
+			wpuv = whitePoint.uv();
+		}
+
+		/** Returns the white point, or null if not set. */
+		public XYZ whitePoint () {
+			return wpXYZ;
 		}
 
 		/** Unsupported by default. Override and implement if needed. */

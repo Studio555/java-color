@@ -31,23 +31,23 @@ public class GamutTests extends Tests {
 	}
 
 	@Test
-	public void testGamutClamp () {
+	public void testGamutNearest () {
 		// Test that a point inside the gamut remains unchanged
 		xy insidePoint = new xy(0.3f, 0.3f);
-		xy clamped = Gamut.sRGB.clamp(insidePoint);
-		assertEquals(insidePoint.x(), clamped.x(), EPSILON, "Inside point x should not change");
-		assertEquals(insidePoint.y(), clamped.y(), EPSILON, "Inside point y should not change");
+		xy nearest = Gamut.sRGB.nearest(insidePoint);
+		assertEquals(insidePoint.x(), nearest.x(), EPSILON, "Inside point x should not change");
+		assertEquals(insidePoint.y(), nearest.y(), EPSILON, "Inside point y should not change");
 
-		// Test that a point outside gets clamped to the gamut boundary
+		// Test that a point outside gets nearest to the gamut boundary
 		xy outsidePoint = new xy(0.9f, 0.1f);
-		xy clampedOutside = Gamut.sRGB.clamp(outsidePoint);
+		xy nearestOutside = Gamut.sRGB.nearest(outsidePoint);
 		assertFalse(Gamut.sRGB.contains(outsidePoint), "Original point should be outside");
-		assertTrue(Gamut.sRGB.contains(clampedOutside), "Clamped point should be inside or on boundary");
+		assertTrue(Gamut.sRGB.contains(nearestOutside), "Nearest point should be inside or on boundary");
 
-		// Verify clamped point is different from original
+		// Verify nearest point is different from original
 		assertTrue(
-			Math.abs(outsidePoint.x() - clampedOutside.x()) > EPSILON || Math.abs(outsidePoint.y() - clampedOutside.y()) > EPSILON,
-			"Clamped point should be different from original");
+			Math.abs(outsidePoint.x() - nearestOutside.x()) > EPSILON || Math.abs(outsidePoint.y() - nearestOutside.y()) > EPSILON,
+			"Nearest point should be different from original");
 	}
 
 	@Test
@@ -285,7 +285,6 @@ public class GamutTests extends Tests {
 		assertTrue(rgb.b() >= 0 && rgb.b() <= 1, "B should be in [0,1]");
 
 		// Test edge case: y = 0 (will produce infinity/NaN)
-		// Note: conversions do NOT auto-clamp, so invalid inputs produce invalid outputs
 		xy zeroY = new xy(0.3f, 0f);
 		RGB result = Gamut.sRGB.RGB(zeroY);
 		// With y=0, the conversion will produce infinity or NaN
@@ -312,10 +311,10 @@ public class GamutTests extends Tests {
 		xy outside = new xy(0.9f, 0.1f);
 		assertFalse(polygon.contains(outside), "Point should be outside polygon gamut");
 
-		// Test clamp
-		xy clamped = polygon.clamp(outside);
-		// The clamped point should be different from the original
-		assertTrue(clamped.x() != outside.x() || clamped.y() != outside.y(), "Clamped point should differ from original");
+		// Test nearest
+		xy nearest = polygon.nearest(outside);
+		// The nearest point should be different from the original
+		assertTrue(nearest.x() != outside.x() || nearest.y() != outside.y(), "Nearest point should differ from original");
 
 		// Test that vertices are contained
 		for (xy vertex : vertices)
@@ -330,10 +329,10 @@ public class GamutTests extends Tests {
 			assertTrue(polygon.contains(midpoint), "Midpoint of edge should be contained");
 		}
 
-		// Test clamp with inside point (should not change)
-		xy clampedInside = polygon.clamp(inside);
-		assertEquals(inside.x(), clampedInside.x(), EPSILON, "Inside point x should not change");
-		assertEquals(inside.y(), clampedInside.y(), EPSILON, "Inside point y should not change");
+		// Test nearest with inside point (should not change)
+		xy nearestInside = polygon.nearest(inside);
+		assertEquals(inside.x(), nearestInside.x(), EPSILON, "Inside point x should not change");
+		assertEquals(inside.y(), nearestInside.y(), EPSILON, "Inside point y should not change");
 
 		// Test that RGB conversions throw UnsupportedOperationException
 		assertThrows(UnsupportedOperationException.class, () -> polygon.XYZ(new LinearRGB(1, 0, 0)));
@@ -359,9 +358,9 @@ public class GamutTests extends Tests {
 		}
 
 		uv uvOutside = outside.uv();
-		uv uvClamped = polygon.clamp(uvOutside);
-		assertTrue(uvClamped.u() != uvOutside.u() || uvClamped.v() != uvOutside.v(), "uv clamp should modify outside points");
-		assertTrue(polygon.contains(uvClamped), "uv clamped should be contained");
+		uv uvNearest = polygon.nearest(uvOutside);
+		assertTrue(uvNearest.u() != uvOutside.u() || uvNearest.v() != uvOutside.v(), "uv nearest should modify outside points");
+		assertTrue(polygon.contains(uvNearest), "uv nearest should be contained");
 	}
 
 	@Test
