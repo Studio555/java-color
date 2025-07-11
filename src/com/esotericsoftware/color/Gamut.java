@@ -46,12 +46,12 @@ public interface Gamut {
 		return XYZ(rgb).xy();
 	}
 
-	default public uv uv (LinearRGB rgb) {
-		return XYZ(rgb).uv();
-	}
-
 	default public xy xy (RGB rgb) {
 		return XYZ(rgb.LinearRGB()).xy();
+	}
+
+	default public uv uv (LinearRGB rgb) {
+		return XYZ(rgb).uv();
 	}
 
 	default public uv uv (RGB rgb) {
@@ -389,7 +389,7 @@ public interface Gamut {
 	static public class PolygonGamut implements Gamut {
 		public final GamutVertex[] vertices;
 		/** xy coordinate pairs. */
-		public final float[] floats;
+		public final float[] xys;
 		private XYZ wpXYZ;
 		private xy wpxy;
 		private uv wpuv;
@@ -399,12 +399,12 @@ public interface Gamut {
 			int n = polygon.length;
 			if (n < 3) throw new IllegalArgumentException("polygon must have >= 3 points: " + n);
 			vertices = new GamutVertex[n];
-			floats = new float[n << 1];
+			xys = new float[n << 1];
 			for (int i = 0, f = 0; i < n; i++, f += 2) {
 				xy xy = polygon[i];
 				vertices[i] = new GamutVertex(xy);
-				floats[f] = xy.x();
-				floats[f + 1] = xy.y();
+				xys[f] = xy.x();
+				xys[f + 1] = xy.y();
 			}
 		}
 
@@ -413,13 +413,13 @@ public interface Gamut {
 			int n = polygon.length;
 			if (n < 3) throw new IllegalArgumentException("polygon must have >= 3 points: " + n);
 			vertices = new GamutVertex[n];
-			floats = new float[n << 1];
+			xys = new float[n << 1];
 			for (int i = 0, f = 0; i < n; i++, f += 2) {
 				uv uv = polygon[i];
 				var vertex = new GamutVertex(uv);
 				vertices[i] = vertex;
-				floats[f] = vertex.xy.x();
-				floats[f + 1] = vertex.xy.y();
+				xys[f] = vertex.xy.x();
+				xys[f + 1] = vertex.xy.y();
 			}
 		}
 
@@ -427,10 +427,10 @@ public interface Gamut {
 			float x = xy.x(), y = xy.y();
 			// Check inside.
 			boolean odd = false;
-			int n = floats.length;
-			float xj = floats[n - 2], yj = floats[n - 1];
+			int n = xys.length;
+			float xj = xys[n - 2], yj = xys[n - 1];
 			for (int i = 0; i < n; i += 2) {
-				float xi = floats[i], yi = floats[i + 1];
+				float xi = xys[i], yi = xys[i + 1];
 				if (yi < y == yj >= y) {
 					float xint = xi + (y - yi) * (xj - xi) / (yj - yi);
 					if (xint < x - EPSILON)
@@ -442,11 +442,11 @@ public interface Gamut {
 				yj = yi;
 			}
 			if (odd) return true;
-			xj = floats[n - 2];
-			yj = floats[n - 1];
+			xj = xys[n - 2];
+			yj = xys[n - 1];
 			for (int i = 0; i < n; i += 2) {
 				// Check on vertex.
-				float xi = floats[i], yi = floats[i + 1], dx = x - xi, dy = y - yi;
+				float xi = xys[i], yi = xys[i + 1], dx = x - xi, dy = y - yi;
 				if (dx * dx + dy * dy < EPSILON * EPSILON) return true;
 				// Check on edge.
 				float ex = xj - xi, ey = yj - yi, length = ex * ex + ey * ey;
