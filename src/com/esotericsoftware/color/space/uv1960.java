@@ -13,8 +13,8 @@ public record uv1960 (
 	/** v chromaticity [0..1]. */
 	float v) implements Color {
 
-	public LinearRGB LinearRGB () {
-		return xy().LinearRGB();
+	public LRGB LRGB () {
+		return xy().LRGB();
 	}
 
 	/** Uses {@link Gamut#sRGB}.

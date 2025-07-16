@@ -12,11 +12,11 @@ public record YCoCg (
 	/** Green chroma [-0.5..0.5]. */
 	float Cg) implements Color {
 
-	public LinearRGB LinearRGB () {
+	public LRGB LRGB () {
 		float r = Y + Co - Cg;
 		float g = Y + Cg;
 		float b = Y - Co - Cg;
-		return new LinearRGB(linear(r), linear(g), linear(b));
+		return new LRGB(linear(r), linear(g), linear(b));
 	}
 
 	public RGB RGB () {

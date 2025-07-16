@@ -24,8 +24,8 @@ public record Oklch (
 		return Oklab().RGB();
 	}
 
-	public LinearRGB LinearRGB () {
-		return Oklab().LinearRGB();
+	public LRGB LRGB () {
+		return Oklab().LRGB();
 	}
 
 	public uv uv () {

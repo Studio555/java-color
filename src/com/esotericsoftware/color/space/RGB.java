@@ -6,7 +6,7 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.Gamut;
 import com.esotericsoftware.color.Util;
 
-/** Standard RGB with sRGB gamma encoding. Values are clamped [0..1], use {@link LinearRGB} or {@link XYZ} for interchange to
+/** Standard RGB with sRGB gamma encoding. Values are clamped [0..1], use {@link LRGB} or {@link XYZ} for interchange to
  * preserve wide-gamut colors. */
 public record RGB (
 	/** Red [0..1]. */
@@ -53,8 +53,8 @@ public record RGB (
 		};
 	}
 
-	public LinearRGB LinearRGB () {
-		return new LinearRGB(linear(r), linear(g), linear(b));
+	public LRGB LRGB () {
+		return new LRGB(linear(r), linear(g), linear(b));
 	}
 
 	/** @return NaN if invalid. */

@@ -14,7 +14,7 @@ public record HSL (
 	/** Lightness [0..1]. */
 	float L) implements Color {
 
-	public LinearRGB LinearRGB () {
+	public LRGB LRGB () {
 		float r = 0, g = 0, b = 0;
 		if (S < EPSILON) // Gray.
 			r = g = b = L;
@@ -25,7 +25,7 @@ public record HSL (
 			g = hueToRGB(v1, v2, H);
 			b = hueToRGB(v1, v2, H - 1 / 3f);
 		}
-		return new LinearRGB(linear(r), linear(g), linear(b));
+		return new LRGB(linear(r), linear(g), linear(b));
 	}
 
 	public RGB RGB () {

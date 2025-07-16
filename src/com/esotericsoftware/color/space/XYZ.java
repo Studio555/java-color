@@ -124,9 +124,9 @@ public record XYZ (
 		return new Lab(116 * Y - 16, 500 * (X - Y), 200 * (Y - Z));
 	}
 
-	public LinearRGB LinearRGB () {
+	public LRGB LRGB () {
 		float X = this.X / 100, Y = this.Y / 100, Z = this.Z / 100;
-		return new LinearRGB( //
+		return new LRGB( //
 			3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z, //
 			-0.969266f * X + 1.8760108f * Y + 0.041556f * Z, //
 			0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z);

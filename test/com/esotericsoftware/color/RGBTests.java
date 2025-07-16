@@ -17,7 +17,7 @@ import com.esotericsoftware.color.space.LCh;
 import com.esotericsoftware.color.space.LMS;
 import com.esotericsoftware.color.space.LMS.CAT;
 import com.esotericsoftware.color.space.Lab;
-import com.esotericsoftware.color.space.LinearRGB;
+import com.esotericsoftware.color.space.LRGB;
 import com.esotericsoftware.color.space.Luv;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.RGBW;
@@ -115,7 +115,7 @@ public class RGBTests extends Tests {
 	}
 
 	@Test
-	public void testLinearRGB () {
+	public void testLRGB () {
 		// Test RGB values
 		RGB[] testColors = {new RGB(1, 0, 0), // Red
 			new RGB(0, 1, 0), // Green
@@ -126,15 +126,15 @@ public class RGBTests extends Tests {
 
 		for (RGB rgb : testColors) {
 			// Test linear RGB to XYZ round trip
-			LinearRGB linearRgb = rgb.LinearRGB(); // This applies linearization
+			LRGB linearRgb = rgb.LRGB(); // This applies linearization
 			XYZ xyz = linearRgb.XYZ();
-			LinearRGB linearBack = xyz.LinearRGB();
+			LRGB linearBack = xyz.LRGB();
 
 			assertClose(linearRgb, linearBack, EPSILON_F, "Linear RGB round trip");
 
 			// Test that the same numerical values interpreted as linear vs gamma-corrected produce different XYZ
-			// Create LinearRGB with same numerical values as the gamma-corrected RGB (no conversion)
-			LinearRGB linearSameValues = new LinearRGB(rgb.r(), rgb.g(), rgb.b());
+			// Create LRGB with same numerical values as the gamma-corrected RGB (no conversion)
+			LRGB linearSameValues = new LRGB(rgb.r(), rgb.g(), rgb.b());
 			XYZ xyzLinear = linearSameValues.XYZ();
 			XYZ xyzGamma = rgb.XYZ();
 
@@ -459,23 +459,23 @@ public class RGBTests extends Tests {
 	@Test
 	public void testRGBW () {
 		// Test with perfect white LED (ideal case)
-		LinearRGB white = new LinearRGB(1, 1, 1);
-		RGBW rgbwWhite = white.RGBW(new LinearRGB(1, 1, 1));
+		LRGB white = new LRGB(1, 1, 1);
+		RGBW rgbwWhite = white.RGBW(new LRGB(1, 1, 1));
 		assertClose(0, rgbwWhite.r(), "White RGBW R");
 		assertClose(0, rgbwWhite.g(), "White RGBW G");
 		assertClose(0, rgbwWhite.b(), "White RGBW B");
 		assertClose(1, rgbwWhite.w(), "White RGBW W");
 
 		// Test pure colors with ideal white
-		LinearRGB red = new LinearRGB(1, 0, 0);
-		RGBW rgbwRed = red.RGBW(new LinearRGB(1, 1, 1));
+		LRGB red = new LRGB(1, 0, 0);
+		RGBW rgbwRed = red.RGBW(new LRGB(1, 1, 1));
 		assertClose(1, rgbwRed.r(), "Red RGBW R");
 		assertClose(0, rgbwRed.g(), "Red RGBW G");
 		assertClose(0, rgbwRed.b(), "Red RGBW B");
 		assertClose(0, rgbwRed.w(), "Red RGBW W");
 
 		// Test with warm white LED calibration
-		LinearRGB warmWhiteLED = new LinearRGB(1, 0.8f, 0.6f);
+		LRGB warmWhiteLED = new LRGB(1, 0.8f, 0.6f);
 
 		// Pure white should use only W channel up to the blue limit
 		RGBW warmWhite = white.RGBW(warmWhiteLED);
@@ -485,7 +485,7 @@ public class RGBTests extends Tests {
 		assertClose(1, warmWhite.w(), "Warm white RGBW W");
 
 		// Test mixed color
-		LinearRGB mixed = new LinearRGB(0.8f, 0.6f, 0.4f);
+		LRGB mixed = new LRGB(0.8f, 0.6f, 0.4f);
 		RGBW rgbwMixed = mixed.RGBW(warmWhiteLED);
 		// W is limited by blue channel: 0.4 / 0.6 = 0.667
 		float expectedW = 0.4f / 0.6f;
@@ -495,14 +495,14 @@ public class RGBTests extends Tests {
 		assertEquals(0, rgbwMixed.b(), 0.001, "Mixed RGBW B"); // Should be 0
 
 		// Test warm white conversion
-		RGBW defaultRGBW = new LinearRGB(0.5f, 0.5f, 0.5f).RGBW(warmWhiteLED);
+		RGBW defaultRGBW = new LRGB(0.5f, 0.5f, 0.5f).RGBW(warmWhiteLED);
 		assertEquals(0.5f, defaultRGBW.w(), 0.001, "Default gray RGBW W");
 		assertEquals(0, defaultRGBW.r(), 0.001, "Default gray RGBW R");
 		assertEquals(0.1f, defaultRGBW.g(), 0.001, "Default gray RGBW G");
 		assertEquals(0.2f, defaultRGBW.b(), 0.001, "Default gray RGBW B");
 
 		// Test edge cases
-		LinearRGB black = new LinearRGB(0, 0, 0);
+		LRGB black = new LRGB(0, 0, 0);
 		RGBW rgbwBlack = black.RGBW(warmWhiteLED);
 		assertClose(0, rgbwBlack.r(), "Black RGBW R");
 		assertClose(0, rgbwBlack.g(), "Black RGBW G");
@@ -510,8 +510,8 @@ public class RGBTests extends Tests {
 		assertClose(0, rgbwBlack.w(), "Black RGBW W");
 
 		// Test that total light output is preserved
-		LinearRGB testRGB = new LinearRGB(0.7f, 0.5f, 0.3f);
-		RGBW testRGBW = testRGB.RGBW(new LinearRGB(0.9f, 0.7f, 0.5f));
+		LRGB testRGB = new LRGB(0.7f, 0.5f, 0.3f);
+		RGBW testRGBW = testRGB.RGBW(new LRGB(0.9f, 0.7f, 0.5f));
 		// Verify: original = RGBW.rgb + W * calibration
 		float reconR = testRGBW.r() + testRGBW.w() * 0.9f;
 		float reconG = testRGBW.g() + testRGBW.w() * 0.7f;
@@ -526,7 +526,7 @@ public class RGBTests extends Tests {
 		assertEquals("255, 128, 64, 191", Util.toString255(hexTest), "RGBW toString255");
 
 		// Test CCT to RGBW conversion
-		LinearRGB scaledWhite = new LinearRGB(1.8f, 1.6f, 1f); // Scaled warm white LED (~2700K)
+		LRGB scaledWhite = new LRGB(1.8f, 1.6f, 1f); // Scaled warm white LED (~2700K)
 
 		// Test maximum brightness at full
 		RGB target4000 = new CCT(4000, 0).RGB();
@@ -574,16 +574,16 @@ public class RGBTests extends Tests {
 	@Test
 	public void testRGBWW () {
 		// Test RGB to RGBWW with two whites
-		LinearRGB warmWhite = new LinearRGB(1.8f, 1.6f, 1f); // 2700K-ish, scaled
-		LinearRGB coolWhite = new LinearRGB(1.2f, 1.4f, 1.8f); // 6500K-ish, scaled
+		LRGB warmWhite = new LRGB(1.8f, 1.6f, 1f); // 2700K-ish, scaled
+		LRGB coolWhite = new LRGB(1.2f, 1.4f, 1.8f); // 6500K-ish, scaled
 
 		// Test warm color - should prefer warm white
-		LinearRGB warmColor = new LinearRGB(0.8f, 0.6f, 0.4f);
+		LRGB warmColor = new LRGB(0.8f, 0.6f, 0.4f);
 		RGBWW warmResult = warmColor.RGBWW(warmWhite, coolWhite);
 		assertTrue(warmResult.w1() > warmResult.w2(), "Warm color should use more warm white");
 
 		// Test cool color - should prefer cool white
-		LinearRGB coolColor = new LinearRGB(0.4f, 0.5f, 0.8f);
+		LRGB coolColor = new LRGB(0.4f, 0.5f, 0.8f);
 		RGBWW coolResult = coolColor.RGBWW(warmWhite, coolWhite);
 		assertTrue(coolResult.w2() > coolResult.w1(), "Cool color should use more cool white");
 

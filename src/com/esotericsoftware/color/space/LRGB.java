@@ -6,8 +6,8 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.Gamut;
 import com.esotericsoftware.color.Util;
 
-/** RGB without gamma correction. Values are not clamped. */
-public record LinearRGB (
+/** Linear RGB, without gamma correction. Values are not clamped. */
+public record LRGB (
 	/** Red [0..1]. */
 	float r,
 	/** Green [0..1]. */
@@ -15,7 +15,7 @@ public record LinearRGB (
 	/** Blue [0..1]. */
 	float b) implements Color {
 
-	public LinearRGB (int rgb) {
+	public LRGB (int rgb) {
 		this( //
 			((rgb & 0xff0000) >>> 16) / 255f, //
 			((rgb & 0x00ff00) >>> 8) / 255f, //
@@ -31,11 +31,11 @@ public record LinearRGB (
 		};
 	}
 
-	public LinearRGB set (int index, float value) {
+	public LRGB set (int index, float value) {
 		return switch (index) {
-		case 0 -> new LinearRGB(value, g, b);
-		case 1 -> new LinearRGB(r, value, b);
-		case 2 -> new LinearRGB(r, g, value);
+		case 0 -> new LRGB(value, g, b);
+		case 1 -> new LRGB(r, value, b);
+		case 2 -> new LRGB(r, g, value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
 	}
@@ -46,7 +46,7 @@ public record LinearRGB (
 
 	/** Convert to RGBW using one calibrated white LED color. Brightness of this RGB is preserved.
 	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr *= wlux / rlux */
-	public RGBW RGBW (LinearRGB w) {
+	public RGBW RGBW (LRGB w) {
 		// How much of each channel the white LED can provide.
 		float ratioR = r / w.r, ratioG = g / w.g, ratioB = b / w.b;
 		// The white level is limited by the channel that needs the least white contribution.
@@ -59,7 +59,7 @@ public record LinearRGB (
 	/** Convert to RGBWW using two calibrated white LED colors. Brightness of this RGB is preserved.
 	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
 	 * @param w2 Second white LED color. */
-	public RGBWW RGBWW (LinearRGB w1, LinearRGB w2) {
+	public RGBWW RGBWW (LRGB w1, LRGB w2) {
 		// How much of each channel the white LED can provide.
 		float ratioR1 = r / w1.r, ratioG1 = g / w1.g, ratioB1 = b / w1.b;
 		float ratioR2 = r / w2.r, ratioG2 = g / w2.g, ratioB2 = b / w2.b;
@@ -93,29 +93,29 @@ public record LinearRGB (
 		return 21.26729f * r + 71.51522f * g + 7.2175f * b;
 	}
 
-	public LinearRGB add (float value) {
-		return new LinearRGB(r + value, g + value, b + value);
+	public LRGB add (float value) {
+		return new LRGB(r + value, g + value, b + value);
 	}
 
-	public LinearRGB add (int index, float value) {
+	public LRGB add (int index, float value) {
 		return switch (index) {
-		case 0 -> new LinearRGB(r + value, g, b);
-		case 1 -> new LinearRGB(r, g + value, b);
-		case 2 -> new LinearRGB(r, g, b + value);
+		case 0 -> new LRGB(r + value, g, b);
+		case 1 -> new LRGB(r, g + value, b);
+		case 2 -> new LRGB(r, g, b + value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
 	}
 
-	public LinearRGB add (float r, float g, float b) {
-		return new LinearRGB(this.r + r, this.g + g, this.b + b);
+	public LRGB add (float r, float g, float b) {
+		return new LRGB(this.r + r, this.g + g, this.b + b);
 	}
 
-	public LinearRGB clamp () {
-		return new LinearRGB(Util.clamp(r), Util.clamp(g), Util.clamp(b));
+	public LRGB clamp () {
+		return new LRGB(Util.clamp(r), Util.clamp(g), Util.clamp(b));
 	}
 
-	public LinearRGB lerp (LinearRGB other, float t) {
-		return new LinearRGB(Util.lerp(r, other.r, t), Util.lerp(g, other.g, t), Util.lerp(b, other.b, t));
+	public LRGB lerp (LRGB other, float t) {
+		return new LRGB(Util.lerp(r, other.r, t), Util.lerp(g, other.g, t), Util.lerp(b, other.b, t));
 	}
 
 	public float max () {
@@ -126,50 +126,50 @@ public record LinearRGB (
 		return Util.min(r, g, b);
 	}
 
-	public LinearRGB nor () {
+	public LRGB nor () {
 		float max = max();
-		return max < EPSILON ? this : new LinearRGB(r / max, g / max, b / max);
+		return max < EPSILON ? this : new LRGB(r / max, g / max, b / max);
 	}
 
-	public LinearRGB sub (float value) {
-		return new LinearRGB(r - value, g - value, b - value);
+	public LRGB sub (float value) {
+		return new LRGB(r - value, g - value, b - value);
 	}
 
-	public LinearRGB sub (int index, float value) {
+	public LRGB sub (int index, float value) {
 		return switch (index) {
-		case 0 -> new LinearRGB(r - value, g, b);
-		case 1 -> new LinearRGB(r, g - value, b);
-		case 2 -> new LinearRGB(r, g, b - value);
+		case 0 -> new LRGB(r - value, g, b);
+		case 1 -> new LRGB(r, g - value, b);
+		case 2 -> new LRGB(r, g, b - value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
 	}
 
-	public LinearRGB sub (float r, float g, float b) {
-		return new LinearRGB(this.r - r, this.g - g, this.b - b);
+	public LRGB sub (float r, float g, float b) {
+		return new LRGB(this.r - r, this.g - g, this.b - b);
 	}
 
-	public LinearRGB scl (float value) {
-		return new LinearRGB(r * value, g * value, b * value);
+	public LRGB scl (float value) {
+		return new LRGB(r * value, g * value, b * value);
 	}
 
-	public LinearRGB scl (int index, float value) {
+	public LRGB scl (int index, float value) {
 		return switch (index) {
-		case 0 -> new LinearRGB(r * value, g, b);
-		case 1 -> new LinearRGB(r, g * value, b);
-		case 2 -> new LinearRGB(r, g, b * value);
+		case 0 -> new LRGB(r * value, g, b);
+		case 1 -> new LRGB(r, g * value, b);
+		case 2 -> new LRGB(r, g, b * value);
 		default -> throw new IndexOutOfBoundsException(index);
 		};
 	}
 
-	public LinearRGB scl (float r, float g, float b) {
-		return new LinearRGB(this.r * r, this.g * g, this.b * b);
+	public LRGB scl (float r, float g, float b) {
+		return new LRGB(this.r * r, this.g * g, this.b * b);
 	}
 
-	public float dst (LinearRGB other) {
+	public float dst (LRGB other) {
 		return (float)Math.sqrt(dst2(other));
 	}
 
-	public float dst2 (LinearRGB other) {
+	public float dst2 (LRGB other) {
 		float dr = r - other.r, dg = g - other.g, db = b - other.b;
 		return dr * dr + dg * dg + db * db;
 	}
@@ -183,7 +183,7 @@ public record LinearRGB (
 	}
 
 	@SuppressWarnings("all")
-	public LinearRGB LinearRGB () {
+	public LRGB LRGB () {
 		return this;
 	}
 }

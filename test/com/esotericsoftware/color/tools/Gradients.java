@@ -13,7 +13,7 @@ import com.esotericsoftware.color.space.CAM02UCS;
 import com.esotericsoftware.color.space.CAM16;
 import com.esotericsoftware.color.space.CAM16UCS;
 import com.esotericsoftware.color.space.Lab;
-import com.esotericsoftware.color.space.LinearRGB;
+import com.esotericsoftware.color.space.LRGB;
 import com.esotericsoftware.color.space.Oklab;
 import com.esotericsoftware.color.space.RGB;
 
@@ -80,19 +80,19 @@ public class Gradients {
 	private RGB interpolateInColorSpace (String colorSpace, RGB from, RGB to, float t) {
 		return switch (colorSpace) {
 		case "RGB" -> from.lerp(to, t);
-		case "LinearRGB" -> {
-			LinearRGB c1 = from.LinearRGB();
-			LinearRGB c2 = to.LinearRGB();
+		case "LRGB" -> {
+			LRGB c1 = from.LRGB();
+			LRGB c2 = to.LRGB();
 			yield c1.lerp(c2, t).RGB();
 		}
-		case "LinearRGB+L" -> {
+		case "LRGB+L" -> {
 			// Get target L* in Lab space.
 			Lab lab1 = from.Lab();
 			Lab lab2 = to.Lab();
 			float targetL = lerp(lab1.L(), lab2.L(), t);
 
 			// Convert to Lab to adjust lightness while preserving hue/chroma direction.
-			Lab currentLab = from.LinearRGB().lerp(to.LinearRGB(), t).RGB().Lab();
+			Lab currentLab = from.LRGB().lerp(to.LRGB(), t).RGB().Lab();
 
 			// Use target L* but preserve a,b ratios (color direction).
 			yield new Lab(targetL, currentLab.a(), currentLab.b()).RGB();
@@ -105,7 +105,7 @@ public class Gradients {
 			float targetL = lerp(ok1.L(), ok2.L(), t);
 
 			// Convert to Oklab to adjust lightness while preserving hue/chroma direction.
-			Oklab currentOklab = from.LinearRGB().lerp(to.LinearRGB(), t).RGB().Oklab();
+			Oklab currentOklab = from.LRGB().lerp(to.LRGB(), t).RGB().Oklab();
 
 			// Use target L* but preserve a,b ratios (color direction).
 			yield new Oklab(targetL, currentOklab.a(), currentOklab.b()).RGB();
@@ -166,8 +166,8 @@ public class Gradients {
 		config.colorSpaces.add("RGB");
 		config.colorSpaces.add("Lab");
 		config.colorSpaces.add("XYZ");
-		config.colorSpaces.add("LinearRGB");
-		config.colorSpaces.add("LinearRGB+L");
+		config.colorSpaces.add("LRGB");
+		config.colorSpaces.add("LRGB+L");
 		config.colorSpaces.add("Oklab+L");
 		config.colorSpaces.add("Luv");
 		config.colorSpaces.add("CAM02UCS");

@@ -14,8 +14,8 @@ public record HSV (
 	/** Value/Brightness [0..1]. */
 	float V) implements Color {
 
-	public LinearRGB LinearRGB () {
-		if (Float.isNaN(H) || S < EPSILON) return new LinearRGB(linear(V), linear(V), linear(V));
+	public LRGB LRGB () {
+		if (Float.isNaN(H) || S < EPSILON) return new LRGB(linear(V), linear(V), linear(V));
 		float f = H / 60 - (float)Math.floor(H / 60);
 		float p = V * (1 - S);
 		float q = V * (1 - f * S);
@@ -53,7 +53,7 @@ public record HSV (
 			b = q;
 		}
 		}
-		return new LinearRGB(linear(r), linear(g), linear(b));
+		return new LRGB(linear(r), linear(g), linear(b));
 	}
 
 	public RGB RGB () {

@@ -15,8 +15,8 @@ public record HCT (
 	float T) implements Color {
 
 	/** Uses {@link CAM16.VC#HCT}. */
-	public LinearRGB LinearRGB () {
-		return RGB().LinearRGB();
+	public LRGB LRGB () {
+		return RGB().LRGB();
 	}
 
 	/** Uses {@link CAM16.VC#HCT}. */

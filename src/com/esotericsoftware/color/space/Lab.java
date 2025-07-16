@@ -38,8 +38,8 @@ public record Lab (
 	}
 
 	/** @param whitePoint See {@link Illuminant}. */
-	public LinearRGB LinearRGB (XYZ whitePoint) {
-		return XYZ(whitePoint).LinearRGB();
+	public LRGB LRGB (XYZ whitePoint) {
+		return XYZ(whitePoint).LRGB();
 	}
 
 	public LCh LCh () {

@@ -16,7 +16,7 @@ import com.esotericsoftware.color.space.LCh;
 import com.esotericsoftware.color.space.LMS;
 import com.esotericsoftware.color.space.LMS.CAT;
 import com.esotericsoftware.color.space.Lab;
-import com.esotericsoftware.color.space.LinearRGB;
+import com.esotericsoftware.color.space.LRGB;
 import com.esotericsoftware.color.space.O1O2;
 import com.esotericsoftware.color.space.Oklab;
 import com.esotericsoftware.color.space.RGB;
@@ -661,10 +661,10 @@ public class ColorsTest extends Tests {
 		XYZ nanXYZ = nanRGB.XYZ();
 		assertTrue(Float.isNaN(nanXYZ.X()), "NaN propagation in XYZ");
 
-		// Test infinity handling - RGB clamps infinity to 1, so use LinearRGB for edge case testing
-		LinearRGB infLinearRGB = new LinearRGB(Float.POSITIVE_INFINITY, 0.5f, 0.5f);
-		XYZ infXYZ = infLinearRGB.XYZ();
-		assertTrue(Float.isInfinite(infXYZ.X()), "Infinity propagation in XYZ from LinearRGB");
+		// Test infinity handling - RGB clamps infinity to 1, so use LRGB for edge case testing
+		LRGB infLRGB = new LRGB(Float.POSITIVE_INFINITY, 0.5f, 0.5f);
+		XYZ infXYZ = infLRGB.XYZ();
+		assertTrue(Float.isInfinite(infXYZ.X()), "Infinity propagation in XYZ from LRGB");
 
 		// Test boundary values
 		RGB black = new RGB(0, 0, 0);
@@ -752,9 +752,9 @@ public class ColorsTest extends Tests {
 			new RGB(0.2f, 0.5f, 0.8f), new RGB(0.5f, 0.8f, 0.2f), new RGB(0.8f, 0.2f, 0.5f), new RGB(0.33f, 0.17f, 0.19f)};
 
 		for (RGB rgb : testColors) {
-			var linear = rgb.LinearRGB();
+			var linear = rgb.LRGB();
 			RGB back = linear.RGB();
-			assertClose(rgb, back, EPSILON_F, "LinearRGB round trip");
+			assertClose(rgb, back, EPSILON_F, "LRGB round trip");
 		}
 
 		// Test LCHuv round trips

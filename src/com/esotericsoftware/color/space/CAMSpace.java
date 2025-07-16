@@ -41,8 +41,8 @@ public interface CAMSpace extends Color {
 			return CAM02(vc).Lab(vc);
 		}
 
-		default public LinearRGB LinearRGB (CAM02.VC vc) {
-			return CAM02(vc).LinearRGB(vc);
+		default public LRGB LRGB (CAM02.VC vc) {
+			return CAM02(vc).LRGB(vc);
 		}
 
 		default public RGB RGB (CAM02.VC vc) {
@@ -76,8 +76,8 @@ public interface CAMSpace extends Color {
 			return CAM16(vc).Lab(vc);
 		}
 
-		default public LinearRGB LinearRGB (CAM16.VC vc) {
-			return CAM16(vc).LinearRGB(vc);
+		default public LRGB LRGB (CAM16.VC vc) {
+			return CAM16(vc).LRGB(vc);
 		}
 
 		default public RGB RGB (CAM16.VC vc) {

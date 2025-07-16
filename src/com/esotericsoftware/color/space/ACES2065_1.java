@@ -10,15 +10,15 @@ public record ACES2065_1 (
 	/** Blue [0..1]. */
 	float b) implements Color {
 
-	public LinearRGB LinearRGB () {
+	public LRGB LRGB () {
 		float rLinear = 2.52140088f * r + -1.1338984f * g + -0.38750249f * b; // ACES AP0 to linear sRGB.
 		float gLinear = -0.27621892f * r + 1.37270743f * g + -0.09648852f * b;
 		float bLinear = -0.01538264f * r + -0.1529724f * g + 1.16835505f * b;
-		return new LinearRGB(rLinear, gLinear, bLinear);
+		return new LRGB(rLinear, gLinear, bLinear);
 	}
 
 	public RGB RGB () {
-		return LinearRGB().RGB();
+		return LRGB().RGB();
 	}
 
 	public XYZ XYZ () {

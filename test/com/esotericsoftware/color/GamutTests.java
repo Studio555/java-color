@@ -3,7 +3,7 @@ package com.esotericsoftware.color;
 
 import org.junit.jupiter.api.Test;
 
-import com.esotericsoftware.color.space.LinearRGB;
+import com.esotericsoftware.color.space.LRGB;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;
@@ -335,8 +335,8 @@ public class GamutTests extends Tests {
 		assertEquals(inside.y(), nearestInside.y(), EPSILON, "Inside point y should not change");
 
 		// Test that RGB conversions throw UnsupportedOperationException
-		assertThrows(UnsupportedOperationException.class, () -> polygon.XYZ(new LinearRGB(1, 0, 0)));
-		assertThrows(UnsupportedOperationException.class, () -> polygon.LinearRGB(new XYZ(50, 50, 50)));
+		assertThrows(UnsupportedOperationException.class, () -> polygon.XYZ(new LRGB(1, 0, 0)));
+		assertThrows(UnsupportedOperationException.class, () -> polygon.LRGB(new XYZ(50, 50, 50)));
 
 		// Test uv support
 		uv uvInside = inside.uv();

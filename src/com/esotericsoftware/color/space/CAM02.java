@@ -45,8 +45,8 @@ public record CAM02 (
 		return XYZ(vc).Lab();
 	}
 
-	public LinearRGB LinearRGB (CAM02.VC vc) {
-		return XYZ(vc).LinearRGB();
+	public LRGB LRGB (CAM02.VC vc) {
+		return XYZ(vc).LRGB();
 	}
 
 	public RGB RGB (CAM02.VC vc) {

@@ -10,12 +10,12 @@ public record ACEScc (
 	/** Blue [0..1]. */
 	float b) implements Color {
 
-	public LinearRGB LinearRGB () {
-		return new ACEScg(decode(r), decode(g), decode(b)).LinearRGB();
+	public LRGB LRGB () {
+		return new ACEScg(decode(r), decode(g), decode(b)).LRGB();
 	}
 
 	public RGB RGB () {
-		return LinearRGB().RGB();
+		return LRGB().RGB();
 	}
 
 	public XYZ XYZ () {

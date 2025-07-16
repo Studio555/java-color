@@ -12,7 +12,7 @@ public record HSI (
 	/** Intensity [0..1]. */
 	float I) implements Color {
 
-	public LinearRGB LinearRGB () {
+	public LRGB LRGB () {
 		float H = this.H * degRad;
 		float r, g, b;
 		if (S < EPSILON) // Gray.
@@ -32,7 +32,7 @@ public record HSI (
 			b = I * (1 + S * (float)Math.cos(H) / (float)Math.cos(PI / 3 - H));
 			r = 3 * I - g - b;
 		}
-		return new LinearRGB(linear(r), linear(g), linear(b));
+		return new LRGB(linear(r), linear(g), linear(b));
 	}
 
 	public RGB RGB () {

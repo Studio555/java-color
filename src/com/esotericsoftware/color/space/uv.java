@@ -108,9 +108,9 @@ public record uv (
 	}
 
 	/** @return Normalized. */
-	public LinearRGB LinearRGB () {
+	public LRGB LRGB () {
 		xy xy = xy();
-		return new xyY(xy.x(), xy.y(), 1).LinearRGB().nor();
+		return new xyY(xy.x(), xy.y(), 1).LRGB().nor();
 	}
 
 	/** Uses {@link Gamut#sRGB}.

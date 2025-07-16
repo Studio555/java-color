@@ -12,8 +12,8 @@ public record C1C2C3 (
 	/** Yellow-violet opponent [0..pi/2]. */
 	float C3) implements Color {
 
-	public LinearRGB LinearRGB () {
-		return RGB().LinearRGB();
+	public LRGB LRGB () {
+		return RGB().LRGB();
 	}
 
 	public RGB RGB () {

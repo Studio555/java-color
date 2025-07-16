@@ -12,7 +12,7 @@ public record YCbCr (
 	/** Red chroma [-0.5..0.5]. */
 	float Cr) {
 
-	public LinearRGB LinearRGB (YCbCrColorSpace colorSpace) {
+	public LRGB LRGB (YCbCrColorSpace colorSpace) {
 		float r, g, b;
 		if (colorSpace == YCbCrColorSpace.ITU_BT_601) {
 			r = Y + 1.402f * Cr;
@@ -23,7 +23,7 @@ public record YCbCr (
 			g = Y - 0.187324182f * Cb - 0.468124212f * Cr;
 			b = Y + 1.855599963f * Cb - 0.000000402f * Cr;
 		}
-		return new LinearRGB(linear(r), linear(g), linear(b));
+		return new LRGB(linear(r), linear(g), linear(b));
 	}
 
 	public RGB RGB (YCbCrColorSpace colorSpace) {

@@ -15,8 +15,8 @@ public record xy (
 
 	/** Uses {@link Gamut#sRGB}.
 	 * @return Normalized or NaN if invalid. */
-	public LinearRGB LinearRGB () {
-		return Gamut.sRGB.LinearRGB(this);
+	public LRGB LRGB () {
+		return Gamut.sRGB.LRGB(this);
 	}
 
 	/** Uses {@link Gamut#sRGB}.

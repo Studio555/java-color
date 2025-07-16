@@ -32,14 +32,14 @@ public record Oklab (
 		};
 	}
 
-	public LinearRGB LinearRGB () {
+	public LRGB LRGB () {
 		float l = L + 0.3963377774f * a + 0.2158037573f * b;
 		float m = L - 0.1055613458f * a - 0.0638541728f * b;
 		float s = L - 0.0894841775f * a - 1.291485548f * b;
 		l *= l * l;
 		m *= m * m;
 		s *= s * s;
-		return new LinearRGB( //
+		return new LRGB( //
 			(+4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s), //
 			(-1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s), //
 			(-0.0041960863f * l - 0.7034186147f * m + 1.707614701f * s));

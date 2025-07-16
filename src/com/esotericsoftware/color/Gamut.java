@@ -4,7 +4,7 @@ package com.esotericsoftware.color;
 import static com.esotericsoftware.color.Gamut.*;
 import static com.esotericsoftware.color.Util.*;
 
-import com.esotericsoftware.color.space.LinearRGB;
+import com.esotericsoftware.color.space.LRGB;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;
@@ -28,9 +28,9 @@ public interface Gamut {
 
 	public uv raycast (uv uv);
 
-	public XYZ XYZ (LinearRGB rgb);
+	public XYZ XYZ (LRGB rgb);
 
-	public LinearRGB LinearRGB (XYZ XYZ);
+	public LRGB LRGB (XYZ XYZ);
 
 	public XYZ whitePoint ();
 
@@ -39,39 +39,39 @@ public interface Gamut {
 	}
 
 	default public XYZ XYZ (RGB rgb) {
-		return XYZ(rgb.LinearRGB());
+		return XYZ(rgb.LRGB());
 	}
 
-	default public xy xy (LinearRGB rgb) {
+	default public xy xy (LRGB rgb) {
 		return XYZ(rgb).xy();
 	}
 
 	default public xy xy (RGB rgb) {
-		return XYZ(rgb.LinearRGB()).xy();
+		return XYZ(rgb.LRGB()).xy();
 	}
 
-	default public uv uv (LinearRGB rgb) {
+	default public uv uv (LRGB rgb) {
 		return XYZ(rgb).uv();
 	}
 
 	default public uv uv (RGB rgb) {
-		return XYZ(rgb.LinearRGB()).uv();
+		return XYZ(rgb.LRGB()).uv();
 	}
 
-	default public LinearRGB LinearRGB (xy xy) {
-		return LinearRGB(xy.XYZ(1));
+	default public LRGB LRGB (xy xy) {
+		return LRGB(xy.XYZ(1));
 	}
 
-	default public LinearRGB LinearRGB (uv uv) {
-		return LinearRGB(uv.xy().XYZ(1));
+	default public LRGB LRGB (uv uv) {
+		return LRGB(uv.xy().XYZ(1));
 	}
 
 	default public RGB RGB (xy xy) {
-		return LinearRGB(xy.XYZ(1)).RGB();
+		return LRGB(xy.XYZ(1)).RGB();
 	}
 
 	default public RGB RGB (uv uv) {
-		return LinearRGB(uv.xy().XYZ(1)).RGB();
+		return LRGB(uv.xy().XYZ(1)).RGB();
 	}
 
 	static private xy closestPointOnSegment (xy xy, GamutVertex av, GamutVertex bv) {
@@ -273,7 +273,7 @@ public interface Gamut {
 			return intersection != null ? intersection : uv;
 		}
 
-		public XYZ XYZ (LinearRGB rgb) {
+		public XYZ XYZ (LRGB rgb) {
 			float r = rgb.r(), g = rgb.g(), b = rgb.b();
 			float X = RGB_XYZ[0][0] * r + RGB_XYZ[0][1] * g + RGB_XYZ[0][2] * b;
 			float Y = RGB_XYZ[1][0] * r + RGB_XYZ[1][1] * g + RGB_XYZ[1][2] * b;
@@ -281,7 +281,7 @@ public interface Gamut {
 			return new XYZ(X * 100, Y * 100, Z * 100);
 		}
 
-		public LinearRGB LinearRGB (XYZ XYZ) {
+		public LRGB LRGB (XYZ XYZ) {
 			float X = XYZ.X() / 100, Y = XYZ.Y() / 100, Z = XYZ.Z() / 100;
 			float r = XYZ_RGB[0][0] * X + XYZ_RGB[0][1] * Y + XYZ_RGB[0][2] * Z;
 			float g = XYZ_RGB[1][0] * X + XYZ_RGB[1][1] * Y + XYZ_RGB[1][2] * Z;
@@ -292,7 +292,7 @@ public interface Gamut {
 				g /= max;
 				b /= max;
 			}
-			return new LinearRGB(r, g, b);
+			return new LRGB(r, g, b);
 		}
 
 		static private boolean below (xy xy, GamutVertex av, GamutVertex bv) {
@@ -554,12 +554,12 @@ public interface Gamut {
 		}
 
 		/** Unsupported by default. Override and implement if needed. */
-		public XYZ XYZ (LinearRGB rgb) {
+		public XYZ XYZ (LRGB rgb) {
 			throw new UnsupportedOperationException();
 		}
 
 		/** Unsupported by default. Override and implement if needed. */
-		public LinearRGB LinearRGB (XYZ XYZ) {
+		public LRGB LRGB (XYZ XYZ) {
 			throw new UnsupportedOperationException();
 		}
 	}

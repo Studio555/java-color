@@ -42,8 +42,8 @@ public record Luv (
 
 	/** @param whitePoint See {@link Illuminant}.
 	 * @return NaN if invalid. */
-	public LinearRGB LinearRGB (XYZ whitePoint) {
-		return XYZ(whitePoint).LinearRGB();
+	public LRGB LRGB (XYZ whitePoint) {
+		return XYZ(whitePoint).LRGB();
 	}
 
 	/** @param whitePoint See {@link Illuminant}.

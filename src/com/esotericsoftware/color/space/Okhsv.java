@@ -30,7 +30,7 @@ public record Okhsv (
 		float C_vt = C_v * L_vt / L_v;
 		float L_new = toeInv(L);
 		C *= L_new / L;
-		LinearRGB l_r = new Oklab(L_vt, a_ * C_vt, b_ * C_vt).LinearRGB();
+		LRGB l_r = new Oklab(L_vt, a_ * C_vt, b_ * C_vt).LRGB();
 		float scale = (float)Math.cbrt(1 / Math.max(0, max(l_r.r(), l_r.g(), l_r.b())));
 		C *= scale;
 		return new Oklab(L_new * scale, C * a_, C * b_).RGB();
@@ -65,7 +65,7 @@ public record Okhsv (
 
 	static float[] cuspST (float a, float b) {
 		float S_cusp = maxSaturation(a, b);
-		LinearRGB rgb_at_max = new Oklab(1, S_cusp * a, S_cusp * b).LinearRGB();
+		LRGB rgb_at_max = new Oklab(1, S_cusp * a, S_cusp * b).LRGB();
 		float L = (float)Math.cbrt(1 / max(rgb_at_max.r(), rgb_at_max.g(), rgb_at_max.b()));
 		float C = L * S_cusp;
 		return new float[] {C / L, C / (1 - L)};

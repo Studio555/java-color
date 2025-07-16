@@ -10,7 +10,7 @@ import com.esotericsoftware.color.space.YCbCr.YCbCrColorSpace;
 
 public interface Color {
 	default public ACES2065_1 ACES2065_1 () {
-		LinearRGB rgb = LinearRGB();
+		LRGB rgb = LRGB();
 		return new ACES2065_1( //
 			0.43953127f * rgb.r() + 0.38391885f * rgb.g() + 0.17654988f * rgb.b(), // To AP0.
 			0.08959387f * rgb.r() + 0.81347942f * rgb.g() + 0.09692672f * rgb.b(), //
@@ -18,7 +18,7 @@ public interface Color {
 	}
 
 	default public ACEScg ACEScg () {
-		LinearRGB rgb = LinearRGB();
+		LRGB rgb = LRGB();
 		return new ACEScg( //
 			0.61309741f * rgb.r() + 0.33952315f * rgb.g() + 0.04737945f * rgb.b(), // To AP1.
 			0.07019486f * rgb.r() + 0.91635524f * rgb.g() + 0.0134499f * rgb.b(), //
@@ -191,7 +191,7 @@ public interface Color {
 	}
 
 	default public ITP ITP () {
-		LinearRGB rgb = LinearRGB();
+		LRGB rgb = LRGB();
 		float r2020 = 0.627404f * rgb.r() + 0.329282f * rgb.g() + 0.0433136f * rgb.b(); // To BT.2020.
 		float g2020 = 0.069097f * rgb.r() + 0.91954f * rgb.g() + 0.0113612f * rgb.b();
 		float b2020 = 0.0163916f * rgb.r() + 0.0880132f * rgb.g() + 0.895595f * rgb.b();
@@ -230,8 +230,8 @@ public interface Color {
 		return Luv().LCHuv();
 	}
 
-	default public LinearRGB LinearRGB () {
-		return XYZ().LinearRGB();
+	default public LRGB LRGB () {
+		return XYZ().LRGB();
 	}
 
 	/** Uses {@link com.esotericsoftware.color.space.LMS.CAT#Bradford}. */
@@ -263,7 +263,7 @@ public interface Color {
 	}
 
 	default public Oklab Oklab () {
-		LinearRGB rgb = LinearRGB();
+		LRGB rgb = LRGB();
 		float l = (float)Math.cbrt(0.4122214708f * rgb.r() + 0.5363325363f * rgb.g() + 0.0514459929f * rgb.b());
 		float m = (float)Math.cbrt(0.2119034982f * rgb.r() + 0.6806995451f * rgb.g() + 0.1073969566f * rgb.b());
 		float s = (float)Math.cbrt(0.0883024619f * rgb.r() + 0.2817188376f * rgb.g() + 0.6299787005f * rgb.b());
@@ -314,7 +314,7 @@ public interface Color {
 		float[] ST_max = Okhsv.cuspST(a_, b_);
 		float T_max = ST_max[1], S_0 = 0.5f, k = 1 - S_0 / ST_max[0], t = T_max / (C + L * T_max);
 		float L_v = t * L, C_v = t * C, L_vt = Okhsv.toeInv(L_v), C_vt = C_v * L_vt / L_v;
-		LinearRGB l_r = new Oklab(L_vt, a_ * C_vt, b_ * C_vt).LinearRGB();
+		LRGB l_r = new Oklab(L_vt, a_ * C_vt, b_ * C_vt).LRGB();
 		L /= (float)Math.cbrt(1 / Math.max(0, l_r.max()));
 		float Lt = Okhsv.toe(L);
 		return new Okhsv(h, clamp((S_0 + T_max) * C_v / (T_max * S_0 + T_max * k * C_v)), clamp(Lt / L_v));
