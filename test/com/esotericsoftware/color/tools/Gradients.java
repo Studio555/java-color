@@ -12,8 +12,8 @@ import com.esotericsoftware.color.space.CAM02;
 import com.esotericsoftware.color.space.CAM02UCS;
 import com.esotericsoftware.color.space.CAM16;
 import com.esotericsoftware.color.space.CAM16UCS;
-import com.esotericsoftware.color.space.Lab;
 import com.esotericsoftware.color.space.LRGB;
+import com.esotericsoftware.color.space.Lab;
 import com.esotericsoftware.color.space.Oklab;
 import com.esotericsoftware.color.space.RGB;
 
