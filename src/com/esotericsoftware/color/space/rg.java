@@ -24,6 +24,10 @@ public record rg (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	@SuppressWarnings("all")
 	public rg rg () {
 		return this;

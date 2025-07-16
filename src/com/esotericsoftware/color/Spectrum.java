@@ -244,12 +244,18 @@ public record Spectrum (float[] values, int step, int start) {
 
 	/** Uses {@link Observer#Default}. Requires 380nm @ 5nm to [700..780+]nm. */
 	public float Y () {
-		return XYZ().Y();
+		return Y(Observer.Default);
 	}
 
 	/** Requires 380nm @ 5nm to [700..780+]nm. */
 	public float Y (Observer observer) {
-		return XYZ(observer).Y();
+		checkVisibleRange();
+		float Y = 0;
+		for (int i = 0, n = Math.min(values.length, 81); i < n; i++)
+			Y += values[i] * observer.ybar[i];
+		if (Y < EPSILON) return Float.NaN;
+		float factor = 100 / observer.ybarIntegral * step;
+		return Y * factor;
 	}
 
 	/** Total luminous flux (relative) weighted by the photopic luminosity function. Requires 380nm @ 5nm to [700..780+]nm. */

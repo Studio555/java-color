@@ -28,6 +28,10 @@ public record HSLuv (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	public HSLuv lerp (HSLuv other, float t) {
 		return new HSLuv(lerpAngle(H, other.H, t), Util.lerp(S, other.S, t), Util.lerp(L, other.L, t));
 	}

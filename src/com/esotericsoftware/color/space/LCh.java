@@ -46,6 +46,15 @@ public record LCh (
 		return Lab().XYZ(whitePoint);
 	}
 
+	/** Uses {@link Observer#Default} D65. */
+	public float Y () {
+		return Y(Observer.Default.D65);
+	}
+
+	public float Y (XYZ whitePoint) {
+		return Lab().Y(whitePoint);
+	}
+
 	public LCh lerp (LCh other, float t) {
 		return new LCh(Util.lerp(L, other.L, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t));
 	}

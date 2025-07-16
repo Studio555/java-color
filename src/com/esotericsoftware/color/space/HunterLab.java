@@ -18,6 +18,11 @@ public record HunterLab (
 		return new XYZ((tempX + Y) / 1.02f, Y, -(tempZ - Y) / 0.847f);
 	}
 
+	public float Y () {
+		float tempY = L / 10;
+		return tempY * tempY;
+	}
+
 	@SuppressWarnings("all")
 	public HunterLab HunterLab () {
 		return this;

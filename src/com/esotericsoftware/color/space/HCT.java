@@ -41,6 +41,10 @@ public record HCT (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	public HCT lerp (HCT other, float t) {
 		return new HCT(lerpAngle(h, other.h, t), Util.lerp(C, other.C, t), Util.lerp(T, other.T, t));
 	}

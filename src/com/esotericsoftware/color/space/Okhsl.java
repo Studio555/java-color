@@ -35,6 +35,10 @@ public record Okhsl (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	@SuppressWarnings("all")
 	public Okhsl Okhsl () {
 		return this;

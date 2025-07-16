@@ -51,6 +51,15 @@ public record LCHuv (
 		return Luv().XYZ(whitePoint);
 	}
 
+	/** Uses {@link Observer#Default} D65. */
+	public float Y () {
+		return Y(Observer.Default.D65);
+	}
+
+	public float Y (XYZ whitePoint) {
+		return Lab().Y(whitePoint);
+	}
+
 	@SuppressWarnings("all")
 	public LCHuv LCHuv () {
 		return this;

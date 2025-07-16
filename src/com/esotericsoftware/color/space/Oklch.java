@@ -40,6 +40,10 @@ public record Oklch (
 		return Oklab().XYZ();
 	}
 
+	public float Y () {
+		return Oklab().Y();
+	}
+
 	public Oklch lerp (Oklch other, float t) {
 		return new Oklch(Util.lerp(L, other.L, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t));
 	}

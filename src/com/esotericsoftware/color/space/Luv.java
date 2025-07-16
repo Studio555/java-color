@@ -76,6 +76,15 @@ public record Luv (
 		return new XYZ(X, Y, Z);
 	}
 
+	/** Uses {@link Observer#Default} D65. */
+	public float Y () {
+		return Y(Observer.Default.D65);
+	}
+
+	public float Y (XYZ whitePoint) {
+		return L < EPSILON ? 0 : Lab.LstarToYn(L) * whitePoint.Y();
+	}
+
 	public Luv add (float value) {
 		return new Luv(L + value, u + value, v + value);
 	}

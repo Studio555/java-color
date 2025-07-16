@@ -40,6 +40,10 @@ public record Okhsv (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	public Okhsv lerp (Okhsv other, float t) {
 		return new Okhsv(lerpAngle(h, other.h, t), Util.lerp(s, other.s, t), Util.lerp(v, other.v, t));
 	}

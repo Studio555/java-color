@@ -32,6 +32,10 @@ public record IHS (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	@SuppressWarnings("all")
 	public IHS IHS () {
 		return this;

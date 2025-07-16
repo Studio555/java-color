@@ -62,6 +62,10 @@ public record HSI (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	@SuppressWarnings("all")
 	public HSI HSI () {
 		return this;

@@ -33,6 +33,10 @@ public record TSL (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	@SuppressWarnings("all")
 	public TSL TSL () {
 		return this;

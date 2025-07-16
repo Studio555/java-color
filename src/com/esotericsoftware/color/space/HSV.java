@@ -102,6 +102,10 @@ public record HSV (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	public HSV lerp (HSV other, float t) {
 		return new HSV(lerpAngle(H, other.H, t), Util.lerp(S, other.S, t), Util.lerp(V, other.V, t));
 	}

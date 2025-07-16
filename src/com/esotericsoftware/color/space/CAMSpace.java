@@ -65,6 +65,10 @@ public interface CAMSpace extends Color {
 		default public XYZ XYZ (CAM02.VC vc) {
 			return CAM02(vc).XYZ(vc);
 		}
+
+		default public float Y (CAM02.VC vc) {
+			return CAM02(vc).XYZ(vc).Y();
+		}
 	}
 
 	public interface CAM16Space extends CAMSpace {
@@ -95,6 +99,10 @@ public interface CAMSpace extends Color {
 
 		default public XYZ XYZ (CAM16.VC vc) {
 			return CAM16(vc).XYZ(vc);
+		}
+
+		default public float Y (CAM16.VC vc) {
+			return CAM16(vc).XYZ(vc).Y();
 		}
 	}
 }

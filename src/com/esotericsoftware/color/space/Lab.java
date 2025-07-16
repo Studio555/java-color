@@ -72,6 +72,15 @@ public record Lab (
 		return new XYZ(X * whitePoint.X(), Y * whitePoint.Y(), Z * whitePoint.Z());
 	}
 
+	/** Uses {@link Observer#Default} D65. */
+	public float Y () {
+		return Y(Observer.Default.D65);
+	}
+
+	public float Y (XYZ whitePoint) {
+		return (L + 16) / 116 * whitePoint.Y();
+	}
+
 	/** CIEDE2000 color difference, considering lightness, chromaticity, and hue.
 	 * @param kL Lightness scaling factor. The lightness component is divided by this value (>1 less impact).
 	 * @param kC Chroma scaling factor. The chroma component is divided by this value (>1 less impact).

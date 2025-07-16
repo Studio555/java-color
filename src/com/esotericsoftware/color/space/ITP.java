@@ -38,6 +38,10 @@ public record ITP (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	public ITP lerp (ITP other, float t) {
 		return new ITP(Util.lerp(I, other.I, t), Util.lerp(Ct, other.Ct, t), Util.lerp(Cp, other.Cp, t));
 	}

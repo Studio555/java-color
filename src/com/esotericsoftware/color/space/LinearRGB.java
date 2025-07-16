@@ -84,9 +84,13 @@ public record LinearRGB (
 
 	public XYZ XYZ () {
 		return new XYZ( //
-			(0.4124564f * r + 0.3575761f * g + 0.1804375f * b) * 100, //
-			(0.2126729f * r + 0.7151522f * g + 0.072175f * b) * 100, //
-			(0.0193339f * r + 0.119192f * g + 0.9503041f * b) * 100);
+			41.24564f * r + 35.75761f * g + 18.04375f * b, //
+			21.26729f * r + 71.51522f * g + 7.2175f * b, //
+			1.93339f * r + 11.9192f * g + 95.03041f * b);
+	}
+
+	public float Y () {
+		return 21.26729f * r + 71.51522f * g + 7.2175f * b;
 	}
 
 	public LinearRGB add (float value) {

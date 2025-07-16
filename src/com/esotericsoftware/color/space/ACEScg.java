@@ -22,10 +22,14 @@ public record ACEScg (
 	}
 
 	public XYZ XYZ () {
-		float X = 0.6624541811f * r + 0.2722287168f * g + 0.0051619419f * b; // ACES AP1 to XYZ D65.
-		float Y = 0.1340042065f * r + 0.6740817658f * g + 0.0040607335f * b;
-		float Z = 0.156187687f * r + 0.0536951054f * g + 0.7237067219f * b;
-		return new XYZ(X * 100, Y * 100, Z * 100);
+		float X = 66.24541811f * r + 27.22287168f * g + 0.51619419f * b; // ACES AP1 to XYZ D65.
+		float Y = 13.40042065f * r + 67.40817658f * g + 0.40607335f * b;
+		float Z = 15.6187687f * r +  5.36951054f * g +  72.37067219f * b;
+		return new XYZ(X, Y, Z);
+	}
+
+	public float Y () {
+		return 13.40042065f * r + 67.40817658f * g + 0.40607335f * b;
 	}
 
 	@SuppressWarnings("all")

@@ -117,6 +117,10 @@ public record CAM02 (
 			rF * -0.0096f + gF * -0.0057f + bF * 1.0153f);
 	}
 
+	public float Y (CAM02.VC vc) {
+		return XYZ(vc).Y();
+	}
+
 	/** @return JCh are interpolated, QMs are NaN. */
 	public CAM02 lerp (CAM02 other, float t) {
 		return new CAM02(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), //

@@ -158,6 +158,9 @@ public interface Gamut {
 			wpuv = whitePoint.uv();
 			RGB_XYZ = RGB_XYZ();
 			XYZ_RGB = invert3x3(RGB_XYZ);
+			for (int row = 0; row < 3; row++)
+				for (int column = 0; column < 3; column++)
+					RGB_XYZ[row][column] *= 100;
 		}
 
 		public XYZ whitePoint () {

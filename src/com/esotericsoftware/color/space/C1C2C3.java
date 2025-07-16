@@ -51,4 +51,8 @@ public record C1C2C3 (
 	public XYZ XYZ () {
 		return RGB().XYZ();
 	}
+
+	public float Y () {
+		return RGB().Y();
+	}
 }

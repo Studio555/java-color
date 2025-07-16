@@ -46,6 +46,10 @@ public record HSL (
 		return RGB().XYZ();
 	}
 
+	public float Y () {
+		return RGB().Y();
+	}
+
 	public HSL lerp (HSL other, float t) {
 		return new HSL(lerpAngle(H, other.H, t), Util.lerp(S, other.S, t), Util.lerp(L, other.L, t));
 	}
