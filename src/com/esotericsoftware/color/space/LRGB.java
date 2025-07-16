@@ -44,31 +44,123 @@ public record LRGB (
 		return new RGB(sRGB(Util.clamp(r)), sRGB(Util.clamp(g)), sRGB(Util.clamp(b)));
 	}
 
-	/** Convert to RGBW using one calibrated white LED color. Brightness of this RGB is preserved.
-	 * @param w White LED color scaled by relative luminance (may exceed 1). Eg: wr *= wlux / rlux */
+	/** Convert to RGBW using one calibrated white LED color. Moves power from RGB to W, maintaining this LRGB's brightness.
+	 * 
+	 * <pre>
+	 * LRGB W = new LRGB(WR, WG, WB);
+	 * W = W.scl(Wlux / W.Y());
+	 * RGBWW result = targetLRGB.RGBW(W);
+	 * </pre>
+	 * 
+	 * @param w White LED color scaled by relative luminance (may exceed 1). */
 	public RGBW RGBW (LRGB w) {
-		// How much of each channel the white LED can provide.
-		float ratioR = r / w.r, ratioG = g / w.g, ratioB = b / w.b;
-		// The white level is limited by the channel that needs the least white contribution.
-		float W = Util.min(ratioR, ratioG, ratioB);
-		W = Math.min(W, 1);
-		// Subtract the white contribution from each channel.
+		float ratioR = r / w.r, ratioG = g / w.g, ratioB = b / w.b; // How much of each channel white can provide.
+		float W = Util.min(ratioR, ratioG, ratioB); // White is limited by the channel that needs the least white contribution.
+		W = Math.min(W, 1); // Subtract white from each channel.
 		return new RGBW(Math.max(0, r - W * w.r), Math.max(0, g - W * w.g), Math.max(0, b - W * w.b), W);
 	}
 
-	/** Convert to RGBWW using two calibrated white LED colors. Brightness of this RGB is preserved.
-	 * @param w1 First white LED color scaled by relative luminance (may exceed 1). Eg: wr * wlux / rlux
+	/** Convert to RGBWW using two calibrated white LED colors. Moves power from RGB to WW, maintaining this LRGB's brightness.
+	 * 
+	 * <pre>
+	 * LRGB W1 = new LRGB(W1R, W1G, W1B);
+	 * W1 = W1.scl(W1lux / W1.Y());
+	 * LRGB W2 = new LRGB(W2R, W2G, W2B);
+	 * W2 = W2.scl(W2lux / W2.Y());
+	 * RGBWW result = targetLRGB.RGBWW(W1, W2);
+	 * </pre>
+	 * 
+	 * @param w1 First white LED color scaled by relative luminance (may exceed 1).
 	 * @param w2 Second white LED color. */
 	public RGBWW RGBWW (LRGB w1, LRGB w2) {
-		// How much of each channel the white LED can provide.
-		float ratioR1 = r / w1.r, ratioG1 = g / w1.g, ratioB1 = b / w1.b;
-		float ratioR2 = r / w2.r, ratioG2 = g / w2.g, ratioB2 = b / w2.b;
-		// The white level is limited by the channel that needs the least white contribution.
-		float W1 = Util.min(ratioR1, ratioG1, ratioB1);
-		float W2 = Util.min(ratioR2, ratioG2, ratioB2);
-		// Subtract the white contribution from each channel.
-		if (W1 > W2) return new RGBWW(Math.max(0, r - W1 * w1.r), Math.max(0, g - W1 * w1.g), Math.max(0, b - W1 * w1.b), W1, 0);
-		return new RGBWW(Math.max(0, r - W2 * w2.r), Math.max(0, g - W2 * w2.g), Math.max(0, b - W2 * w2.b), 0, W2);
+		// W1 at maximum possible value, find best W2.
+		float W1 = Float.MAX_VALUE;
+		if (w1.r > EPSILON) W1 = Math.min(W1, r / w1.r);
+		if (w1.g > EPSILON) W1 = Math.min(W1, g / w1.g);
+		if (w1.b > EPSILON) W1 = Math.min(W1, b / w1.b);
+		W1 = Math.min(W1, 1);
+		float W2 = Float.MAX_VALUE;
+		if (w2.r > EPSILON) W2 = Math.min(W2, Math.max(0, (r - W1 * w1.r) / w2.r));
+		if (w2.g > EPSILON) W2 = Math.min(W2, Math.max(0, (g - W1 * w1.g) / w2.g));
+		if (w2.b > EPSILON) W2 = Math.min(W2, Math.max(0, (b - W1 * w1.b) / w2.b));
+		W2 = Math.min(W2, 1);
+		float rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
+		float gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
+		float bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
+		float bestW1 = W1, bestW2 = W2, bestScore = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
+		// W2 at maximum possible value, find best W1.
+		W2 = Float.MAX_VALUE;
+		if (w2.r > EPSILON) W2 = Math.min(W2, r / w2.r);
+		if (w2.g > EPSILON) W2 = Math.min(W2, g / w2.g);
+		if (w2.b > EPSILON) W2 = Math.min(W2, b / w2.b);
+		W2 = Math.min(W2, 1);
+		W1 = Float.MAX_VALUE;
+		if (w1.r > EPSILON) W1 = Math.min(W1, Math.max(0, (r - W2 * w2.r) / w1.r));
+		if (w1.g > EPSILON) W1 = Math.min(W1, Math.max(0, (g - W2 * w2.g) / w1.g));
+		if (w1.b > EPSILON) W1 = Math.min(W1, Math.max(0, (b - W2 * w2.b) / w1.b));
+		W1 = Math.min(W1, 1);
+		rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
+		gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
+		bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
+		float score = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
+		if (score > bestScore) {
+			bestW1 = W1;
+			bestW2 = W2;
+			bestScore = score;
+		}
+		float det = w1.r * w2.g - w1.g * w2.r; // RG constraints.
+		if (Math.abs(det) > EPSILON) {
+			W1 = (r * w2.g - g * w2.r) / det;
+			W2 = (g * w1.r - r * w1.g) / det;
+			if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1.b + W2 * w2.b <= b + EPSILON) {
+				rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
+				gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
+				bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
+				score = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
+				if (score > bestScore) {
+					bestW1 = W1;
+					bestW2 = W2;
+					bestScore = score;
+				}
+			}
+		}
+		det = w1.r * w2.b - w1.b * w2.r; // RB constraints.
+		if (Math.abs(det) > EPSILON) {
+			W1 = (r * w2.b - b * w2.r) / det;
+			W2 = (b * w1.r - r * w1.b) / det;
+			if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1.g + W2 * w2.g <= g + EPSILON) {
+				rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
+				gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
+				bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
+				score = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
+				if (score > bestScore) {
+					bestW1 = W1;
+					bestW2 = W2;
+					bestScore = score;
+				}
+			}
+		}
+		det = w1.g * w2.b - w1.b * w2.g; // GB constraints.
+		if (Math.abs(det) > EPSILON) {
+			W1 = (g * w2.b - b * w2.g) / det;
+			W2 = (b * w1.g - g * w1.b) / det;
+			if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1.r + W2 * w2.r <= r + EPSILON) {
+				rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
+				gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
+				bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
+				score = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
+				if (score > bestScore) {
+					bestW1 = W1;
+					bestW2 = W2;
+					bestScore = score;
+				}
+			}
+		}
+		return new RGBWW( //
+			Math.max(0, r - bestW1 * w1.r - bestW2 * w2.r), //
+			Math.max(0, g - bestW1 * w1.g - bestW2 * w2.g), //
+			Math.max(0, b - bestW1 * w1.b - bestW2 * w2.b), //
+			bestW1, bestW2);
 	}
 
 	/** @return NaN if invalid. */

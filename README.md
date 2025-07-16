@@ -145,10 +145,10 @@ RGBW rgbw = linearRgb.RGBW(whitePoint);
 // RGBWW (dual white channels)  
 RGBWW rgbww = linearRgb.RGBWW(warmWhite, coolWhite);
 
-// Create from color temperature (higher potential brightness)
+// Create from color temperature
 CCT cct3000 = new CCT(3000);
-RGBW rgbw = cct3000.RGBW(0.8f, whitePoint);
-RGBWW rgbww = cct3000.RGBWW(0.8f, warmWhite, coolWhite);
+RGBW rgbw = cct3000.LRGB().scl(0.8f).RGBW(whitePoint);
+RGBWW rgbww = cct3000.LRGB().scl(0.8f).RGBWW(warmWhite, coolWhite);
 ```
 
 ## Spectral Color and Light Quality

@@ -526,11 +526,11 @@ public class RGBTests extends Tests {
 		assertEquals("255, 128, 64, 191", Util.toString255(hexTest), "RGBW toString255");
 
 		// Test CCT to RGBW conversion
-		LRGB scaledWhite = new LRGB(1.8f, 1.6f, 1f); // Scaled warm white LED (~2700K)
+		LRGB scaledWhite = new CCT(2700).LRGB().scl(1.8f); // Scaled warm white LED (~2700K)
 
 		// Test maximum brightness at full
 		RGB target4000 = new CCT(4000, 0).RGB();
-		RGBW cctFull = new CCT(4000).RGBW(1f, scaledWhite);
+		RGBW cctFull = new CCT(4000).LRGB().RGBW(scaledWhite);
 		// Verify full brightness produces expected result
 		Assertions.assertTrue(cctFull.r() >= 0 || cctFull.g() >= 0 || cctFull.b() >= 0 || cctFull.w() > 0,
 			"Full brightness CCT should produce non-zero output");
@@ -554,19 +554,19 @@ public class RGBTests extends Tests {
 		}
 
 		// Test reduced brightness - should reduce total output
-		RGBW cctDim = new CCT(4000).RGBW(0.5f, scaledWhite);
+		RGBW cctDim = new CCT(4000).LRGB().scl(0.5f).RGBW(scaledWhite);
 		// At 50% brightness, total output should be lower
 		float dimTotal = cctDim.r() + cctDim.g() + cctDim.b() + cctDim.w();
 		float fullTotal = cctFull.r() + cctFull.g() + cctFull.b() + cctFull.w();
 		Assertions.assertTrue(dimTotal < fullTotal, "Dimmed CCT should have lower total output");
 
-		// Test low brightness - should have W only
-		RGBW cctLow = new CCT(3000).RGBW(0.2f, scaledWhite);
-		assertTrue(cctLow.r() < 0.01f && cctLow.g() < 0.01f && cctLow.b() < 0.01f,
-			"Low brightness CCT should use mostly white channel");
+		// Test low brightness - should use significant white channel
+		RGBW cctLow = new CCT(3000).LRGB().scl(0.2f).RGBW(scaledWhite);
+		assertTrue(cctLow.w() > 0.1f, "Low brightness CCT should use significant white channel");
+		// Note: 3000K vs 2700K difference requires some RGB correction
 
 		// Test cool CCT requiring blue correction
-		RGBW cctCool = new CCT(6500).RGBW(0.8f, scaledWhite);
+		RGBW cctCool = new CCT(6500).LRGB().scl(0.8f).RGBW(scaledWhite);
 		// With a warm white LED, cool CCT might need blue correction at higher brightness
 		assertTrue(cctCool.w() > 0, "Should use white channel for CCT");
 	}
@@ -574,36 +574,45 @@ public class RGBTests extends Tests {
 	@Test
 	public void testRGBWW () {
 		// Test RGB to RGBWW with two whites
-		LRGB warmWhite = new LRGB(1.8f, 1.6f, 1f); // 2700K-ish, scaled
-		LRGB coolWhite = new LRGB(1.2f, 1.4f, 1.8f); // 6500K-ish, scaled
+		LRGB warmWhite = new CCT(2700).LRGB().scl(1.2f); // 2700K exactly, scaled
+		LRGB coolWhite = new CCT(6500).LRGB().scl(1.2f); // 6500K exactly, scaled
 
 		// Test warm color - should prefer warm white
 		LRGB warmColor = new LRGB(0.8f, 0.6f, 0.4f);
 		RGBWW warmResult = warmColor.RGBWW(warmWhite, coolWhite);
 		assertTrue(warmResult.w1() > warmResult.w2(), "Warm color should use more warm white");
 
-		// Test cool color - should prefer cool white
+		// Test cool color - should prefer cool white with improved algorithm
 		LRGB coolColor = new LRGB(0.4f, 0.5f, 0.8f);
 		RGBWW coolResult = coolColor.RGBWW(warmWhite, coolWhite);
+		assertTrue(coolResult.w1() > 0 || coolResult.w2() > 0, "Should use white channels");
 		assertTrue(coolResult.w2() > coolResult.w1(), "Cool color should use more cool white");
 
 		// Test CCT to RGBWW conversion
 
-		// Test intermediate CCT - should blend whites
-		RGBWW cct4000 = new CCT(5500).RGBWW(1f, warmWhite, coolWhite);
-		assertTrue(cct4000.w1() > 0 && cct4000.w2() > 0, "Mid CCT should blend both whites");
+		// Test intermediate CCT - should use both whites for blending
+		RGBWW cct5500 = new CCT(5500).LRGB().RGBWW(warmWhite, coolWhite);
+		assertTrue(cct5500.w1() + cct5500.w2() > 0.5f, "Mid CCT should use substantial white channels");
+		// For intermediate temperatures, may use both whites or pick the closer one
 
 		// Test warm CCT - should use mostly warm white
-		RGBWW cct2700 = new CCT(2700).RGBWW(0.8f, warmWhite, coolWhite);
+		RGBWW cct2700 = new CCT(2700).LRGB().scl(0.8f).RGBWW(warmWhite, coolWhite);
 		assertTrue(cct2700.w1() >= cct2700.w2(), "Warm CCT should favor warm white");
 
-		// Test cool CCT - should use mostly cool white
-		RGBWW cct6500 = new CCT(6500).RGBWW(0.8f, warmWhite, coolWhite);
-		// Note: if CCT calculation fails for the LEDs, it might fall back to equal blend
-		assertTrue(cct6500.w1() + cct6500.w2() > 0.7f, "Should use white channels for CCT");
+		// Test cool CCT - should prefer cool white
+		RGBWW cct6500 = new CCT(6500).LRGB().scl(0.8f).RGBWW(warmWhite, coolWhite);
+		// With improved algorithm, 6500K should use cool white (w2)
+		assertTrue(cct6500.w2() > cct6500.w1(), "6500K should prefer cool white");
+		// Verify color accuracy
+		float r = cct6500.r() + warmWhite.r() * cct6500.w1() + coolWhite.r() * cct6500.w2();
+		float g = cct6500.g() + warmWhite.g() * cct6500.w1() + coolWhite.g() * cct6500.w2();
+		float b = cct6500.b() + warmWhite.b() * cct6500.w1() + coolWhite.b() * cct6500.w2();
+		assertEquals(0.8f, r, 0.001f, "Red channel accuracy");
+		assertEquals(0.7542955f, g, 0.001f, "Green channel accuracy");
+		assertEquals(0.7936503f, b, 0.001f, "Blue channel accuracy");
 
 		// Test low brightness - should still maintain white ratio
-		RGBWW cctLow = new CCT(4500).RGBWW(0.2f, warmWhite, coolWhite);
+		RGBWW cctLow = new CCT(4500).LRGB().scl(0.2f).RGBWW(warmWhite, coolWhite);
 		float totalWhite = cctLow.w1() + cctLow.w2();
 		assertTrue(totalWhite > 0.15f && totalWhite < 0.25f, "Low brightness should scale whites proportionally");
 
