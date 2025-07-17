@@ -6,6 +6,7 @@ import static com.esotericsoftware.color.Util.*;
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.Spectrum;
+import com.esotericsoftware.color.Util;
 
 public record CCT ( //
 	float K,
@@ -212,6 +213,10 @@ public record CCT ( //
 	 * @return 380-780nm @ 5nm, 81 values normalized to Y=100. Requires [1000K+] else returns NaN. */
 	public Spectrum reference () {
 		return K < 5000 ? blackbody(380, 780, 5) : Illuminant.D(xyDaylight()).normalize();
+	}
+
+	public CCT lerp (CCT other, float t) {
+		return new CCT(Util.lerp(K, other.K(), t), clamp(Util.lerp(Duv, other.Duv(), t)));
 	}
 
 	@SuppressWarnings("all")
