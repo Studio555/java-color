@@ -7,7 +7,7 @@ A Java library for color science with color space conversions, spectral calculat
 - **Color spaces**: 50+ spaces, bidirectional conversions via unified `Color` interface
 - **Color appearance models**: CAM16/CAM02 with uniform color spaces (UCS, LCD, SCD)
 - **Spectral color**: Spectrum support, CRI, TM-30-20 color fidelity metrics
-- **CCT calculations**: high accuracy Improved Robertson, 1000K to infinity, ±0.1K < 7000K
+- **CCT calculations**: high accuracy improved Robertson, 1000K to infinity, ±0.1K < 7000K
 - **Standard observers**: CIE 1931, 1964, 2015, 2 and 10 degrees
 - **Practical tools**: RGBW/RGBWW LED mixing, gamut management, WCAG compliance
 - **Professional spaces**: ACES, ITP (HDR), HCT (Material You)
