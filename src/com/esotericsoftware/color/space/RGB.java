@@ -234,6 +234,36 @@ public record RGB (
 		return contrastRatio(bg) >= (largeText ? 4.5f : 7);
 	}
 
+	/** @return [0..255] */
+	public int r8 () {
+		return Math.round(r * 255);
+	}
+
+	/** @return [0..255] */
+	public int g8 () {
+		return Math.round(g * 255);
+	}
+
+	/** @return [0..255] */
+	public int b8 () {
+		return Math.round(b * 255);
+	}
+
+	/** @return [0..65535] */
+	public int r16 () {
+		return Math.round(r * 65535);
+	}
+
+	/** @return [0..65535] */
+	public int g16 () {
+		return Math.round(g * 65535);
+	}
+
+	/** @return [0..65535] */
+	public int b16 () {
+		return Math.round(b * 65535);
+	}
+
 	@SuppressWarnings("all")
 	public RGB RGB () {
 		return this;
