@@ -49,11 +49,11 @@ public class CCTTests extends Tests {
 	@Test
 	public void testXYZErrorWithDuv () {
 		for (float Duv : new float[] {0.001f, 0.004f, 0.01f, 0.05f, -0.001f, -0.004f, -0.01f, -0.05f}) {
-			checkMaxErrorWithDuv(Duv, 1000, 2000, 0.132f, 0.0001f);
-			checkMaxErrorWithDuv(Duv, 2000, 7000, 0.432f, 0.0001f);
-			checkMaxErrorWithDuv(Duv, 7000, 20000, 1.471f, 0.0001f);
-			checkMaxErrorWithDuv(Duv, 20000, 60000, 2.594f, 0.0001f);
-			checkMaxErrorWithDuv(Duv, 60000, 100000, 4.165f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 1000, 2000, 0.13f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 2000, 7000, 0.426f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 7000, 20000, 1.452f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 20000, 60000, 2.586f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 60000, 100000, 4.063f, 0.0001f);
 		}
 	}
 
