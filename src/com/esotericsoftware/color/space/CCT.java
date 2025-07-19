@@ -12,8 +12,6 @@ public record CCT ( //
 	float K,
 	float Duv) implements Color {
 
-	static float[] KPlanckian, uvPlanckian;
-
 	public CCT {
 		if (Float.isNaN(K) || Float.isNaN(Duv)) {
 			K = Float.NaN;
@@ -39,25 +37,12 @@ public record CCT ( //
 		return uv().RGB();
 	}
 
-	/** Uses {@link Method#RobertsonImproved}.
-	 * @return NaN if invalid. */
-	public uv uv () {
-		return uv_Robertson(RobertsonImproved, 645);
-	}
-
 	/** Requires [1000K+] else returns NaN. */
-	public uv uv (Method method) {
-		return switch (method) {
-		case RobertsonImproved -> uv_Robertson(RobertsonImproved, 645);
-		case Robertson1968 -> uv_Robertson(Robertson1968, 150);
-		case Ohno2013 -> uv_Ohno();
-		};
-	}
-
-	private uv uv_Robertson (float[] Robertson, int last) {
+	public uv uv () {
 		if (K < 1000) return new uv(Float.NaN, Float.NaN);
+		float[] Robertson = CCT.Robertson;
 		float pr = Robertson[0], mired = 1e6f / K;
-		for (int i = 5; i <= last; i += 5) {
+		for (int i = 5; i <= 645; i += 5) {
 			float cr = Robertson[i];
 			if (mired >= pr && mired <= cr) {
 				float t = (mired - pr) / (cr - pr), u = Robertson[i - 4], v = Robertson[i - 3];
@@ -79,36 +64,7 @@ public record CCT ( //
 			pr = cr;
 		}
 		if (mired < Robertson[0]) return new uv(Robertson[1] - Robertson[4] * Duv, (Robertson[2] + Robertson[3] * Duv) * 1.5f);
-		return new uv(Robertson[last - 4] - Robertson[last + 1] * Duv, (Robertson[last - 3] + Robertson[last + 2] * Duv) * 1.5f);
-	}
-
-	private uv uv_Ohno () {
-		if (K < 1000) return new uv(Float.NaN, Float.NaN);
-		PlanckianTable();
-		float[] KPlanckian = CCT.KPlanckian, uvPlanckian = CCT.uvPlanckian;
-		int k, i, i1, i2;
-		if (K >= KPlanckian[514]) {
-			k = 513;
-			i = i2 = 1026;
-			i1 = 1024;
-		} else {
-			for (i = 1, k = 0; i < 515; i++) {
-				if (K <= KPlanckian[i]) {
-					k = i - 1;
-					break;
-				}
-			}
-			i = k << 1;
-			i1 = i;
-			i2 = i + 2;
-		}
-		float t = (K - KPlanckian[k]) / (KPlanckian[k + 1] - KPlanckian[k]);
-		float u0 = uvPlanckian[i] + t * (uvPlanckian[i + 2] - uvPlanckian[i]);
-		float v0 = uvPlanckian[i + 1] + t * (uvPlanckian[i + 3] - uvPlanckian[i + 1]);
-		if (Duv == 0) return new uv(u0, v0 * 1.5f);
-		float du = uvPlanckian[i2] - uvPlanckian[i1], dv = uvPlanckian[i2 + 1] - uvPlanckian[i1 + 1];
-		float factor = Duv / (float)Math.sqrt(du * du + dv * dv);
-		return new uv(u0 + dv * factor, (v0 - du * factor) * 1.5f);
+		return new uv(Robertson[641] - Robertson[646] * Duv, (Robertson[642] + Robertson[647] * Duv) * 1.5f);
 	}
 
 	/** @return NaN if invalid. */
@@ -224,74 +180,10 @@ public record CCT ( //
 		return this;
 	}
 
-	/** Ohno (2013) with 1.0134 spacing. */
-	static void PlanckianTable () {
-		if (KPlanckian == null) {
-			synchronized (uv.class) {
-				if (KPlanckian == null) {
-					float[] KTable = new float[515];
-					float[] uvTable = new float[1030];
-					KTable[0] = 1000;
-					KTable[1] = 1001;
-					float K = 1001, next = 1.0134f;
-					for (int i = 2; i < 513; i++) {
-						K *= next;
-						KTable[i] = K;
-						float D = clamp((K - 1000) / 99000);
-						next = 1.0134f * (1 - D) + (1 + (1.0134f - 1) / 10) * D;
-					}
-					KTable[513] = 99999;
-					KTable[514] = 100000;
-					for (int k = 0, u = 0; k < 515; k++, u += 2) {
-						uv1960 uv = new CCT(KTable[k]).PlanckianXYZ().uv1960();
-						uvTable[u] = uv.u();
-						uvTable[u + 1] = uv.v();
-					}
-					KPlanckian = KTable;
-					uvPlanckian = uvTable;
-				}
-			}
-		}
-	}
-
-	/** Original Robertson isotemperature lines with precomputed direction. */
-	static public final float[] Robertson1968 = { // mired, u, v, du, dv
-		0, 0.18006f, 0.26352f, 0.9716304f, -0.23650457f, // Infinity K
-		10, 0.18066f, 0.26589f, 0.9690406f, -0.24690185f, // 100000 K
-		20, 0.18133f, 0.26846f, 0.9657298f, -0.25954953f, // 50000 K
-		30, 0.18208f, 0.27119f, 0.96160626f, -0.2744328f, // 33333.332 K
-		40, 0.18293f, 0.27407f, 0.95658004f, -0.29146993f, // 25000 K
-		50, 0.18388f, 0.27709f, 0.95054394f, -0.31059024f, // 20000 K
-		60, 0.18494f, 0.28021f, 0.9433986f, -0.33166122f, // 16666.666 K
-		70, 0.18611f, 0.28342f, 0.93504727f, -0.35452315f, // 14285.714 K
-		80, 0.1874f, 0.28668f, 0.925398f, -0.37899676f, // 12500 K
-		90, 0.1888f, 0.28997f, 0.9143755f, -0.40486717f, // 11111.111 K
-		100, 0.19032f, 0.29326f, 0.9019168f, -0.4319099f, // 10000 K
-		125, 0.19462f, 0.30141f, 0.864265f, -0.5030368f, // 8000 K
-		150, 0.19962f, 0.30921f, 0.81741905f, -0.5760434f, // 6666.6665 K
-		175, 0.20525f, 0.31647f, 0.7623116f, -0.6472102f, // 5714.2856 K
-		200, 0.21142f, 0.32312f, 0.70070165f, -0.7134544f, // 5000 K
-		225, 0.21807f, 0.32909f, 0.6349235f, -0.77257496f, // 4444.4443 K
-		250, 0.22511f, 0.33439f, 0.5674147f, -0.8234322f, // 4000 K
-		275, 0.23247f, 0.33904f, 0.5004877f, -0.86574364f, // 3636.3635 K
-		300, 0.2401f, 0.34308f, 0.43606806f, -0.8999136f, // 3333.3333 K
-		325, 0.24792f, 0.34655f, 0.3755177f, -0.9268153f, // 3076.923 K
-		350, 0.25591f, 0.34951f, 0.31966853f, -0.94752944f, // 2857.1428 K
-		375, 0.264f, 0.352f, 0.2689336f, -0.9631587f, // 2666.6667 K
-		400, 0.27218f, 0.35407f, 0.22339252f, -0.9747285f, // 2500 K
-		425, 0.28039f, 0.35577f, 0.18286845f, -0.98313737f, // 2352.9412 K
-		450, 0.28863f, 0.35714f, 0.14705601f, -0.9891282f, // 2222.2222 K
-		475, 0.29685f, 0.35823f, 0.11556052f, -0.9933004f, // 2105.2632 K
-		500, 0.30505f, 0.35907f, 0.08796569f, -0.9961235f, // 2000 K
-		525, 0.3132f, 0.35968f, 0.063857116f, -0.997959f, // 1904.762 K
-		550, 0.32129f, 0.36011f, 0.042833105f, -0.9990822f, // 1818.1818 K
-		575, 0.32931f, 0.36038f, 0.024520462f, -0.9996993f, // 1739.1305 K
-		600, 0.33724f, 0.36051f, 0.0085870605f, -0.9999631f, // 1666.6666 K
-	};
-
 	/** Improved Robertson isotemperature lines: larger LUT (131*5) with adaptive increments [1000..100000K] then linear to
-	 * infinity, with precomputed direction. */
-	static public final float[] RobertsonImproved = { // mired, u, v, du, dv
+	 * infinity, with precomputed direction. Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K
+	 * [60000-100000K]. Based on {@link Observer#CIE2_1931}. */
+	static public final float[] Robertson = { // mired, u, v, du, dv
 		0, 0.18006f, 0.26352f, 0.9716304f, -0.23650457f, // infinity K
 		10, 0.18063825f, 0.2659503f, 0.9688685f, -0.2475758f, // 100000 K
 		10.15797f, 0.18064822f, 0.26598927f, 0.96882194f, -0.24775794f, // 98444.86 K
@@ -424,16 +316,4 @@ public record CCT ( //
 		1000, 0.44796428f, 0.35462946f, 0.086361416f, 0.99626386f, // 1000 K
 		1029.2668f, 0.45471913f, 0.35403776f, 0.08812266f, 0.9961096f, // 971.56537 K
 	};
-
-	public enum Method {
-		/** [1000K..infinity] Maximum error 0.1K [1000..7000K], 1K [7000..20000K], 2K [20000-60000K], 2.2K [60000-100000K]. Based on
-		 * {@link Observer#CIE2_1931}. */
-		RobertsonImproved,
-		/** [1000K..infinity] Maximum error 666K [1000..2000K], 2.4K [2000..7000K], 46K [7000..20000K], 377K [20000-60000K], 1959K
-		 * [60000-100000K]. Based on {@link Observer#CIE2_1931}. */
-		Robertson1968,
-		/** [1000K..100000K] Maximum error 1K [1000..7000K], 2.7K [7000..20000K], 3.52K [20000-100000K]. Computed dynamically using
-		 * {@link Observer#Default}. */
-		Ohno2013
-	}
 }

@@ -28,7 +28,7 @@ public class Tests extends Assertions {
 			cause.printStackTrace(pw);
 			String trimmed = sw.toString()//
 				.replace("\t", "   ") //
-				.replace("AssertionFailedError: ", "") //
+				.replace("org.opentest4j.AssertionFailedError: ", "") //
 				.lines().filter(line -> {
 					String stripped = line.stripLeading();
 					return stripped.isEmpty() || !stripped.startsWith("at ") || stripped.startsWith("at com.esotericsoftware");

@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.esotericsoftware.color.space.CCT;
-import com.esotericsoftware.color.space.CCT.Method;
 import com.esotericsoftware.color.space.Oklab;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.uv;
@@ -17,59 +16,26 @@ import com.esotericsoftware.color.space.xy;
 public class CCTTests extends Tests {
 	@Test
 	public void testDuvSigns () {
-		for (CCT.Method method : CCT.Method.values())
-			checkDuvSigns(method);
-	}
-
-	private void checkDuvSigns (CCT.Method method) {
 		for (float u = 0.321f; u <= 0.352f; u += 0.001)
-			assertTrue(new uv(u, 0.543f).CCT(method).Duv() > 0, "Wrong Duv sign: " + method);
+			assertTrue(new uv(u, 0.543f).CCT().Duv() > 0, "Wrong Duv sign.");
 		for (float u = 0.321f; u <= 0.352f; u += 0.001)
-			assertTrue(new uv(u, 0.539f).CCT(method).Duv() < 0, "Wrong Duv sign: " + method);
-	}
-
-	@Test
-	public void testxyErrorOhno () {
-		float max = 0;
-		for (float K = 1000; K < 3000; K += 0.1f) {
-			xy xy = new CCT(K).xy();
-			float roundTripK = xy.CCT(CCT.Method.Ohno2013).K();
-			max = Math.max(max, K - roundTripK);
-		}
-		assertTrue(max < 1, "Max error: " + max);
-		for (float K = 25000; K < 100000; K += 0.1f) {
-			float roundTripK = new CCT(K).xy().CCT(CCT.Method.Ohno2013).K();
-			max = Math.max(max, K - roundTripK);
-		}
-		assertTrue(max < 30, "Max error: " + max);
+			assertTrue(new uv(u, 0.539f).CCT().Duv() < 0, "Wrong Duv sign.");
 	}
 
 	@Test
 	public void testXYZError0Duv () {
-		checkMaxError(CCT.Method.RobertsonImproved, 1000, 2000, 0.09698486f, 0.0001f);
-		checkMaxError(CCT.Method.RobertsonImproved, 2000, 7000, 0.10644531f, 0.0001f);
-		checkMaxError(CCT.Method.RobertsonImproved, 7000, 20000, 1.0742188f, 0.0001f);
-		checkMaxError(CCT.Method.RobertsonImproved, 20000, 60000, 2.0195312f, 0.0001f);
-		checkMaxError(CCT.Method.RobertsonImproved, 60000, 100000, 2.1953125f, 0.0001f);
-
-		checkMaxError(CCT.Method.Robertson1968, 1000, 2000, 666.6666f, 0.007f);
-		checkMaxError(CCT.Method.Robertson1968, 2000, 7000, 2.3999023f, 0.007f);
-		checkMaxError(CCT.Method.Robertson1968, 7000, 20000, 46.351562f, 0.007f);
-		checkMaxError(CCT.Method.Robertson1968, 20000, 60000, 377.125f, 0.007f);
-		checkMaxError(CCT.Method.Robertson1968, 60000, 100000, 1959.1484f, 0.007f);
-
-		checkMaxError(CCT.Method.Ohno2013, 1000, 2000, 0.319458f, 0.0001f);
-		checkMaxError(CCT.Method.Ohno2013, 2000, 7000, 1.0917969f, 0.0001f);
-		checkMaxError(CCT.Method.Ohno2013, 7000, 20000, 2.7089844f, 0.0001f);
-		checkMaxError(CCT.Method.Ohno2013, 20000, 60000, 3.6132812f, 0.0001f);
-		checkMaxError(CCT.Method.Ohno2013, 60000, 100000, 3.25f, 0.0001f);
+		checkMaxError(1000, 2000, 0.09698486f, 0.0001f);
+		checkMaxError(2000, 7000, 0.10644531f, 0.0001f);
+		checkMaxError(7000, 20000, 1.0742188f, 0.0001f);
+		checkMaxError(20000, 60000, 2.0195312f, 0.0001f);
+		checkMaxError(60000, 100000, 2.1953125f, 0.0001f);
 	}
 
-	private void checkMaxError (CCT.Method method, float start, float end, float exactMaxError, float epsilonDuv) {
+	private void checkMaxError (float start, float end, float exactMaxError, float epsilonDuv) {
 		float maxErrorK = 0, maxKAt = 0;
 		for (float K = start; K < end; K += 0.1f) {
-			CCT roundTrip = new CCT(K).PlanckianXYZ().CCT(method);
-			assertEquals(0, roundTrip.Duv(), epsilonDuv, "Wrong Duv: " + K + " K, " + method);
+			CCT roundTrip = new CCT(K).PlanckianXYZ().CCT();
+			assertEquals(0, roundTrip.Duv(), epsilonDuv, "Wrong Duv: " + K + " K");
 			float error = Math.abs(K - roundTrip.K());
 			if (error > maxErrorK) {
 				maxErrorK = error;
@@ -77,48 +43,28 @@ public class CCTTests extends Tests {
 			}
 		}
 		// System.out.println("K: " + start + ".." + end + ": " + maxErrorK + " @ " + maxKAt);
-		assertEquals(exactMaxError, maxErrorK, "Wrong max error: " + maxErrorK + " @ " + maxKAt + ", " + method);
+		assertEquals(exactMaxError, maxErrorK, "Wrong max error: " + maxErrorK + " @ " + maxKAt);
 	}
 
 	@Test
 	public void testXYZErrorWithDuv () {
-		for (float Duv : new float[] {0.001f, 0.004f, 0.01f, 0.003f, 0.05f, -0.001f, -0.004f, -0.01f, -0.003f, -0.05f}) {
-			checkMaxErrorWithDuv(CCT.Method.RobertsonImproved, Duv, 1000, 2000, 0.132f, 0.0001f);
-			checkMaxErrorWithDuv(CCT.Method.RobertsonImproved, Duv, 2000, 7000, 0.432f, 0.0001f);
-			checkMaxErrorWithDuv(CCT.Method.RobertsonImproved, Duv, 7000, 20000, 1.471f, 0.0001f);
-			checkMaxErrorWithDuv(CCT.Method.RobertsonImproved, Duv, 20000, 60000, 2.594f, 0.0001f);
-			checkMaxErrorWithDuv(CCT.Method.RobertsonImproved, Duv, 60000, 100000, 4.165f, 0.0001f);
-
-			checkMaxErrorWithDuv(CCT.Method.Robertson1968, Duv, 1000, 2000, 666.6666f, 0.0071f);
-			checkMaxErrorWithDuv(CCT.Method.Robertson1968, Duv, 2000, 7000, 4.38f, 0.007f);
-			checkMaxErrorWithDuv(CCT.Method.Robertson1968, Duv, 7000, 20000, 63.211f, 0.007f);
-			checkMaxErrorWithDuv(CCT.Method.Robertson1968, Duv, 20000, 60000, 551.493f, 0.007f);
-			checkMaxErrorWithDuv(CCT.Method.Robertson1968, Duv, 60000, 100000, 2586.657f, 0.007f);
-
-			checkMaxErrorWithDuv(CCT.Method.Ohno2013, Duv, 1000, 2000, 0.741f, 0.00064f);
-			checkMaxErrorWithDuv(CCT.Method.Ohno2013, Duv, 2000, 7000, 1.256f, 0.0001f);
-			checkMaxErrorWithDuv(CCT.Method.Ohno2013, Duv, 7000, 20000, 8.313f, 0.0001f);
-			checkMaxErrorWithDuv(CCT.Method.Ohno2013, Duv, 20000, 60000, 517, 0.0003f);
-			checkMaxErrorWithDuv(CCT.Method.Ohno2013, Duv, 60000, 100000, 1492, 0.5f);
+		for (float Duv : new float[] {0.001f, 0.004f, 0.01f, 0.05f, -0.001f, -0.004f, -0.01f, -0.05f}) {
+			checkMaxErrorWithDuv(Duv, 1000, 2000, 0.132f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 2000, 7000, 0.432f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 7000, 20000, 1.471f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 20000, 60000, 2.594f, 0.0001f);
+			checkMaxErrorWithDuv(Duv, 60000, 100000, 4.165f, 0.0001f);
 		}
 	}
 
-	private void checkMaxErrorWithDuv (CCT.Method method, float Duv, float start, float end, float expectedMaxErrorK,
-		float expectedMaxErrorDuv) {
-		// System.out.println("\n=== " + method + ": " + Duv + " Duv ===");
+	private void checkMaxErrorWithDuv (float Duv, float start, float end, float expectedMaxErrorK, float expectedMaxErrorDuv) {
 		float maxErrorK = 0, maxKAt = 0, maxErrorDuv = 0, maxDuvAt = 0;
 		for (float K = start; K < end; K += 0.5f) {
 			CCT cct = new CCT(K, Duv);
-			CCT roundTrip = cct.PlanckianXYZ().CCT(method);
-			boolean skipDuvChecks = false;
-			if (method == Method.Robertson1968) skipDuvChecks = true;
-			if (method == Method.Ohno2013 && K > 95000) skipDuvChecks = true;
-			if (!skipDuvChecks) {
-				assertTrue(Math.signum(Duv) == Math.signum(roundTrip.Duv()),
-					"Wrong Duv sign uv -> CCT: " + K + " K, " + Duv + " Duv, " + method);
-				assertTrue(Math.signum(Duv) == Math.signum(cct.uv(method).CCT(method).Duv()),
-					"Wrong Duv sign CCT -> uv -> CCT: " + K + " K, " + Duv + " Duv, " + method);
-			}
+			CCT roundTrip = cct.PlanckianXYZ().CCT();
+			assertTrue(Math.signum(Duv) == Math.signum(roundTrip.Duv()), "Wrong Duv sign uv -> CCT: " + K + " K, " + Duv + " Duv");
+			assertTrue(Math.signum(Duv) == Math.signum(cct.uv().CCT().Duv()),
+				"Wrong Duv sign CCT -> uv -> CCT: " + K + " K, " + Duv + " Duv");
 			float error = Math.abs(Duv - roundTrip.Duv());
 			if (error > maxErrorDuv) {
 				maxErrorDuv = error;
@@ -132,10 +78,10 @@ public class CCTTests extends Tests {
 		}
 		// System.out.println("Duv: " + start + ".." + end + ": " + maxErrorDuv + " @ " + maxDuvAt);
 		// System.out.println("K: " + start + ".." + end + ": " + maxErrorK + " @ " + maxKAt);
-		assertTrue(maxErrorDuv <= expectedMaxErrorDuv, "Max Duv error too high: " + maxErrorDuv + " <= " + expectedMaxErrorDuv
-			+ " @ " + maxDuvAt + " K, " + Duv + " Duv, " + method);
+		assertTrue(maxErrorDuv <= expectedMaxErrorDuv,
+			"Max Duv error too high: " + maxErrorDuv + " <= " + expectedMaxErrorDuv + " @ " + maxDuvAt + " K, " + Duv + " Duv");
 		assertTrue(maxErrorK <= expectedMaxErrorK,
-			"Max K error too high: " + maxErrorK + " <= " + expectedMaxErrorK + " @ " + maxKAt + " K, " + Duv + " Duv, " + method);
+			"Max K error too high: " + maxErrorK + " <= " + expectedMaxErrorK + " @ " + maxKAt + " K, " + Duv + " Duv");
 	}
 
 	@Test

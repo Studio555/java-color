@@ -8,7 +8,6 @@ import com.esotericsoftware.color.space.CAM02UCS;
 import com.esotericsoftware.color.space.CAM16;
 import com.esotericsoftware.color.space.CAM16UCS;
 import com.esotericsoftware.color.space.CCT;
-import com.esotericsoftware.color.space.CCT.Method;
 import com.esotericsoftware.color.space.Lab;
 import com.esotericsoftware.color.space.UVW;
 import com.esotericsoftware.color.space.XYZ;
@@ -34,14 +33,7 @@ public record Spectrum (float[] values, int step, int start) {
 		this(values, 5, 380);
 	}
 
-	/** @return [1000K+] or NaN out of range.
-	 * @see uv#CCT(CCT.Method) */
-	public CCT CCT (CCT.Method method) {
-		return uv().CCT(method);
-	}
-
-	/** Uses {@link Method#RobertsonImproved}.
-	 * @return [1000K+] or NaN out of range. */
+	/** @return [1000K+] or NaN out of range. */
 	public CCT CCT () {
 		return uv().CCT();
 	}
