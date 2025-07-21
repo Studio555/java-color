@@ -5,6 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Gamut;
 import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.space.RGBWW.Wdet;
 
 /** Linear RGB, without gamma correction. Values are not clamped. */
 public record LRGB (
@@ -44,122 +45,99 @@ public record LRGB (
 		return new RGB(sRGB(Util.clamp(r)), sRGB(Util.clamp(g)), sRGB(Util.clamp(b)));
 	}
 
-	/** Convert to RGBW using one calibrated white LED color. Moves power from RGB to W, maintaining this LRGB's brightness.
-	 * 
-	 * <pre>
-	 * LRGB W = new LRGB(WR, WG, WB);
-	 * W = W.scl(Wlux / W.Y());
-	 * RGBWW result = targetLRGB.RGBW(W);
-	 * </pre>
-	 * 
-	 * @param w White LED color scaled by relative luminance (may exceed 1). */
+	/** Convert to RGBW using one calibrated white LED color. Moves power from RGB to W.
+	 * @param w White LED color. */
 	public RGBW RGBW (LRGB w) {
-		float ratioR = r / w.r, ratioG = g / w.g, ratioB = b / w.b; // How much of each channel white can provide.
-		float W = Util.min(ratioR, ratioG, ratioB); // White is limited by the channel that needs the least white contribution.
-		W = Math.min(W, 1); // Subtract white from each channel.
+		float W = 1;
+		if (w.r > 0) W = Math.min(W, r / w.r);
+		if (w.g > 0) W = Math.min(W, g / w.g);
+		if (w.b > 0) W = Math.min(W, b / w.b);
 		return new RGBW(Math.max(0, r - W * w.r), Math.max(0, g - W * w.g), Math.max(0, b - W * w.b), W);
 	}
 
-	/** Convert to RGBWW using two calibrated white LED colors. Moves power from RGB to WW, maintaining this LRGB's brightness.
-	 * 
-	 * <pre>
-	 * LRGB W1 = new LRGB(W1R, W1G, W1B);
-	 * W1 = W1.scl(W1lux / W1.Y());
-	 * LRGB W2 = new LRGB(W2R, W2G, W2B);
-	 * W2 = W2.scl(W2lux / W2.Y());
-	 * RGBWW result = targetLRGB.RGBWW(W1, W2);
-	 * </pre>
-	 * 
-	 * @param w1 First white LED color scaled by relative luminance (may exceed 1).
+	/** Convert to RGBWW using two calibrated white LED colors. Moves power from RGB to WW.
+	 * @param w1 First white LED color.
 	 * @param w2 Second white LED color. */
-	public RGBWW RGBWW (LRGB w1, LRGB w2) {
+	public RGBWW RGBWW (LRGB w1, LRGB w2, Wdet wdet) {
+		float w1r = w1.r(), w1g = w1.g(), w1b = w1.b();
+		float w2r = w2.r(), w2g = w2.g(), w2b = w2.b();
 		// W1 at maximum possible value, find best W2.
-		float W1 = Float.MAX_VALUE;
-		if (w1.r > EPSILON) W1 = Math.min(W1, r / w1.r);
-		if (w1.g > EPSILON) W1 = Math.min(W1, g / w1.g);
-		if (w1.b > EPSILON) W1 = Math.min(W1, b / w1.b);
-		W1 = Math.min(W1, 1);
-		float W2 = Float.MAX_VALUE;
-		if (w2.r > EPSILON) W2 = Math.min(W2, Math.max(0, (r - W1 * w1.r) / w2.r));
-		if (w2.g > EPSILON) W2 = Math.min(W2, Math.max(0, (g - W1 * w1.g) / w2.g));
-		if (w2.b > EPSILON) W2 = Math.min(W2, Math.max(0, (b - W1 * w1.b) / w2.b));
-		W2 = Math.min(W2, 1);
-		float rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
-		float gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
-		float bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
-		float bestW1 = W1, bestW2 = W2, bestScore = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
+		float W1 = r / w1r;
+		W1 = Math.min(W1, g / w1g);
+		W1 = Math.min(W1, b / w1b);
+		float rt = r - W1 * w1r, gt = g - W1 * w1g, bt = b - W1 * w1b;
+		float W2 = Math.max(0, rt / w2r);
+		W2 = Math.min(W2, Math.max(0, gt / w2g));
+		W2 = Math.min(W2, Math.max(0, bt / w2b));
+		rt = Math.max(0, rt - W2 * w2r);
+		gt = Math.max(0, gt - W2 * w2g);
+		bt = Math.max(0, bt - W2 * w2b);
+		float bestW1 = W1, bestW2 = W2, bestScore = W1 + W2 - (rt + gt + bt) * 0.1f;
 		// W2 at maximum possible value, find best W1.
-		W2 = Float.MAX_VALUE;
-		if (w2.r > EPSILON) W2 = Math.min(W2, r / w2.r);
-		if (w2.g > EPSILON) W2 = Math.min(W2, g / w2.g);
-		if (w2.b > EPSILON) W2 = Math.min(W2, b / w2.b);
-		W2 = Math.min(W2, 1);
-		W1 = Float.MAX_VALUE;
-		if (w1.r > EPSILON) W1 = Math.min(W1, Math.max(0, (r - W2 * w2.r) / w1.r));
-		if (w1.g > EPSILON) W1 = Math.min(W1, Math.max(0, (g - W2 * w2.g) / w1.g));
-		if (w1.b > EPSILON) W1 = Math.min(W1, Math.max(0, (b - W2 * w2.b) / w1.b));
-		W1 = Math.min(W1, 1);
-		rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
-		gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
-		bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
-		float score = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
+		W2 = r / w2r;
+		W2 = Math.min(W2, g / w2g);
+		W2 = Math.min(W2, b / w2b);
+		rt = r - W2 * w2r;
+		gt = g - W2 * w2g;
+		bt = b - W2 * w2b;
+		W1 = Math.max(0, rt / w1r);
+		W1 = Math.min(W1, Math.max(0, gt / w1g));
+		W1 = Math.min(W1, Math.max(0, bt / w1b));
+		rt = Math.max(0, rt - W1 * w1r);
+		gt = Math.max(0, gt - W1 * w1g);
+		bt = Math.max(0, bt - W1 * w1b);
+		float score = W1 + W2 - (rt + gt + bt) * 0.1f;
 		if (score > bestScore) {
 			bestW1 = W1;
 			bestW2 = W2;
 			bestScore = score;
 		}
-		float det = w1.r * w2.g - w1.g * w2.r; // RG constraints.
-		if (Math.abs(det) > EPSILON) {
-			W1 = (r * w2.g - g * w2.r) / det;
-			W2 = (g * w1.r - r * w1.g) / det;
-			if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1.b + W2 * w2.b <= b + EPSILON) {
-				rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
-				gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
-				bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
-				score = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
-				if (score > bestScore) {
-					bestW1 = W1;
-					bestW2 = W2;
-					bestScore = score;
-				}
+		// RG constraints.
+		W1 = (r * w2g - g * w2r) * wdet.rg();
+		W2 = (g * w1r - r * w1g) * wdet.rg();
+		if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1b + W2 * w2b <= b + EPSILON) {
+			rt = Math.max(0, r - W1 * w1r - W2 * w2r);
+			gt = Math.max(0, g - W1 * w1g - W2 * w2g);
+			bt = Math.max(0, b - W1 * w1b - W2 * w2b);
+			score = W1 + W2 - (rt + gt + bt) * 0.1f;
+			if (score > bestScore) {
+				bestW1 = W1;
+				bestW2 = W2;
+				bestScore = score;
 			}
 		}
-		det = w1.r * w2.b - w1.b * w2.r; // RB constraints.
-		if (Math.abs(det) > EPSILON) {
-			W1 = (r * w2.b - b * w2.r) / det;
-			W2 = (b * w1.r - r * w1.b) / det;
-			if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1.g + W2 * w2.g <= g + EPSILON) {
-				rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
-				gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
-				bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
-				score = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
-				if (score > bestScore) {
-					bestW1 = W1;
-					bestW2 = W2;
-					bestScore = score;
-				}
+		// RB constraints.
+		W1 = (r * w2b - b * w2r) * wdet.rb();
+		W2 = (b * w1r - r * w1b) * wdet.rb();
+		if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1g + W2 * w2g <= g + EPSILON) {
+			rt = Math.max(0, r - W1 * w1r - W2 * w2r);
+			gt = Math.max(0, g - W1 * w1g - W2 * w2g);
+			bt = Math.max(0, b - W1 * w1b - W2 * w2b);
+			score = W1 + W2 - (rt + gt + bt) * 0.1f;
+			if (score > bestScore) {
+				bestW1 = W1;
+				bestW2 = W2;
+				bestScore = score;
 			}
 		}
-		det = w1.g * w2.b - w1.b * w2.g; // GB constraints.
-		if (Math.abs(det) > EPSILON) {
-			W1 = (g * w2.b - b * w2.g) / det;
-			W2 = (b * w1.g - g * w1.b) / det;
-			if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1.r + W2 * w2.r <= r + EPSILON) {
-				rOut = Math.max(0, r - W1 * w1.r - W2 * w2.r);
-				gOut = Math.max(0, g - W1 * w1.g - W2 * w2.g);
-				bOut = Math.max(0, b - W1 * w1.b - W2 * w2.b);
-				score = (W1 + W2) - 0.1f * (rOut + gOut + bOut);
-				if (score > bestScore) {
-					bestW1 = W1;
-					bestW2 = W2;
-					bestScore = score;
-				}
+		// GB constraints.
+		W1 = (g * w2b - b * w2g) * wdet.gb();
+		W2 = (b * w1g - g * w1b) * wdet.gb();
+		if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1r + W2 * w2r <= r + EPSILON) {
+			rt = Math.max(0, r - W1 * w1r - W2 * w2r);
+			gt = Math.max(0, g - W1 * w1g - W2 * w2g);
+			bt = Math.max(0, b - W1 * w1b - W2 * w2b);
+			score = W1 + W2 - (rt + gt + bt) * 0.1f;
+			if (score > bestScore) {
+				bestW1 = W1;
+				bestW2 = W2;
+				bestScore = score;
 			}
 		}
 		return new RGBWW( //
-			Math.max(0, r - bestW1 * w1.r - bestW2 * w2.r), //
-			Math.max(0, g - bestW1 * w1.g - bestW2 * w2.g), //
-			Math.max(0, b - bestW1 * w1.b - bestW2 * w2.b), //
+			Math.max(0, r - bestW1 * w1r - bestW2 * w2r), //
+			Math.max(0, g - bestW1 * w1g - bestW2 * w2g), //
+			Math.max(0, b - bestW1 * w1b - bestW2 * w2b), //
 			bestW1, bestW2);
 	}
 

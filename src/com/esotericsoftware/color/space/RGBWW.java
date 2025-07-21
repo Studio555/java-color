@@ -63,4 +63,17 @@ public record RGBWW (
 	public int w2_16 () {
 		return Math.round(w2 * 65535);
 	}
+
+	public record Wdet (float rg, float rb, float gb) {
+		public Wdet (LRGB w1, LRGB w2) {
+			this( //
+				clamp(w1.r() * w2.g() - w1.g() * w2.r()), //
+				clamp(w1.r() * w2.b() - w1.b() * w2.r()), //
+				clamp(w1.g() * w2.b() - w1.b() * w2.g()));
+		}
+
+		static private float clamp (float value) {
+			return 1 / (Math.abs(value) < 0.001f ? Math.copySign(0.001f, value) : value);
+		}
+	}
 }

@@ -111,15 +111,16 @@ Convert linear RGB or CCT to RGBW or RGBWW, using calibrated white LED colors.
 
 ```java
 // RGBW (single white channel)
-RGBW rgbw = linearRgb.RGBW(whitePoint);
+RGBW rgbw = linearRgb.RGBW(white);
 
 // RGBWW (dual white channels)  
-RGBWW rgbww = linearRgb.RGBWW(warmWhite, coolWhite);
+Wdet wdet = new Wdet(warmWhite, coolWhite);
+RGBWW rgbww = linearRgb.RGBWW(warmWhite, coolWhite, wdet);
 
 // Create from color temperature
 CCT cct3000 = new CCT(3000);
-RGBW rgbw = cct3000.LRGB().scl(0.8f).RGBW(whitePoint);
-RGBWW rgbww = cct3000.LRGB().scl(0.8f).RGBWW(warmWhite, coolWhite);
+RGBW rgbw = cct3000.LRGB().scl(0.8f).RGBW(white);
+RGBWW rgbww = cct3000.LRGB().scl(0.8f).RGBWW(warmWhite, coolWhite, wdet);
 ```
 
 ## Spectral Color and Light Quality
