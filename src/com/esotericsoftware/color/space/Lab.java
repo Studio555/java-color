@@ -1,11 +1,11 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Observer;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** CIELAB perceptually uniform color space. */
 public record Lab (
@@ -145,7 +145,7 @@ public record Lab (
 	}
 
 	public Lab lerp (Lab other, float t) {
-		return new Lab(Util.lerp(L, other.L, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
+		return new Lab(Colors.lerp(L, other.L, t), Colors.lerp(a, other.a, t), Colors.lerp(b, other.b, t));
 	}
 
 	public Lab sub (float value) {

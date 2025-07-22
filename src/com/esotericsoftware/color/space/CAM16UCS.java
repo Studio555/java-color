@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 import com.esotericsoftware.color.space.CAMSpace.CAM16Space;
 
 /** Uniform Color Space based on CAM16, for general color difference calculations. */
@@ -51,7 +51,7 @@ public record CAM16UCS (
 	}
 
 	public CAM16UCS lerp (CAM16UCS other, float t) {
-		return new CAM16UCS(Util.lerp(J, other.J, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
+		return new CAM16UCS(Colors.lerp(J, other.J, t), Colors.lerp(a, other.a, t), Colors.lerp(b, other.b, t));
 	}
 
 	public CAM16UCS sub (float value) {

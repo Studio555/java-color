@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 /** PAL analog TV color encoding. */
 public record YUV (

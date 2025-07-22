@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** Perceptually uniform color space. Based on CAM16 and IPT. */
 public record Oklab (
@@ -112,7 +112,7 @@ public record Oklab (
 	}
 
 	public Oklab lerp (Oklab other, float t) {
-		return new Oklab(Util.lerp(L, other.L, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
+		return new Oklab(Colors.lerp(L, other.L, t), Colors.lerp(a, other.a, t), Colors.lerp(b, other.b, t));
 	}
 
 	public Oklab sub (float value) {

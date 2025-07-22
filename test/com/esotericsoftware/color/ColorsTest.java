@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -429,24 +429,24 @@ public class ColorsTest extends Tests {
 		float[] vector = {1, 2, 3};
 		float[][] matrix = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
-		float[] result = Util.matrixMultiply(vector[0], vector[1], vector[2], matrix);
+		float[] result = Colors.matrixMultiply(vector[0], vector[1], vector[2], matrix);
 		assertCloseD(vector, result, "Identity matrix multiply");
 
 		// Test with a known transformation
 		float[][] scaleMatrix = {{2, 0, 0}, {0, 2, 0}, {0, 0, 2}};
-		float[] scaled = Util.matrixMultiply(vector[0], vector[1], vector[2], scaleMatrix);
+		float[] scaled = Colors.matrixMultiply(vector[0], vector[1], vector[2], scaleMatrix);
 		assertCloseD(new float[] {2, 4, 6}, scaled, "Scale matrix multiply");
 
 		// Test matrixMultiply
 		vector = new float[] {1, 2, 3};
 		matrix = new float[][] {{1, 0, 0}, {0, 2, 0}, {0, 0, 3}};
-		result = Util.matrixMultiply(vector[0], vector[1], vector[2], matrix);
+		result = Colors.matrixMultiply(vector[0], vector[1], vector[2], matrix);
 		float[] expected = {1, 4, 9};
 		assertClose(expected, result, EPSILON_F, "Matrix multiply");
 
 		// Test with non-diagonal matrix
 		float[][] matrix2 = {{0.5f, 0.3f, 0.2f}, {0.1f, 0.6f, 0.3f}, {0.2f, 0.2f, 0.6f}};
-		result = Util.matrixMultiply(vector[0], vector[1], vector[2], matrix2);
+		result = Colors.matrixMultiply(vector[0], vector[1], vector[2], matrix2);
 		expected = new float[] {1 * 0.5f + 2 * 0.3f + 3 * 0.2f, // 0.5 + 0.6 + 0.6 = 1.7
 			1 * 0.1f + 2 * 0.6f + 3 * 0.3f, // 0.1 + 1.2 + 0.9 = 2.2
 			1 * 0.2f + 2 * 0.2f + 3 * 0.6f // 0.2 + 0.4 + 1.8 = 2.4
@@ -455,7 +455,7 @@ public class ColorsTest extends Tests {
 
 		// Test with identity matrix
 		float[][] identity = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-		result = Util.matrixMultiply(0.5f, 0.3f, 0.7f, identity);
+		result = Colors.matrixMultiply(0.5f, 0.3f, 0.7f, identity);
 		expected = new float[] {0.5f, 0.3f, 0.7f};
 		assertClose(expected, result, EPSILON_F, "Identity matrix multiply");
 	}
@@ -905,7 +905,7 @@ public class ColorsTest extends Tests {
 		Assertions.assertNotNull(hexCmyk);
 
 		// Test toString methods
-		String rgbStr = Util.toString(rgb);
+		String rgbStr = Colors.toString(rgb);
 		assertTrue(rgbStr.contains("0.5"), "toString contains R value");
 
 		String rgb255Str = toString255(rgb);

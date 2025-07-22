@@ -1,11 +1,11 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Observer;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** Cylindrical CIELAB. */
 public record LCh (
@@ -56,7 +56,7 @@ public record LCh (
 	}
 
 	public LCh lerp (LCh other, float t) {
-		return new LCh(Util.lerp(L, other.L, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t));
+		return new LCh(Colors.lerp(L, other.L, t), Colors.lerp(C, other.C, t), lerpAngle(h, other.h, t));
 	}
 
 	@SuppressWarnings("all")

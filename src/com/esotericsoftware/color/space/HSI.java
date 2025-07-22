@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 /** Hue, Saturation, Intensity. */
 public record HSI (

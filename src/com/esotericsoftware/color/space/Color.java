@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Observer;

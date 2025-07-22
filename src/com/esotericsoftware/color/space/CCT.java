@@ -1,12 +1,12 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Observer;
 import com.esotericsoftware.color.Spectrum;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 public record CCT ( //
 	float K,
@@ -172,7 +172,7 @@ public record CCT ( //
 	}
 
 	public CCT lerp (CCT other, float t) {
-		return new CCT(Util.lerp(K, other.K(), t), clamp(Util.lerp(Duv, other.Duv(), t)));
+		return new CCT(Colors.lerp(K, other.K(), t), clamp(Colors.lerp(Duv, other.Duv(), t)));
 	}
 
 	@SuppressWarnings("all")

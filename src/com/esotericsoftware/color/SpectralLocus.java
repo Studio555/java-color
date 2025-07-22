@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.uv;

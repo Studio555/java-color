@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** Hue, Saturation, Lightness. Cylindrical RGB. */
 public record HSL (
@@ -51,7 +51,7 @@ public record HSL (
 	}
 
 	public HSL lerp (HSL other, float t) {
-		return new HSL(lerpAngle(H, other.H, t), Util.lerp(S, other.S, t), Util.lerp(L, other.L, t));
+		return new HSL(lerpAngle(H, other.H, t), Colors.lerp(S, other.S, t), Colors.lerp(L, other.L, t));
 	}
 
 	static private float hueToRGB (float v1, float v2, float vH) {

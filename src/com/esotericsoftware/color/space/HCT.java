@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** Material color system. {@link CAM16} hue/chroma with {@link Lab} L* tone. */
 public record HCT (
@@ -46,7 +46,7 @@ public record HCT (
 	}
 
 	public HCT lerp (HCT other, float t) {
-		return new HCT(lerpAngle(h, other.h, t), Util.lerp(C, other.C, t), Util.lerp(T, other.T, t));
+		return new HCT(lerpAngle(h, other.h, t), Colors.lerp(C, other.C, t), Colors.lerp(T, other.T, t));
 	}
 
 	@SuppressWarnings("all")

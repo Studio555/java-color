@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.space.CAM02;
 import com.esotericsoftware.color.space.CAM02UCS;
@@ -371,7 +371,7 @@ public record Spectrum (float[] values, int step, int start) {
 		checkSame(other);
 		float[] newValues = new float[values.length];
 		for (int i = 0; i < values.length; i++)
-			newValues[i] = Util.lerp(values[i], other.values[i], t);
+			newValues[i] = Colors.lerp(values[i], other.values[i], t);
 		return new Spectrum(newValues, step, start);
 	}
 
@@ -423,7 +423,7 @@ public record Spectrum (float[] values, int step, int start) {
 		float fraction = position - index;
 		if (index >= values.length - 1) return values[values.length - 1];
 		if (fraction == 0) return values[index];
-		return Util.lerp(values[index], values[index + 1], fraction);
+		return Colors.lerp(values[index], values[index + 1], fraction);
 	}
 
 	public int end () {

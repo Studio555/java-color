@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color.tools;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import java.io.File;
 import java.util.ArrayList;

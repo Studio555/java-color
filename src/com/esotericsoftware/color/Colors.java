@@ -4,7 +4,7 @@ package com.esotericsoftware.color;
 import java.lang.reflect.RecordComponent;
 
 /** @author Nathan Sweet <misc@n4te.com> */
-public class Util {
+public class Colors {
 	static public final float PI = 3.1415927f, radDeg = 180 / PI, degRad = PI / 180;
 	static public final float EPSILON = 1e-6f;
 
@@ -19,6 +19,12 @@ public class Util {
 	/** @return [0..1]. */
 	static public float clamp (float value) {
 		return Math.max(0, Math.min(1, value));
+	}
+
+	static public float clamp (float value, float min, float max) {
+		if (value < min) return min;
+		if (value > max) return max;
+		return value;
 	}
 
 	static public float lerp (float from, float to, float t) {

@@ -1,10 +1,10 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Observer;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** Color Appearance Model 2016. Predicts color appearance under viewing conditions. */
 public record CAM16 (
@@ -98,7 +98,7 @@ public record CAM16 (
 
 	/** @return JCh are interpolated, QMs are NaN. */
 	public CAM16 lerp (CAM16 other, float t) {
-		return new CAM16(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), //
+		return new CAM16(Colors.lerp(J, other.J, t), Colors.lerp(C, other.C, t), lerpAngle(h, other.h, t), //
 			Float.NaN, Float.NaN, Float.NaN);
 	}
 
@@ -134,7 +134,7 @@ public record CAM16 (
 			float gW = wp.X() * -0.250268f + wp.Y() * 1.204414f + wp.Z() * 0.045854f;
 			float bW = wp.X() * -0.002079f + wp.Y() * 0.048952f + wp.Z() * 0.953127f;
 			float Nc = 0.8f + surround / 10;
-			float c = Nc >= 0.9f ? Util.lerp(0.59f, 0.69f, (Nc - 0.9f) * 10) : Util.lerp(0.525f, 0.59f, (Nc - 0.8f) * 10);
+			float c = Nc >= 0.9f ? Colors.lerp(0.59f, 0.69f, (Nc - 0.9f) * 10) : Colors.lerp(0.525f, 0.59f, (Nc - 0.8f) * 10);
 			float d = clamp(discounting ? 1 : Nc * (1 - 1 / 3.6f * (float)Math.exp((-La - 42) / 92)));
 			float[] rgbD = {d * (100 / rW) + 1 - d, d * (100 / gW) + 1 - d, d * (100 / bW) + 1 - d};
 			float k = 1 / (5 * La + 1), k4 = k * k * k * k, k4F = 1 - k4;

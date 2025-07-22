@@ -1,10 +1,10 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Gamut;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** CIE 1960 UCS chromaticity coordinates. */
 public record uv1960 (
@@ -74,7 +74,7 @@ public record uv1960 (
 	}
 
 	public uv1960 lerp (uv1960 other, float t) {
-		return new uv1960(Util.lerp(u, other.u, t), Util.lerp(v, other.v, t));
+		return new uv1960(Colors.lerp(u, other.u, t), Colors.lerp(v, other.v, t));
 	}
 
 	public uv1960 mid (uv1960 other) {

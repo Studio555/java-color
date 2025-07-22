@@ -2,7 +2,7 @@
 package com.esotericsoftware.color;
 
 import static com.esotericsoftware.color.Gamut.*;
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.space.LRGB;
 import com.esotericsoftware.color.space.RGB;

@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** Oklab-based {@link HSV}. More perceptually uniform than HSV. */
 public record Okhsv (
@@ -45,7 +45,7 @@ public record Okhsv (
 	}
 
 	public Okhsv lerp (Okhsv other, float t) {
-		return new Okhsv(lerpAngle(h, other.h, t), Util.lerp(s, other.s, t), Util.lerp(v, other.v, t));
+		return new Okhsv(lerpAngle(h, other.h, t), Colors.lerp(s, other.s, t), Colors.lerp(v, other.v, t));
 	}
 
 	@SuppressWarnings("all")

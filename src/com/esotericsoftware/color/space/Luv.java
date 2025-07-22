@@ -1,11 +1,11 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Illuminant;
 import com.esotericsoftware.color.Observer;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** CIELUV perceptually uniform color space. */
 public record Luv (
@@ -111,7 +111,7 @@ public record Luv (
 		else if (Float.isNaN(other.u))
 			u = this.u;
 		else
-			u = Util.lerp(this.u, other.u, t);
+			u = Colors.lerp(this.u, other.u, t);
 		if (Float.isNaN(this.v) && Float.isNaN(other.v))
 			v = 0;
 		else if (Float.isNaN(this.v))
@@ -119,8 +119,8 @@ public record Luv (
 		else if (Float.isNaN(other.v))
 			v = this.v;
 		else
-			v = Util.lerp(this.v, other.v, t);
-		return new Luv(Util.lerp(L, other.L, t), u, v);
+			v = Colors.lerp(this.v, other.v, t);
+		return new Luv(Colors.lerp(L, other.L, t), u, v);
 	}
 
 	public Luv sub (float value) {

@@ -1,10 +1,10 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Observer;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 public record CAM02 (
 	/** Lightness [0..100]. */
@@ -123,7 +123,7 @@ public record CAM02 (
 
 	/** @return JCh are interpolated, QMs are NaN. */
 	public CAM02 lerp (CAM02 other, float t) {
-		return new CAM02(Util.lerp(J, other.J, t), Util.lerp(C, other.C, t), lerpAngle(h, other.h, t), //
+		return new CAM02(Colors.lerp(J, other.J, t), Colors.lerp(C, other.C, t), lerpAngle(h, other.h, t), //
 			Float.NaN, Float.NaN, Float.NaN);
 	}
 

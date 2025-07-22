@@ -1,10 +1,10 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Gamut;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** Standard RGB with sRGB gamma encoding. Values are clamped [0..1], use {@link LRGB} or {@link XYZ} for interchange to preserve
  * wide-gamut colors. */
@@ -98,15 +98,15 @@ public record RGB (
 	}
 
 	public RGB lerp (RGB other, float t) {
-		return new RGB(clamp(Util.lerp(r, other.r(), t)), clamp(Util.lerp(g, other.g(), t)), clamp(Util.lerp(b, other.b(), t)));
+		return new RGB(clamp(Colors.lerp(r, other.r(), t)), clamp(Colors.lerp(g, other.g(), t)), clamp(Colors.lerp(b, other.b(), t)));
 	}
 
 	public float max () {
-		return Util.max(r, g, b);
+		return Colors.max(r, g, b);
 	}
 
 	public float min () {
-		return Util.min(r, g, b);
+		return Colors.min(r, g, b);
 	}
 
 	public RGB nor () {

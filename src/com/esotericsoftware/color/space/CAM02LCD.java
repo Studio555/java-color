@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 import com.esotericsoftware.color.space.CAMSpace.CAM02Space;
 
 /** Uniform Color Space based on CAM02, specialized for large color difference calculations. */
@@ -53,7 +53,7 @@ public record CAM02LCD (
 	}
 
 	public CAM02LCD lerp (CAM02LCD other, float t) {
-		return new CAM02LCD(Util.lerp(J, other.J, t), Util.lerp(a, other.a, t), Util.lerp(b, other.b, t));
+		return new CAM02LCD(Colors.lerp(J, other.J, t), Colors.lerp(a, other.a, t), Colors.lerp(b, other.b, t));
 	}
 
 	public CAM02LCD sub (float value) {

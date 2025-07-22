@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** ITU-R BT.2100 for HDR and wide color gamut. Also known as ICtCp. */
 public record ITP (
@@ -43,7 +43,7 @@ public record ITP (
 	}
 
 	public ITP lerp (ITP other, float t) {
-		return new ITP(Util.lerp(I, other.I, t), Util.lerp(Ct, other.Ct, t), Util.lerp(Cp, other.Cp, t));
+		return new ITP(Colors.lerp(I, other.I, t), Colors.lerp(Ct, other.Ct, t), Colors.lerp(Cp, other.Cp, t));
 	}
 
 	@SuppressWarnings("all")

@@ -1,10 +1,10 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Illuminant;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 import com.esotericsoftware.color.space.LMS.CAT;
 
 /** CIE 1931 tristimulus values. Foundation of colorimetry. */
@@ -225,15 +225,15 @@ public record XYZ (
 	}
 
 	public XYZ lerp (XYZ other, float t) {
-		return new XYZ(Util.lerp(X, other.X, t), Util.lerp(Y, other.Y, t), Util.lerp(Z, other.Z, t));
+		return new XYZ(Colors.lerp(X, other.X, t), Colors.lerp(Y, other.Y, t), Colors.lerp(Z, other.Z, t));
 	}
 
 	public float max () {
-		return Util.max(X, Y, Z);
+		return Colors.max(X, Y, Z);
 	}
 
 	public float min () {
-		return Util.min(X, Y, Z);
+		return Colors.min(X, Y, Z);
 	}
 
 	public XYZ norY () {

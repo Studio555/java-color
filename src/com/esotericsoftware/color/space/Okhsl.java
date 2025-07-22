@@ -1,7 +1,7 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 /** Oklab-based {@link HSL}. More perceptually uniform than HSL. */
 public record Okhsl (

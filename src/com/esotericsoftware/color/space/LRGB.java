@@ -1,10 +1,10 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Gamut;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 import com.esotericsoftware.color.space.RGBWW.WW;
 
 /** Linear RGB, without gamma correction. Values are not clamped. */
@@ -42,7 +42,7 @@ public record LRGB (
 	}
 
 	public RGB RGB () {
-		return new RGB(sRGB(Util.clamp(r)), sRGB(Util.clamp(g)), sRGB(Util.clamp(b)));
+		return new RGB(sRGB(Colors.clamp(r)), sRGB(Colors.clamp(g)), sRGB(Colors.clamp(b)));
 	}
 
 	/** Convert to RGBW using one calibrated white LED color. Moves power from RGB to W.
@@ -61,23 +61,23 @@ public record LRGB (
 		float w1r = ww.r1(), w1g = ww.g1(), w1b = ww.b1();
 		float w2r = ww.r2(), w2g = ww.g2(), w2b = ww.b2();
 		// W1 at maximum possible value, find best W2.
-		float W1 = Math.min(Math.min(r * ww.ri1(), g * ww.gi1()), b * ww.bi1());
+		float W1 = Math.min(Math.min(r * ww.r1inv(), g * ww.g1inv()), b * ww.b1inv());
 		float rt = r - W1 * w1r, gt = g - W1 * w1g, bt = b - W1 * w1b;
-		float W2 = Math.max(0, rt * ww.ri2());
-		W2 = Math.min(W2, Math.max(0, gt * ww.gi2()));
-		W2 = Math.min(W2, Math.max(0, bt * ww.bi2()));
+		float W2 = Math.max(0, rt * ww.r2inv());
+		W2 = Math.min(W2, Math.max(0, gt * ww.g2inv()));
+		W2 = Math.min(W2, Math.max(0, bt * ww.b2inv()));
 		rt = Math.max(0, rt - W2 * w2r);
 		gt = Math.max(0, gt - W2 * w2g);
 		bt = Math.max(0, bt - W2 * w2b);
 		float bestW1 = W1, bestW2 = W2, bestScore = W1 + W2 - (rt + gt + bt) * 0.1f;
 		// W2 at maximum possible value, find best W1.
-		W2 = Math.min(Math.min(r * ww.ri2(), g * ww.gi2()), b * ww.bi2());
+		W2 = Math.min(Math.min(r * ww.r2inv(), g * ww.g2inv()), b * ww.b2inv());
 		rt = r - W2 * w2r;
 		gt = g - W2 * w2g;
 		bt = b - W2 * w2b;
-		W1 = Math.max(0, rt * ww.ri1());
-		W1 = Math.min(W1, Math.max(0, gt * ww.gi1()));
-		W1 = Math.min(W1, Math.max(0, bt * ww.bi1()));
+		W1 = Math.max(0, rt * ww.r1inv());
+		W1 = Math.min(W1, Math.max(0, gt * ww.g1inv()));
+		W1 = Math.min(W1, Math.max(0, bt * ww.b1inv()));
 		rt = Math.max(0, rt - W1 * w1r);
 		gt = Math.max(0, gt - W1 * w1g);
 		bt = Math.max(0, bt - W1 * w1b);
@@ -176,19 +176,19 @@ public record LRGB (
 	}
 
 	public LRGB clamp () {
-		return new LRGB(Util.clamp(r), Util.clamp(g), Util.clamp(b));
+		return new LRGB(Colors.clamp(r), Colors.clamp(g), Colors.clamp(b));
 	}
 
 	public LRGB lerp (LRGB other, float t) {
-		return new LRGB(Util.lerp(r, other.r, t), Util.lerp(g, other.g, t), Util.lerp(b, other.b, t));
+		return new LRGB(Colors.lerp(r, other.r, t), Colors.lerp(g, other.g, t), Colors.lerp(b, other.b, t));
 	}
 
 	public float max () {
-		return Util.max(r, g, b);
+		return Colors.max(r, g, b);
 	}
 
 	public float min () {
-		return Util.min(r, g, b);
+		return Colors.min(r, g, b);
 	}
 
 	public LRGB nor () {

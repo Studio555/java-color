@@ -1,10 +1,10 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Gamut;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** CIE 1976 u'v' chromaticity coordinates. */
 public record uv (
@@ -93,7 +93,7 @@ public record uv (
 	}
 
 	public uv lerp (uv other, float t) {
-		return new uv(Util.lerp(u, other.u, t), Util.lerp(v, other.v, t));
+		return new uv(Colors.lerp(u, other.u, t), Colors.lerp(v, other.v, t));
 	}
 
 	/** Compares perceptual chromaticity. */

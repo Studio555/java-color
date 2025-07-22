@@ -1,10 +1,10 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import com.esotericsoftware.color.Gamut;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** CIE 1931 chromaticity coordinates. */
 public record xy (
@@ -66,7 +66,7 @@ public record xy (
 	}
 
 	public xy lerp (xy other, float t) {
-		return new xy(Util.lerp(x, other.x, t), Util.lerp(y, other.y, t));
+		return new xy(Colors.lerp(x, other.x, t), Colors.lerp(y, other.y, t));
 	}
 
 	public xy mid (xy other) {

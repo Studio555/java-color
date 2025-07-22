@@ -1,13 +1,13 @@
 
 package com.esotericsoftware.color.tools;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.esotericsoftware.color.Observer;
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 import com.esotericsoftware.color.space.XYZ;
 
 /** @author Nathan Sweet <misc@n4te.com> */
@@ -26,17 +26,17 @@ public class CCTRobertsonLUT {
 			float[] entry = entry(K, mired);
 			entries.add(entry);
 			if (K < 2000)
-				K *= Util.lerp(1.03f, 1.037f, (float)K / 2000);
+				K *= Colors.lerp(1.03f, 1.037f, (float)K / 2000);
 			else if (K < 7000)
-				K *= Util.lerp(1.037f, 1.045f, (float)(K - 2000) / (7000 - 2000));
+				K *= Colors.lerp(1.037f, 1.045f, (float)(K - 2000) / (7000 - 2000));
 			else if (K < 20000)
-				K *= Util.lerp(1.045f, 1.05f, (float)(K - 7000) / (20000 - 7000));
+				K *= Colors.lerp(1.045f, 1.05f, (float)(K - 7000) / (20000 - 7000));
 			else if (K < 40000)
-				K *= Util.lerp(1.05f, 1.0525f, (float)(K - 20000) / (40000 - 20000));
+				K *= Colors.lerp(1.05f, 1.0525f, (float)(K - 20000) / (40000 - 20000));
 			else if (K < 60000)
-				K *= Util.lerp(1.048f, 1.0432f, (float)(K - 40000) / (60000 - 40000));
+				K *= Colors.lerp(1.048f, 1.0432f, (float)(K - 40000) / (60000 - 40000));
 			else if (K < 100000)
-				K *= Util.lerp(1.0432f, 1.03106657f, (float)(K - 60000) / (80000 - 60000));
+				K *= Colors.lerp(1.0432f, 1.03106657f, (float)(K - 60000) / (80000 - 60000));
 			else
 				K *= 1.025f;
 			K *= 0.996f;

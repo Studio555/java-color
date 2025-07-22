@@ -1,9 +1,9 @@
 
 package com.esotericsoftware.color.space;
 
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
-import com.esotericsoftware.color.Util;
+import com.esotericsoftware.color.Colors;
 
 /** Human-friendly {@link HSL}. Perceptually uniform saturation and lightness. */
 public record HSLuv (
@@ -33,7 +33,7 @@ public record HSLuv (
 	}
 
 	public HSLuv lerp (HSLuv other, float t) {
-		return new HSLuv(lerpAngle(H, other.H, t), Util.lerp(S, other.S, t), Util.lerp(L, other.L, t));
+		return new HSLuv(lerpAngle(H, other.H, t), Colors.lerp(S, other.S, t), Colors.lerp(L, other.L, t));
 	}
 
 	static float maxChromaForLH (float L, float H) { // Based on Copyright (c) 2016 Alexei Boronine (MIT License).

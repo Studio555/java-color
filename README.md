@@ -114,13 +114,13 @@ Convert linear RGB or CCT to RGBW or RGBWW, using calibrated white LED colors.
 RGBW rgbw = linearRgb.RGBW(white);
 
 // RGBWW (dual white channels)  
-Wdet wdet = new Wdet(warmWhite, coolWhite);
-RGBWW rgbww = linearRgb.RGBWW(warmWhite, coolWhite, wdet);
+WW ww = new WW(warmWhite, coolWhite);
+RGBWW rgbww = linearRgb.RGBWW(ww);
 
 // Create from color temperature
 CCT cct3000 = new CCT(3000);
 RGBW rgbw = cct3000.LRGB().scl(0.8f).RGBW(white);
-RGBWW rgbww = cct3000.LRGB().scl(0.8f).RGBWW(warmWhite, coolWhite, wdet);
+RGBWW rgbww = cct3000.LRGB().scl(0.8f).RGBWW(ww);
 ```
 
 ## Spectral Color and Light Quality
@@ -274,7 +274,7 @@ float distance = color1.dst(color2); // Euclidean distance
 Oklab mixed = oklab1.lerp(oklab2, 0.5f); // 50% blend
 
 // Utility functions
-import static com.esotericsoftware.color.Util.*;
+import static com.esotericsoftware.color.Colors.*;
 
 float encoded = sRGB(linear);   // Gamma correction
 String hex = hex(rgb);          // "FF8040"
