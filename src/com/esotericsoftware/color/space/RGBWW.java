@@ -64,9 +64,29 @@ public record RGBWW (
 		return Math.round(w2 * 65535);
 	}
 
-	public record Wdet (float rg, float rb, float gb) {
-		public Wdet (LRGB w1, LRGB w2) {
+	public record WW (
+		float r1,
+		float g1,
+		float b1,
+		float ri1,
+		float gi1,
+		float bi1,
+		float r2,
+		float g2,
+		float b2,
+		float ri2,
+		float gi2,
+		float bi2,
+		float rg,
+		float rb,
+		float gb) {
+
+		public WW (LRGB w1, LRGB w2) {
 			this( //
+				w1.r(), w1.g(), w1.b(), //
+				1 / w1.r(), 1 / w1.g(), 1 / w1.b(), //
+				w2.r(), w2.g(), w2.b(), //
+				1 / w2.r(), 1 / w2.g(), 1 / w2.b(), //
 				clamp(w1.r() * w2.g() - w1.g() * w2.r()), //
 				clamp(w1.r() * w2.b() - w1.b() * w2.r()), //
 				clamp(w1.g() * w2.b() - w1.b() * w2.g()));

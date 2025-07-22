@@ -22,7 +22,7 @@ import com.esotericsoftware.color.space.Luv;
 import com.esotericsoftware.color.space.RGB;
 import com.esotericsoftware.color.space.RGBW;
 import com.esotericsoftware.color.space.RGBWW;
-import com.esotericsoftware.color.space.RGBWW.Wdet;
+import com.esotericsoftware.color.space.RGBWW.WW;
 import com.esotericsoftware.color.space.TSL;
 import com.esotericsoftware.color.space.XYZ;
 import com.esotericsoftware.color.space.xy;
@@ -577,32 +577,32 @@ public class RGBTests extends Tests {
 		// Test RGB to RGBWW with two whites
 		LRGB warmWhite = new CCT(2700).LRGB();
 		LRGB coolWhite = new CCT(6500).LRGB();
-		Wdet wdet = new Wdet(warmWhite, coolWhite);
+		WW ww = new WW(warmWhite, coolWhite);
 
 		// Test warm color - should prefer warm white
 		LRGB warmColor = new LRGB(0.8f, 0.6f, 0.4f);
-		RGBWW warmResult = warmColor.RGBWW(warmWhite, coolWhite, wdet);
+		RGBWW warmResult = warmColor.RGBWW(ww);
 		assertTrue(warmResult.w1() > warmResult.w2(), "Warm color should use more warm white");
 
 		// Test cool color - should prefer cool white with improved algorithm
 		LRGB coolColor = new LRGB(0.4f, 0.5f, 0.8f);
-		RGBWW coolResult = coolColor.RGBWW(warmWhite, coolWhite, wdet);
+		RGBWW coolResult = coolColor.RGBWW(ww);
 		assertTrue(coolResult.w1() > 0 || coolResult.w2() > 0, "Should use white channels");
 		assertTrue(coolResult.w2() > coolResult.w1(), "Cool color should use more cool white");
 
 		// Test CCT to RGBWW conversion
 
 		// Test intermediate CCT - should use both whites for blending
-		RGBWW cct5500 = new CCT(5500).LRGB().RGBWW(warmWhite, coolWhite, wdet);
+		RGBWW cct5500 = new CCT(5500).LRGB().RGBWW(ww);
 		assertTrue(cct5500.w1() + cct5500.w2() > 0.5f, "Mid CCT should use substantial white channels");
 		// For intermediate temperatures, may use both whites or pick the closer one
 
 		// Test warm CCT - should use mostly warm white
-		RGBWW cct2700 = new CCT(2700).LRGB().scl(0.8f).RGBWW(warmWhite, coolWhite, wdet);
+		RGBWW cct2700 = new CCT(2700).LRGB().scl(0.8f).RGBWW(ww);
 		assertTrue(cct2700.w1() >= cct2700.w2(), "Warm CCT should favor warm white");
 
 		// Test cool CCT - should prefer cool white
-		RGBWW cct6500 = new CCT(6500).LRGB().scl(0.8f).RGBWW(warmWhite, coolWhite, wdet);
+		RGBWW cct6500 = new CCT(6500).LRGB().scl(0.8f).RGBWW(ww);
 		// With improved algorithm, 6500K should use cool white (w2)
 		assertTrue(cct6500.w2() > cct6500.w1(), "6500K should prefer cool white");
 		// Verify color accuracy
@@ -614,7 +614,7 @@ public class RGBTests extends Tests {
 		assertEquals(0.7936503f, b, 0.001f, "Blue channel accuracy");
 
 		// Test low brightness - should still maintain white ratio
-		RGBWW cctLow = new CCT(4500).LRGB().scl(0.2f).RGBWW(warmWhite, coolWhite, wdet);
+		RGBWW cctLow = new CCT(4500).LRGB().scl(0.2f).RGBWW(ww);
 		float totalWhite = cctLow.w1() + cctLow.w2();
 		assertTrue(totalWhite > 0.15f && totalWhite < 0.25f, "Low brightness should scale whites proportionally");
 

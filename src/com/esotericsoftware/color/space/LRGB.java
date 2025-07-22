@@ -5,7 +5,7 @@ import static com.esotericsoftware.color.Util.*;
 
 import com.esotericsoftware.color.Gamut;
 import com.esotericsoftware.color.Util;
-import com.esotericsoftware.color.space.RGBWW.Wdet;
+import com.esotericsoftware.color.space.RGBWW.WW;
 
 /** Linear RGB, without gamma correction. Values are not clamped. */
 public record LRGB (
@@ -56,33 +56,28 @@ public record LRGB (
 	}
 
 	/** Convert to RGBWW using two calibrated white LED colors. Moves power from RGB to WW.
-	 * @param w1 First white LED color.
-	 * @param w2 Second white LED color. */
-	public RGBWW RGBWW (LRGB w1, LRGB w2, Wdet wdet) {
-		float w1r = w1.r(), w1g = w1.g(), w1b = w1.b();
-		float w2r = w2.r(), w2g = w2.g(), w2b = w2.b();
+	 * @param ww White LED colors with precomputed values. */
+	public RGBWW RGBWW (WW ww) {
+		float w1r = ww.r1(), w1g = ww.g1(), w1b = ww.b1();
+		float w2r = ww.r2(), w2g = ww.g2(), w2b = ww.b2();
 		// W1 at maximum possible value, find best W2.
-		float W1 = r / w1r;
-		W1 = Math.min(W1, g / w1g);
-		W1 = Math.min(W1, b / w1b);
+		float W1 = Math.min(Math.min(r * ww.ri1(), g * ww.gi1()), b * ww.bi1());
 		float rt = r - W1 * w1r, gt = g - W1 * w1g, bt = b - W1 * w1b;
-		float W2 = Math.max(0, rt / w2r);
-		W2 = Math.min(W2, Math.max(0, gt / w2g));
-		W2 = Math.min(W2, Math.max(0, bt / w2b));
+		float W2 = Math.max(0, rt * ww.ri2());
+		W2 = Math.min(W2, Math.max(0, gt * ww.gi2()));
+		W2 = Math.min(W2, Math.max(0, bt * ww.bi2()));
 		rt = Math.max(0, rt - W2 * w2r);
 		gt = Math.max(0, gt - W2 * w2g);
 		bt = Math.max(0, bt - W2 * w2b);
 		float bestW1 = W1, bestW2 = W2, bestScore = W1 + W2 - (rt + gt + bt) * 0.1f;
 		// W2 at maximum possible value, find best W1.
-		W2 = r / w2r;
-		W2 = Math.min(W2, g / w2g);
-		W2 = Math.min(W2, b / w2b);
+		W2 = Math.min(Math.min(r * ww.ri2(), g * ww.gi2()), b * ww.bi2());
 		rt = r - W2 * w2r;
 		gt = g - W2 * w2g;
 		bt = b - W2 * w2b;
-		W1 = Math.max(0, rt / w1r);
-		W1 = Math.min(W1, Math.max(0, gt / w1g));
-		W1 = Math.min(W1, Math.max(0, bt / w1b));
+		W1 = Math.max(0, rt * ww.ri1());
+		W1 = Math.min(W1, Math.max(0, gt * ww.gi1()));
+		W1 = Math.min(W1, Math.max(0, bt * ww.bi1()));
 		rt = Math.max(0, rt - W1 * w1r);
 		gt = Math.max(0, gt - W1 * w1g);
 		bt = Math.max(0, bt - W1 * w1b);
@@ -93,8 +88,8 @@ public record LRGB (
 			bestScore = score;
 		}
 		// RG constraints.
-		W1 = (r * w2g - g * w2r) * wdet.rg();
-		W2 = (g * w1r - r * w1g) * wdet.rg();
+		W1 = (r * w2g - g * w2r) * ww.rg();
+		W2 = (g * w1r - r * w1g) * ww.rg();
 		if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1b + W2 * w2b <= b + EPSILON) {
 			rt = Math.max(0, r - W1 * w1r - W2 * w2r);
 			gt = Math.max(0, g - W1 * w1g - W2 * w2g);
@@ -107,8 +102,8 @@ public record LRGB (
 			}
 		}
 		// RB constraints.
-		W1 = (r * w2b - b * w2r) * wdet.rb();
-		W2 = (b * w1r - r * w1b) * wdet.rb();
+		W1 = (r * w2b - b * w2r) * ww.rb();
+		W2 = (b * w1r - r * w1b) * ww.rb();
 		if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1g + W2 * w2g <= g + EPSILON) {
 			rt = Math.max(0, r - W1 * w1r - W2 * w2r);
 			gt = Math.max(0, g - W1 * w1g - W2 * w2g);
@@ -121,8 +116,8 @@ public record LRGB (
 			}
 		}
 		// GB constraints.
-		W1 = (g * w2b - b * w2g) * wdet.gb();
-		W2 = (b * w1g - g * w1b) * wdet.gb();
+		W1 = (g * w2b - b * w2g) * ww.gb();
+		W2 = (b * w1g - g * w1b) * ww.gb();
 		if (W1 >= 0 && W1 <= 1 && W2 >= 0 && W2 <= 1 && W1 * w1r + W2 * w2r <= r + EPSILON) {
 			rt = Math.max(0, r - W1 * w1r - W2 * w2r);
 			gt = Math.max(0, g - W1 * w1g - W2 * w2g);
