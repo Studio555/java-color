@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.esotericsoftware.color.SpectrumTests" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-09-29T14:37:11.238Z" hostname="CA-88-BD-20-80-3C.tenants.dhcp.l26.se" time="0.002">
-  <properties/>
-  <testcase name="testD65()" classname="com.esotericsoftware.color.SpectrumTests" time="0.001"/>
-  <testcase name="test2693K()" classname="com.esotericsoftware.color.SpectrumTests" time="0.001"/>
-  <testcase name="test12248K()" classname="com.esotericsoftware.color.SpectrumTests" time="0.0"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
