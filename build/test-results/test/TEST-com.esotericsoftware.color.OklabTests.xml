@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.esotericsoftware.color.OklabTests" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-09-29T14:37:11.211Z" hostname="CA-88-BD-20-80-3C.tenants.dhcp.l26.se" time="0.003">
+  <properties/>
+  <testcase name="testKnownOklabValues()" classname="com.esotericsoftware.color.OklabTests" time="0.0"/>
+  <testcase name="testOkhsvConversions()" classname="com.esotericsoftware.color.OklabTests" time="0.001"/>
+  <testcase name="testOklabLerp()" classname="com.esotericsoftware.color.OklabTests" time="0.0"/>
+  <testcase name="testOklabConversions()" classname="com.esotericsoftware.color.OklabTests" time="0.001"/>
+  <testcase name="testRgbToOklabAndBack()" classname="com.esotericsoftware.color.OklabTests" time="0.0"/>
+  <testcase name="testOklchConversions()" classname="com.esotericsoftware.color.OklabTests" time="0.0"/>
+  <testcase name="testEdgeCases()" classname="com.esotericsoftware.color.OklabTests" time="0.0"/>
+  <testcase name="testOkhslConversions()" classname="com.esotericsoftware.color.OklabTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

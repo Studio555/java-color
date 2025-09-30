@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.esotericsoftware.color.AccessibilityTests" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-09-29T14:37:08.485Z" hostname="CA-88-BD-20-80-3C.tenants.dhcp.l26.se" time="0.006">
+  <properties/>
+  <testcase name="testContrastRatio()" classname="com.esotericsoftware.color.AccessibilityTests" time="0.005"/>
+  <testcase name="testWCAG_AAA()" classname="com.esotericsoftware.color.AccessibilityTests" time="0.0"/>
+  <testcase name="testWCAG_AA()" classname="com.esotericsoftware.color.AccessibilityTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

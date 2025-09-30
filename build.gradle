@@ -1,0 +1,63 @@
+plugins {
+    id 'java-library'
+    id "com.google.cloud.artifactregistry.gradle-plugin" version "2.2.5"
+    id "pl.allegro.tech.build.axion-release" version "1.18.7"
+    id "maven-publish"
+}
+
+group = "io.studio555"
+version = scmVersion.version
+
+repositories {
+    mavenLocal()
+    maven {
+        url "artifactregistry://europe-north1-maven.pkg.dev/s555-devservices-shared/maven"
+    }
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+    testImplementation 'org.junit.platform:junit-platform-launcher:1.11.3'
+}
+
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier.set('sources')
+}
+
+publishing {
+    repositories {
+        maven {
+            url "artifactregistry://europe-north1-maven.pkg.dev/s555-devservices-shared/maven"
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact tasks.named('sourcesJar')
+        }
+    }
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    suppressedValidationErrors.add('enforced-platform')
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-parameters"
+}
+
+plugins.withType(JavaPlugin) {
+    test {
+        useJUnitPlatform()
+//        systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    }
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.esotericsoftware.color.CAM02Tests" tests="10" skipped="0" failures="0" errors="0" timestamp="2025-09-29T14:37:08.498Z" hostname="CA-88-BD-20-80-3C.tenants.dhcp.l26.se" time="0.008">
+  <properties/>
+  <testcase name="testCAM02UCSDeltaE()" classname="com.esotericsoftware.color.CAM02Tests" time="0.0"/>
+  <testcase name="testCAM02toXYZRoundtrip()" classname="com.esotericsoftware.color.CAM02Tests" time="0.0"/>
+  <testcase name="testCAM02GrayColors()" classname="com.esotericsoftware.color.CAM02Tests" time="0.0"/>
+  <testcase name="testCAM02Correlates()" classname="com.esotericsoftware.color.CAM02Tests" time="0.0"/>
+  <testcase name="testCAM02EdgeCases()" classname="com.esotericsoftware.color.CAM02Tests" time="0.001"/>
+  <testcase name="testCAM02Hues()" classname="com.esotericsoftware.color.CAM02Tests" time="0.001"/>
+  <testcase name="testXYZtoCAM02()" classname="com.esotericsoftware.color.CAM02Tests" time="0.0"/>
+  <testcase name="testCAM02ViewingConditions()" classname="com.esotericsoftware.color.CAM02Tests" time="0.003"/>
+  <testcase name="testUCStoCAM02Roundtrip()" classname="com.esotericsoftware.color.CAM02Tests" time="0.0"/>
+  <testcase name="testCAM02toUCS()" classname="com.esotericsoftware.color.CAM02Tests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
